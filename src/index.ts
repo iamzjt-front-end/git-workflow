@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings
+// @ts-nocheck shebang handled by tsup banner
 
 import { cac } from "cac";
 import { colors, checkGitRepo } from "./utils.js";

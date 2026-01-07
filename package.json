@@ -8,7 +8,7 @@
 		"gw": "./dist/index.js"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsup",
 		"dev": "tsx src/index.ts",
 		"prepublishOnly": "npm run build"
 	},
@@ -32,6 +32,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^25.0.3",
+		"tsup": "^8.5.1",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
