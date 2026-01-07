@@ -12,6 +12,666 @@
 ### 📖 Documentation
 
 - Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (309bc23)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (144df43)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (064b59b)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (590a97f)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (91d1eb2)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (03c4f92)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (793b0c2)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (56ee10b)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (2da11f8)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (10844c3)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (54fffdc)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (d8d5fc7)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (ca17053)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (78dde98)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (472046d)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (2b70087)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (338c110)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (98de401)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (fe7c66a)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (a78c3a8)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (6943c54)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (63ddc7e)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (321ff21)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (e177485)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (87874cc)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (57c26b1)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (445e516)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (cc28656)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (27ace44)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
+- Enhance README with comprehensive guide and visual improvements (e1b4666)
+
+### 🏡 Chore
+
+- **build:** Replace tsc with tsup for optimized bundling (6e847f5)
+- Add automated changelog generation and git hooks (ea94d88)
+
+### ❤️ Contributors
+
+- 朱锦涛 <zhujintao@qmai.cn>
+
+## ...main
+
+
+### 🚀 Enhancements
+
+- Initialize git-workflow CLI project with core functionality (9d65fde)
+- **cli:** Migrate to CAC CLI framework with improved command structure (58de329)
+
+### 📖 Documentation
+
+- Update ID label terminology to English standards (1b0882d)
 
 ### 🏡 Chore
 

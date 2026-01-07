@@ -1,99 +1,179 @@
 # git-workflow
 
-[![npm version](https://img.shields.io/npm/v/git-workflow.svg)](https://www.npmjs.com/package/git-workflow)
-[![license](https://img.shields.io/npm/l/git-workflow.svg)](https://github.com/iamzjt/git-workflow/blob/main/LICENSE)
+<p align="center">
+  <img src="https://img.shields.io/npm/v/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm version">
+  <img src="https://img.shields.io/npm/dm/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm downloads">
+  <img src="https://img.shields.io/npm/l/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="license">
+  <img src="https://img.shields.io/badge/node-%3E%3D18-28CF8D?style=flat&colorA=18181B" alt="node version">
+</p>
 
-个人常用的 Git 工作流 CLI 工具，快速创建规范的开发分支和管理 Tag。
+<p align="center">
+🚀 极简的 Git 工作流 CLI 工具，让分支管理和版本发布变得轻松愉快
+</p>
+
+<p align="center">
+  <a href="#特性">特性</a> •
+  <a href="#快速开始">快速开始</a> •
+  <a href="#命令详解">命令详解</a> •
+  <a href="#配置文件">配置文件</a> •
+  <a href="#最佳实践">最佳实践</a>
+</p>
+
+---
+
+## 为什么选择 git-workflow？
+
+在日常开发中，你是否经常遇到这些问题：
+
+- 🤔 每次创建分支都要手动输入一长串命名规范？
+- 😫 发布版本时总是忘记当前版本号是多少？
+- 🔄 删除分支时需要分别处理本地和远程？
+- 📝 团队成员的分支命名风格五花八门？
+
+**git-workflow** 就是为解决这些痛点而生的。它提供了一套简洁的命令，让你专注于编码，而不是 Git 操作。
 
 ## 特性
 
-- 🚀 交互式创建 feature/hotfix 分支
-- 🏷️ 交互式递增版本号并创建 tag（支持 semver 和预发布版本）
-- 🗑️ 交互式删除本地/远程分支
-- ⚙️ 支持项目级配置文件
-- 🎨 友好的命令行交互体验
+- ⚡️ **极速上手** - 零配置开箱即用，一个命令搞定分支创建
+- 🎯 **规范命名** - 自动生成带日期的规范分支名，告别命名混乱
+- 🏷️ **智能版本** - 自动识别当前版本，交互式选择下一版本（支持 semver + 预发布）
+- 🗑️ **批量清理** - 一键删除本地+远程分支，按最近使用排序
+- ⚙️ **灵活配置** - 支持项目级配置文件，不同项目不同规范
+- 🎨 **优雅交互** - 友好的命令行界面，支持键盘快捷操作
+- 📦 **轻量依赖** - 打包体积仅 12KB，安装快速无负担
 
-## 安装
+## 快速开始
+
+### 安装
 
 ```bash
+# npm
 npm install -g git-workflow
+
+# pnpm
+pnpm add -g git-workflow
+
+# yarn
+yarn global add git-workflow
 ```
 
-## 使用
+### 30 秒上手
 
 ```bash
-gw <命令> [参数]
+# 创建 feature 分支
+gw f
+# ? 请输入 Story ID (可跳过): PROJ-123
+# ? 请输入描述: add-user-login
+# ✔ 分支创建成功: feature/20260107-PROJ-123-add-user-login
+
+# 创建 tag
+gw t
+# ? 选择 tag 前缀: v (最新: v1.2.0)
+# ? 选择版本类型: patch → v1.2.1
+# ✔ Tag 创建成功: v1.2.1
+# ✔ Tag 已推送: v1.2.1
+
+# 删除分支
+gw d
+# ? 选择要删除的分支: feature/20260105-old-feature (本地+远程)
+# ✔ 本地分支已删除
+# ✔ 远程分支已删除
 ```
+
+## 命令详解
 
 ### 分支命令
 
-| 命令                      | 缩写   | 说明              |
-| ------------------------- | ------ | ----------------- |
-| `gw feat [--base=分支名]` | `gw f` | 创建 feature 分支 |
-| `gw fix [--base=分支名]`  | `gw h` | 创建 hotfix 分支  |
-| `gw del [分支名]`         | `gw d` | 删除本地/远程分支 |
+| 命令                           | 别名              | 说明              |
+| ------------------------------ | ----------------- | ----------------- |
+| `gw feature [--base <branch>]` | `gw feat`, `gw f` | 创建 feature 分支 |
+| `gw hotfix [--base <branch>]`  | `gw fix`, `gw h`  | 创建 hotfix 分支  |
+| `gw delete [branch]`           | `gw del`, `gw d`  | 删除本地/远程分支 |
+
+#### 创建分支
 
 ```bash
-# 交互式创建 feature 分支 (基于 main/master)
+# 基于 main/master 创建（自动检测）
 gw f
 
-# 基于 develop 分支创建
-gw f --base=develop
-
-# 交互式删除分支（按最近使用排序）
-gw d
-
-# 直接删除指定分支
-gw d feature/xxx
+# 基于指定分支创建
+gw f --base develop
+gw fix --base release/1.0
 ```
 
-### Tag 命令
-
-| 命令             | 缩写    | 说明                       |
-| ---------------- | ------- | -------------------------- |
-| `gw tags [前缀]` | `gw ts` | 列出 tag（可按前缀过滤）   |
-| `gw tag [前缀]`  | `gw t`  | 交互式递增版本号并创建 tag |
-
-```bash
-# 列出所有 v 开头的 tag
-gw ts v
-
-# 交互式创建下一个版本（支持 patch/minor/major/alpha/beta/rc）
-gw t
-```
-
-### 帮助
-
-```bash
-gw help
-gw --help
-gw -h
-```
-
-## 分支命名格式
+分支命名格式：
 
 ```
 feature/YYYYMMDD-<ID>-<描述>
 hotfix/YYYYMMDD-<ID>-<描述>
-```
 
-ID 可跳过，格式变为：
-
-```
+# ID 可跳过
 feature/YYYYMMDD-<描述>
-hotfix/YYYYMMDD-<描述>
 ```
+
+#### 删除分支
+
+```bash
+# 交互式选择（按最近使用排序）
+gw d
+
+# 直接删除指定分支
+gw d feature/20260101-old-feature
+```
+
+删除时会自动检测远程分支是否存在，并询问是否一并删除。
+
+### Tag 命令
+
+| 命令               | 别名    | 说明                     |
+| ------------------ | ------- | ------------------------ |
+| `gw tags [prefix]` | `gw ts` | 列出 tag（可按前缀过滤） |
+| `gw tag [prefix]`  | `gw t`  | 交互式创建 tag           |
+
+#### 列出 Tag
+
+```bash
+# 列出所有 tag
+gw ts
+
+# 按前缀过滤
+gw ts v
+gw ts release-
+```
+
+#### 创建 Tag
+
+```bash
+# 交互式选择前缀和版本
+gw t
+
+# 指定前缀
+gw t v
+```
+
+支持的版本类型：
+
+| 当前版本        | 可选操作                                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `v1.2.3`        | patch → `v1.2.4`<br>minor → `v1.3.0`<br>major → `v2.0.0`<br>alpha → `v1.2.4-alpha.1`<br>beta → `v1.2.4-beta.1`<br>rc → `v1.2.4-rc.1` |
+| `v1.2.4-beta.1` | pre → `v1.2.4-beta.2`<br>release → `v1.2.4`<br>patch/minor/major...                                                                  |
 
 ## 配置文件
 
-在项目根目录创建 `.gwrc.json` 文件可自定义行为（不同项目可以有不同配置）：
+在项目根目录创建配置文件，可自定义工具行为。不同项目可以有不同配置，满足多样化需求。
+
+**支持的文件名：** `.gwrc.json` / `.gwrc` / `gw.config.json`
+
+**查找顺序：** 当前目录 → Git 仓库根目录
+
+### 完整配置示例
 
 ```json
 {
   "baseBranch": "develop",
   "featurePrefix": "feature",
   "hotfixPrefix": "hotfix",
-  "requireId": false,
+  "requireId": true,
   "featureIdLabel": "Story ID",
   "hotfixIdLabel": "Issue ID",
   "defaultTagPrefix": "v",
@@ -101,26 +181,98 @@ hotfix/YYYYMMDD-<描述>
 }
 ```
 
-| 配置项             | 类型    | 默认值     | 说明                                       |
-| ------------------ | ------- | ---------- | ------------------------------------------ |
-| `baseBranch`       | string  | 自动检测   | 默认基础分支，不设置则自动检测 main/master |
-| `featurePrefix`    | string  | `feature`  | feature 分支前缀                           |
-| `hotfixPrefix`     | string  | `hotfix`   | hotfix 分支前缀                            |
-| `requireId`        | boolean | `false`    | 是否要求必填 ID                            |
-| `featureIdLabel`   | string  | `Story ID` | feature 分支 ID 提示文字                   |
-| `hotfixIdLabel`    | string  | `Issue ID` | hotfix 分支 ID 提示文字                    |
-| `defaultTagPrefix` | string  | -          | 默认 tag 前缀，设置后 `gw t` 直接使用      |
-| `autoPush`         | boolean | -          | 创建分支后是否自动推送，不设置则询问       |
+### 配置项说明
 
-配置文件查找顺序：当前目录 → Git 仓库根目录
+| 配置项             | 类型      | 默认值       | 说明                                       |
+| ------------------ | --------- | ------------ | ------------------------------------------ |
+| `baseBranch`       | `string`  | 自动检测     | 默认基础分支，不设置则自动检测 main/master |
+| `featurePrefix`    | `string`  | `"feature"`  | feature 分支前缀                           |
+| `hotfixPrefix`     | `string`  | `"hotfix"`   | hotfix 分支前缀                            |
+| `requireId`        | `boolean` | `false`      | 是否要求必填 ID                            |
+| `featureIdLabel`   | `string`  | `"Story ID"` | feature 分支 ID 提示文字                   |
+| `hotfixIdLabel`    | `string`  | `"Issue ID"` | hotfix 分支 ID 提示文字                    |
+| `defaultTagPrefix` | `string`  | -            | 默认 tag 前缀，设置后跳过选择步骤          |
+| `autoPush`         | `boolean` | -            | 创建分支后是否自动推送，不设置则询问       |
 
-支持的文件名：`.gwrc.json`、`.gwrc`、`gw.config.json`
+### 常见配置场景
+
+<details>
+<summary><b>场景一：强制要求关联 Issue</b></summary>
+
+```json
+{
+  "requireId": true,
+  "featureIdLabel": "Jira ID",
+  "hotfixIdLabel": "Bug ID"
+}
+```
+
+</details>
+
+<details>
+<summary><b>场景二：基于 develop 分支开发</b></summary>
+
+```json
+{
+  "baseBranch": "develop",
+  "autoPush": true
+}
+```
+
+</details>
+
+<details>
+<summary><b>场景三：自定义分支前缀</b></summary>
+
+```json
+{
+  "featurePrefix": "feat",
+  "hotfixPrefix": "fix"
+}
+```
+
+</details>
+
+## 最佳实践
+
+### 团队协作
+
+1. **统一配置** - 将 `.gwrc.json` 提交到仓库，确保团队使用相同的分支规范
+2. **强制 ID** - 开启 `requireId`，确保每个分支都能追溯到需求/Issue
+3. **自动推送** - 开启 `autoPush`，减少遗忘推送的情况
+
+### 版本发布
+
+1. **预发布测试** - 使用 alpha/beta/rc 版本进行测试
+2. **语义化版本** - 遵循 semver 规范，bug 修复用 patch，新功能用 minor，破坏性变更用 major
+
+### 分支清理
+
+定期使用 `gw d` 清理已合并的分支，保持仓库整洁。
+
+## 与其他工具对比
+
+| 特性         | git-workflow  | git-flow    | 手动操作  |
+| ------------ | ------------- | ----------- | --------- |
+| 学习成本     | ⭐ 极低       | ⭐⭐⭐ 较高 | ⭐⭐ 中等 |
+| 分支命名规范 | ✅ 自动生成   | ❌ 需手动   | ❌ 需手动 |
+| 版本号管理   | ✅ 智能递增   | ❌ 需手动   | ❌ 需手动 |
+| 交互式操作   | ✅ 支持       | ❌ 不支持   | ❌ 不支持 |
+| 配置灵活性   | ✅ 项目级配置 | ⚠️ 有限     | -         |
+| 远程分支同步 | ✅ 自动处理   | ⚠️ 部分     | ❌ 需手动 |
 
 ## 开发
 
 ```bash
+# 克隆仓库
+git clone https://github.com/iamzjt/git-workflow.git
+cd git-workflow
+
 # 安装依赖
 npm install
+
+# 开发模式
+npm run dev
 
 # 构建
 npm run build
@@ -129,6 +281,16 @@ npm run build
 npm link
 ```
 
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
 ## License
 
-MIT
+[MIT](./LICENSE) License © 2026
+
+---
+
+<p align="center">
+  如果这个工具对你有帮助，请给个 ⭐️ 支持一下！
+</p>
