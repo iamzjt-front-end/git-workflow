@@ -24,8 +24,8 @@ const defaultConfig: GwConfig = {
   featurePrefix: "feature",
   hotfixPrefix: "hotfix",
   requireId: false,
-  featureIdLabel: "飞书ID",
-  hotfixIdLabel: "工单ID",
+  featureIdLabel: "Story ID",
+  hotfixIdLabel: "Issue ID",
 };
 
 function getGitRoot(): string {

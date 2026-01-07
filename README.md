@@ -94,23 +94,23 @@ hotfix/YYYYMMDD-<描述>
   "featurePrefix": "feature",
   "hotfixPrefix": "hotfix",
   "requireId": false,
-  "featureIdLabel": "飞书ID",
-  "hotfixIdLabel": "工单ID",
+  "featureIdLabel": "Story ID",
+  "hotfixIdLabel": "Issue ID",
   "defaultTagPrefix": "v",
   "autoPush": true
 }
 ```
 
-| 配置项             | 类型    | 默认值    | 说明                                       |
-| ------------------ | ------- | --------- | ------------------------------------------ |
-| `baseBranch`       | string  | 自动检测  | 默认基础分支，不设置则自动检测 main/master |
-| `featurePrefix`    | string  | `feature` | feature 分支前缀                           |
-| `hotfixPrefix`     | string  | `hotfix`  | hotfix 分支前缀                            |
-| `requireId`        | boolean | `false`   | 是否要求必填 ID                            |
-| `featureIdLabel`   | string  | `飞书ID`  | feature 分支 ID 提示文字                   |
-| `hotfixIdLabel`    | string  | `工单ID`  | hotfix 分支 ID 提示文字                    |
-| `defaultTagPrefix` | string  | -         | 默认 tag 前缀，设置后 `gw t` 直接使用      |
-| `autoPush`         | boolean | -         | 创建分支后是否自动推送，不设置则询问       |
+| 配置项             | 类型    | 默认值     | 说明                                       |
+| ------------------ | ------- | ---------- | ------------------------------------------ |
+| `baseBranch`       | string  | 自动检测   | 默认基础分支，不设置则自动检测 main/master |
+| `featurePrefix`    | string  | `feature`  | feature 分支前缀                           |
+| `hotfixPrefix`     | string  | `hotfix`   | hotfix 分支前缀                            |
+| `requireId`        | boolean | `false`    | 是否要求必填 ID                            |
+| `featureIdLabel`   | string  | `Story ID` | feature 分支 ID 提示文字                   |
+| `hotfixIdLabel`    | string  | `Issue ID` | hotfix 分支 ID 提示文字                    |
+| `defaultTagPrefix` | string  | -          | 默认 tag 前缀，设置后 `gw t` 直接使用      |
+| `autoPush`         | boolean | -          | 创建分支后是否自动推送，不设置则询问       |
 
 配置文件查找顺序：当前目录 → Git 仓库根目录
 

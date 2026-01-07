@@ -28,7 +28,7 @@ Tag 命令:
   gw t                       交互式选择前缀和版本
 
 分支命名格式:
-  feature/${TODAY}-<飞书ID>-<描述>
-  hotfix/${TODAY}-<工单ID>-<描述>
+  feature/${TODAY}-<Story ID>-<描述>
+  hotfix/${TODAY}-<Issue ID>-<描述>
 `);
 }
