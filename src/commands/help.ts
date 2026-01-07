@@ -22,6 +22,10 @@ Tag 命令:
   gw tag [prefix]                 交互式选择版本类型并创建 tag
   gw t [prefix]                   同上 (简写)
 
+发布命令:
+  gw release                      交互式选择版本号并更新 package.json
+  gw r                            同上 (简写)
+
 示例:
   gw feat                         基于 main/master 创建 feature 分支
   gw feat --base develop          基于 develop 分支创建 feature 分支

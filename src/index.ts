@@ -1,9 +1,15 @@
 // @ts-nocheck shebang handled by tsup banner
 
+import { readFileSync } from "fs";
 import { cac } from "cac";
 import { colors, checkGitRepo } from "./utils.js";
+
+const pkg = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf-8")
+);
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import { listTags, createTag } from "./commands/tag.js";
+import { release } from "./commands/release.js";
 import { showHelp } from "./commands/help.js";
 
 const cli = cac("gw");
@@ -53,11 +59,18 @@ cli
     return createTag(prefix);
   });
 
+cli
+  .command("release", "交互式选择版本号并更新 package.json")
+  .alias("r")
+  .action(() => {
+    return release();
+  });
+
 cli.help((sections) => {
   sections.push({
     body: showHelp(),
   });
 });
-cli.version("0.0.1");
+cli.version(pkg.version);
 
 cli.parse();

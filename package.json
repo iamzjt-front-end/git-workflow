@@ -10,8 +10,8 @@
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsx src/index.ts",
-		"changelog": "changelogen --output CHANGELOG.md",
-		"release": "changelogen --release && npm run build",
+		"changelog": "changelogen -o CHANGELOG.md",
+		"publish:npm": "npm run build && npm run changelog && npm publish",
 		"prepublishOnly": "npm run build",
 		"prepare": "husky"
 	},
