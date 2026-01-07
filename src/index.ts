@@ -10,6 +10,7 @@ const pkg = JSON.parse(
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import { listTags, createTag } from "./commands/tag.js";
 import { release } from "./commands/release.js";
+import { init } from "./commands/init.js";
 import { showHelp } from "./commands/help.js";
 
 const cli = cac("gw");
@@ -65,6 +66,10 @@ cli
   .action(() => {
     return release();
   });
+
+cli.command("init", "初始化配置文件 .gwrc.json").action(() => {
+  return init();
+});
 
 cli.help((sections) => {
   sections.push({

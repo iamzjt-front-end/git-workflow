@@ -26,6 +26,9 @@ Tag 命令:
   gw release                      交互式选择版本号并更新 package.json
   gw r                            同上 (简写)
 
+配置命令:
+  gw init                         初始化配置文件 .gwrc.json
+
 示例:
   gw feat                         基于 main/master 创建 feature 分支
   gw feat --base develop          基于 develop 分支创建 feature 分支
