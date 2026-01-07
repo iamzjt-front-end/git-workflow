@@ -195,6 +195,46 @@ gw init
 # ✓ 配置已保存到 .gwrc.json
 ```
 
+### Stash 命令
+
+| 命令       | 别名   | 说明             |
+| ---------- | ------ | ---------------- |
+| `gw stash` | `gw s` | 交互式管理 stash |
+
+原生 `git stash list` 输出难以阅读，`gw stash` 提供清晰的交互式界面：
+
+```bash
+gw s
+# 共 3 个 stash:
+#
+# ? 选择 stash:
+#   [0] main fix login bug (3 文件) 2 hours ago
+#   [1] develop add new feature (5 文件) 1 day ago
+#   [2] main WIP (1 文件) 3 days ago
+#   + 创建新 stash
+#   取消
+```
+
+选择后显示详情并提供操作：
+
+```bash
+# Stash #0
+# 分支: main
+# 消息: fix login bug
+# 时间: 2 hours ago
+# 文件 (3):
+#   • src/auth.ts
+#   • src/login.ts
+#   • tests/auth.test.ts
+# ────────────────────────────────────────
+# ? 操作:
+#   应用 (保留 stash)
+#   弹出 (应用并删除)
+#   查看差异
+#   删除
+#   取消
+```
+
 ## 配置文件
 
 在项目根目录创建配置文件，可自定义工具行为。不同项目可以有不同配置，满足多样化需求。

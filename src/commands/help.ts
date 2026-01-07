@@ -29,6 +29,10 @@ Tag 命令:
 配置命令:
   gw init                         初始化配置文件 .gwrc.json
 
+Stash 命令:
+  gw stash                        交互式管理 stash
+  gw s                            同上 (简写)
+
 示例:
   gw feat                         基于 main/master 创建 feature 分支
   gw feat --base develop          基于 develop 分支创建 feature 分支

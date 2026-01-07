@@ -13,10 +13,7 @@ import {
 } from "../utils.js";
 import { getConfig } from "../config.js";
 
-export async function createBranch(
-  type: BranchType,
-  baseBranchArg?: string | null
-): Promise<void> {
+export async function getBranchName(type: BranchType): Promise<string | null> {
   const config = getConfig();
 
   const idLabel =
@@ -32,18 +29,28 @@ export async function createBranch(
 
   if (config.requireId && !id) {
     console.log(colors.red(`${idLabel}不能为空`));
-    return;
+    return null;
   }
 
   const description = await input({ message: "请输入描述:", theme });
   if (!description) {
     console.log(colors.red("描述不能为空"));
-    return;
+    return null;
   }
 
-  const branchName = id
+  return id
     ? `${branchPrefix}/${TODAY}-${id}-${description}`
     : `${branchPrefix}/${TODAY}-${description}`;
+}
+
+export async function createBranch(
+  type: BranchType,
+  baseBranchArg?: string | null
+): Promise<void> {
+  const config = getConfig();
+
+  const branchName = await getBranchName(type);
+  if (!branchName) return;
 
   divider();
 

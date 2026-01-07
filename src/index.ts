@@ -1,17 +1,15 @@
 // @ts-nocheck shebang handled by tsup banner
 
-import { readFileSync } from "fs";
 import { cac } from "cac";
-import { colors, checkGitRepo } from "./utils.js";
-
-const pkg = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf-8")
-);
+import { checkGitRepo } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import { listTags, createTag } from "./commands/tag.js";
 import { release } from "./commands/release.js";
 import { init } from "./commands/init.js";
+import { stash } from "./commands/stash.js";
 import { showHelp } from "./commands/help.js";
+
+declare const __VERSION__: string;
 
 const cli = cac("gw");
 
@@ -71,11 +69,20 @@ cli.command("init", "初始化配置文件 .gwrc.json").action(() => {
   return init();
 });
 
+cli
+  .command("stash", "交互式管理 stash")
+  .alias("s")
+  .alias("st")
+  .action(() => {
+    checkGitRepo();
+    return stash();
+  });
+
 cli.help((sections) => {
   sections.push({
     body: showHelp(),
   });
 });
-cli.version(pkg.version);
+cli.version(__VERSION__);
 
 cli.parse();
