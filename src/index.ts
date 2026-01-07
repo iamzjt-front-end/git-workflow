@@ -1,75 +1,63 @@
 #!/usr/bin/env node --no-warnings
 
-import { colors, checkGitRepo, type BranchType } from "./utils.js";
+import { cac } from "cac";
+import { colors, checkGitRepo } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import { listTags, createTag } from "./commands/tag.js";
 import { showHelp } from "./commands/help.js";
 
-interface ParsedArgs {
-  baseBranch: string | null;
-}
+const cli = cac("gw");
 
-function parseArgs(args: string[]): ParsedArgs {
-  let baseBranch: string | null = null;
-  for (const arg of args) {
-    if (arg.startsWith("--base=")) {
-      baseBranch = arg.slice(7);
-    }
-  }
-  return { baseBranch };
-}
+cli
+  .command("feature", "创建 feature 分支")
+  .alias("feat")
+  .alias("f")
+  .option("--base <branch>", "指定基础分支")
+  .action((options: { base?: string }) => {
+    checkGitRepo();
+    return createBranch("feature", options.base);
+  });
 
-async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const { baseBranch } = parseArgs(args);
+cli
+  .command("hotfix", "创建 hotfix 分支")
+  .alias("fix")
+  .alias("h")
+  .option("--base <branch>", "指定基础分支")
+  .action((options: { base?: string }) => {
+    checkGitRepo();
+    return createBranch("hotfix", options.base);
+  });
 
-  switch (command) {
-    case "feature":
-    case "feat":
-    case "f":
-      checkGitRepo();
-      await createBranch("feature", baseBranch);
-      break;
-    case "hotfix":
-    case "fix":
-    case "h":
-      checkGitRepo();
-      await createBranch("hotfix", baseBranch);
-      break;
-    case "delete":
-    case "del":
-    case "d":
-      checkGitRepo();
-      await deleteBranch(args[1]);
-      break;
-    case "tags":
-    case "ts":
-      checkGitRepo();
-      await listTags(args[1]);
-      break;
-    case "tag":
-    case "t":
-      checkGitRepo();
-      await createTag(args[1]);
-      break;
-    case "help":
-    case "--help":
-    case "-h":
-    case undefined:
-      showHelp();
-      break;
-    default:
-      console.log(colors.red(`未知命令: ${command}`));
-      showHelp();
-      process.exit(1);
-  }
-}
+cli
+  .command("delete [branch]", "删除本地/远程分支")
+  .alias("del")
+  .alias("d")
+  .action((branch?: string) => {
+    checkGitRepo();
+    return deleteBranch(branch);
+  });
 
-main().catch((e: Error) => {
-  if (e.name === "ExitPromptError") {
-    console.log(colors.yellow("\n已取消"));
-  } else {
-    console.error(e);
-  }
+cli
+  .command("tags [prefix]", "列出所有 tag，可按前缀过滤")
+  .alias("ts")
+  .action((prefix?: string) => {
+    checkGitRepo();
+    return listTags(prefix);
+  });
+
+cli
+  .command("tag [prefix]", "交互式选择版本类型并创建 tag")
+  .alias("t")
+  .action((prefix?: string) => {
+    checkGitRepo();
+    return createTag(prefix);
+  });
+
+cli.help((sections) => {
+  sections.push({
+    body: showHelp(),
+  });
 });
+cli.version("0.0.1");
+
+cli.parse();

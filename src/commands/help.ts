@@ -1,34 +1,38 @@
 import { TODAY } from "../utils.js";
 
-export function showHelp(): void {
-  console.log(`
-Git 工作流工具 - 快速创建开发分支和管理 Tag
-
-用法: gw <命令> [参数]
-
+export function showHelp(): string {
+  return `
 分支命令:
-  feat, f [--base=分支名]    创建 feature 分支
-  fix, h [--base=分支名]     创建 hotfix 分支
-  del, d [分支名]            删除本地/远程分支
+  gw feature [--base <branch>]    创建 feature 分支
+  gw feat [--base <branch>]       同上 (简写)
+  gw f [--base <branch>]          同上 (简写)
+
+  gw hotfix [--base <branch>]     创建 hotfix 分支
+  gw fix [--base <branch>]        同上 (简写)
+  gw h [--base <branch>]          同上 (简写)
+
+  gw delete [branch]              删除本地/远程分支
+  gw del [branch]                 同上 (简写)
+  gw d [branch]                   同上 (简写)
 
 Tag 命令:
-  tags, ts [前缀]            列出所有 tag，可按前缀过滤
-  tag, t [前缀]              交互式选择版本类型并创建 tag
+  gw tags [prefix]                列出所有 tag，可按前缀过滤
+  gw ts [prefix]                  同上 (简写)
 
-其他:
-  help, -h                   显示帮助信息
+  gw tag [prefix]                 交互式选择版本类型并创建 tag
+  gw t [prefix]                   同上 (简写)
 
 示例:
-  gw f                       交互式创建 feature 分支 (基于 main/master)
-  gw f --base=develop        基于 develop 分支创建 feature 分支
-  gw h --base=release        基于 release 分支创建 hotfix 分支
-  gw d                       交互式删除分支
-  gw d feature/xxx           直接删除指定分支
-  gw ts v                    列出所有 v 开头的 tag
-  gw t                       交互式选择前缀和版本
+  gw feat                         基于 main/master 创建 feature 分支
+  gw feat --base develop          基于 develop 分支创建 feature 分支
+  gw fix --base release           基于 release 分支创建 hotfix 分支
+  gw del                          交互式选择并删除分支
+  gw del feature/xxx              直接删除指定分支
+  gw tags v                       列出所有 v 开头的 tag
+  gw tag                          交互式创建 tag
 
 分支命名格式:
   feature/${TODAY}-<Story ID>-<描述>
   hotfix/${TODAY}-<Issue ID>-<描述>
-`);
+`;
 }
