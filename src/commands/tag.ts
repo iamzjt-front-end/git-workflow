@@ -1,0 +1,277 @@
+import { execSync } from "child_process";
+import { select, input } from "@inquirer/prompts";
+import ora from "ora";
+import { colors, theme, exec, execOutput, divider } from "../utils.js";
+import { getConfig } from "../config.js";
+
+export async function listTags(prefix?: string): Promise<void> {
+  const spinner = ora("正在获取 tags...").start();
+  exec("git fetch --tags", true);
+  spinner.stop();
+
+  const pattern = prefix ? `${prefix}*` : "";
+  const tags = execOutput(`git tag -l ${pattern} --sort=-v:refname`)
+    .split("\n")
+    .filter(Boolean);
+
+  if (tags.length === 0) {
+    console.log(
+      colors.yellow(prefix ? `没有 '${prefix}' 开头的 tag` : "没有 tag")
+    );
+    return;
+  }
+
+  console.log(
+    colors.green(prefix ? `以 '${prefix}' 开头的 tags:` : "所有 tags:")
+  );
+  tags.slice(0, 20).forEach((tag) => console.log(`  ${tag}`));
+
+  if (tags.length > 20) {
+    console.log(colors.yellow(`\n共 ${tags.length} 个，仅显示前 20 个`));
+  }
+}
+
+interface PrefixInfo {
+  prefix: string;
+  latest: string;
+  date: number;
+}
+
+interface TagChoice {
+  name: string;
+  value: string;
+}
+
+export async function createTag(inputPrefix?: string): Promise<void> {
+  const config = getConfig();
+  const fetchSpinner = ora("正在获取 tags...").start();
+  exec("git fetch --tags", true);
+  fetchSpinner.stop();
+
+  divider();
+
+  let prefix = inputPrefix;
+
+  // 如果没有指定前缀，优先使用配置文件中的默认前缀
+  if (!prefix && config.defaultTagPrefix) {
+    prefix = config.defaultTagPrefix;
+    console.log(colors.dim(`(使用配置的默认前缀: ${prefix})`));
+  }
+
+  if (!prefix) {
+    const allTags = execOutput("git tag -l").split("\n").filter(Boolean);
+    const prefixes = [
+      ...new Set(allTags.map((t) => t.replace(/[0-9].*/, "")).filter(Boolean)),
+    ];
+
+    if (prefixes.length === 0) {
+      prefix = await input({
+        message: "当前仓库没有 tag，请输入新前缀 (如 v):",
+        theme,
+      });
+      if (!prefix) {
+        console.log(colors.yellow("已取消"));
+        return;
+      }
+    } else {
+      const prefixWithDate: PrefixInfo[] = prefixes.map((p) => {
+        const latest = execOutput(
+          `git tag -l "${p}*" --sort=-v:refname | head -1`
+        );
+        const date = latest
+          ? execOutput(`git log -1 --format=%ct "${latest}" 2>/dev/null`)
+          : "0";
+        return { prefix: p, latest, date: parseInt(date) || 0 };
+      });
+      prefixWithDate.sort((a, b) => b.date - a.date);
+
+      const choices: TagChoice[] = prefixWithDate.map(
+        ({ prefix: p, latest }) => {
+          return { name: `${p} (最新: ${latest})`, value: p };
+        }
+      );
+      choices.push({ name: "输入新前缀...", value: "__new__" });
+
+      prefix = await select({
+        message: "选择 tag 前缀:",
+        choices,
+        theme,
+      });
+
+      if (prefix === "__new__") {
+        prefix = await input({ message: "请输入新前缀:", theme });
+        if (!prefix) {
+          console.log(colors.yellow("已取消"));
+          return;
+        }
+      }
+    }
+  }
+
+  const latestTag = execOutput(
+    `git tag -l "${prefix}*" --sort=-v:refname | head -1`
+  );
+
+  if (!latestTag) {
+    const newTag = `${prefix}1.0.0`;
+    console.log(
+      colors.yellow(`未找到 '${prefix}' 开头的 tag，将创建 ${newTag}`)
+    );
+    const ok = await select({
+      message: `确认创建 ${newTag}?`,
+      choices: [
+        { name: "是", value: true },
+        { name: "否", value: false },
+      ],
+      theme,
+    });
+    if (ok) {
+      doCreateTag(newTag);
+    }
+    return;
+  }
+
+  console.log(colors.yellow(`当前最新 tag: ${latestTag}`));
+
+  divider();
+
+  const version = latestTag.slice(prefix.length);
+
+  // 解析版本号，支持预发布版本如 1.0.0-beta.1
+  const preReleaseMatch = version.match(
+    /^(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)$/
+  );
+  const match3 = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  const match2 = version.match(/^(\d+)\.(\d+)$/);
+  const match1 = version.match(/^(\d+)$/);
+
+  let choices: TagChoice[] = [];
+
+  if (preReleaseMatch) {
+    // 预发布版本: 1.0.0-beta.1
+    const [, majorStr, minorStr, patchStr, preTag, preNumStr] = preReleaseMatch;
+    const major = Number(majorStr);
+    const minor = Number(minorStr);
+    const patch = Number(patchStr);
+    const preNum = Number(preNumStr);
+    const baseVersion = `${major}.${minor}.${patch}`;
+
+    choices = [
+      {
+        name: `pre    → ${prefix}${baseVersion}-${preTag}.${preNum + 1}`,
+        value: `${prefix}${baseVersion}-${preTag}.${preNum + 1}`,
+      },
+      {
+        name: `release→ ${prefix}${baseVersion}`,
+        value: `${prefix}${baseVersion}`,
+      },
+      {
+        name: `patch  → ${prefix}${major}.${minor}.${patch + 1}`,
+        value: `${prefix}${major}.${minor}.${patch + 1}`,
+      },
+      {
+        name: `minor  → ${prefix}${major}.${minor + 1}.0`,
+        value: `${prefix}${major}.${minor + 1}.0`,
+      },
+      {
+        name: `major  → ${prefix}${major + 1}.0.0`,
+        value: `${prefix}${major + 1}.0.0`,
+      },
+    ];
+  } else if (match3) {
+    const [, majorStr, minorStr, patchStr] = match3;
+    const major = Number(majorStr);
+    const minor = Number(minorStr);
+    const patch = Number(patchStr);
+    choices = [
+      {
+        name: `patch  → ${prefix}${major}.${minor}.${patch + 1}`,
+        value: `${prefix}${major}.${minor}.${patch + 1}`,
+      },
+      {
+        name: `minor  → ${prefix}${major}.${minor + 1}.0`,
+        value: `${prefix}${major}.${minor + 1}.0`,
+      },
+      {
+        name: `major  → ${prefix}${major + 1}.0.0`,
+        value: `${prefix}${major + 1}.0.0`,
+      },
+      {
+        name: `alpha  → ${prefix}${major}.${minor}.${patch + 1}-alpha.1`,
+        value: `${prefix}${major}.${minor}.${patch + 1}-alpha.1`,
+      },
+      {
+        name: `beta   → ${prefix}${major}.${minor}.${patch + 1}-beta.1`,
+        value: `${prefix}${major}.${minor}.${patch + 1}-beta.1`,
+      },
+      {
+        name: `rc     → ${prefix}${major}.${minor}.${patch + 1}-rc.1`,
+        value: `${prefix}${major}.${minor}.${patch + 1}-rc.1`,
+      },
+    ];
+  } else if (match2) {
+    const [, majorStr, minorStr] = match2;
+    const major = Number(majorStr);
+    const minor = Number(minorStr);
+    choices = [
+      {
+        name: `minor  → ${prefix}${major}.${minor + 1}`,
+        value: `${prefix}${major}.${minor + 1}`,
+      },
+      {
+        name: `major  → ${prefix}${major + 1}.0`,
+        value: `${prefix}${major + 1}.0`,
+      },
+    ];
+  } else if (match1) {
+    const num = Number(match1[1]);
+    choices = [
+      { name: `next   → ${prefix}${num + 1}`, value: `${prefix}${num + 1}` },
+    ];
+  } else {
+    console.log(colors.red(`无法解析版本号: ${version}`));
+    return;
+  }
+
+  choices.push({ name: "取消", value: "__cancel__" });
+
+  const nextTag = await select({
+    message: "选择版本类型:",
+    choices,
+    theme,
+  });
+
+  if (nextTag === "__cancel__") {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  doCreateTag(nextTag);
+}
+
+function doCreateTag(tagName: string): void {
+  divider();
+
+  const spinner = ora(`正在创建 tag: ${tagName}`).start();
+
+  try {
+    execSync(`git tag -a "${tagName}" -m "Release ${tagName}"`, {
+      stdio: "pipe",
+    });
+    spinner.succeed(`Tag 创建成功: ${tagName}`);
+  } catch {
+    spinner.fail("tag 创建失败");
+    return;
+  }
+
+  const pushSpinner = ora("正在推送到远程...").start();
+
+  try {
+    execSync(`git push origin "${tagName}"`, { stdio: "pipe" });
+    pushSpinner.succeed(`Tag 已推送: ${tagName}`);
+  } catch {
+    pushSpinner.warn(
+      `远程推送失败，可稍后手动执行: git push origin ${tagName}`
+    );
+  }
+}
