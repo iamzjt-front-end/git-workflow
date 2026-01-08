@@ -5,7 +5,7 @@ import { colors, theme, execOutput, divider } from "../utils.js";
 import { getConfig } from "../config.js";
 
 // Conventional Commits 类型 + Gitmoji
-const COMMIT_TYPES = [
+const DEFAULT_COMMIT_TYPES = [
   { type: "feat", emoji: "✨", description: "新功能" },
   { type: "fix", emoji: "🐛", description: "修复 Bug" },
   { type: "docs", emoji: "📝", description: "文档更新" },
@@ -18,6 +18,16 @@ const COMMIT_TYPES = [
   { type: "chore", emoji: "🔧", description: "其他杂项" },
   { type: "revert", emoji: "⏪", description: "回退提交" },
 ] as const;
+
+type CommitType = (typeof DEFAULT_COMMIT_TYPES)[number]["type"];
+
+function getCommitTypes(config: ReturnType<typeof getConfig>) {
+  const customEmojis = config.commitEmojis || {};
+  return DEFAULT_COMMIT_TYPES.map((item) => ({
+    ...item,
+    emoji: customEmojis[item.type as CommitType] || item.emoji,
+  }));
+}
 
 interface FileStatus {
   status: string;
@@ -130,10 +140,13 @@ export async function commit(): Promise<void> {
     divider();
   }
 
+  // 获取提交类型（支持自定义 emoji）
+  const commitTypes = getCommitTypes(config);
+
   // 选择提交类型
   const typeChoice = await select({
     message: "选择提交类型:",
-    choices: COMMIT_TYPES.map((t) => ({
+    choices: commitTypes.map((t) => ({
       name: `${t.emoji}  ${t.type.padEnd(10)} ${colors.dim(t.description)}`,
       value: t,
     })),
@@ -190,8 +203,12 @@ export async function commit(): Promise<void> {
   const scopePart = scope ? `(${scope})` : "";
   const breakingMark = hasBreaking ? "!" : "";
 
-  // Header: emoji type(scope)!: subject
-  let message = `${emoji} ${type}${scopePart}${breakingMark}: ${subject}`;
+  // 根据配置决定是否使用 emoji
+  const useEmoji = config.useEmoji ?? true;
+  const emojiPrefix = useEmoji ? `${emoji} ` : "";
+
+  // Header: [emoji] type(scope)!: subject
+  let message = `${emojiPrefix}${type}${scopePart}${breakingMark}: ${subject}`;
 
   // Body
   if (body || hasBreaking || issues) {

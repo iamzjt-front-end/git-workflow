@@ -415,7 +415,8 @@ gw c
   "hotfixIdLabel": "Issue ID",
   "defaultTagPrefix": "v",
   "autoPush": true,
-  "autoStage": true
+  "autoStage": true,
+  "useEmoji": true
 }
 ```
 
@@ -432,6 +433,8 @@ gw c
 | `defaultTagPrefix` | `string`  | -            | 默认 tag 前缀，设置后跳过选择步骤          |
 | `autoPush`         | `boolean` | -            | 创建分支后是否自动推送，不设置则询问       |
 | `autoStage`        | `boolean` | `true`       | commit 时是否自动暂存所有更改              |
+| `useEmoji`         | `boolean` | `true`       | commit 时是否使用 emoji                    |
+| `commitEmojis`     | `object`  | -            | 自定义各类型 commit 的 emoji               |
 
 ### 常见配置场景
 
@@ -469,6 +472,45 @@ gw c
   "hotfixPrefix": "fix"
 }
 ```
+
+</details>
+
+<details>
+<summary><b>场景四：禁用 Emoji（适合严格的 CI/CD 环境）</b></summary>
+
+```json
+{
+  "useEmoji": false,
+  "autoStage": false
+}
+```
+
+提交信息格式变为：`feat(scope): description` 而不是 `✨ feat(scope): description`
+
+</details>
+
+<details>
+<summary><b>场景五：自定义 Commit Emoji</b></summary>
+
+```json
+{
+  "commitEmojis": {
+    "feat": "🎉",
+    "fix": "🔧",
+    "docs": "📚",
+    "style": "🎨",
+    "refactor": "🔨",
+    "perf": "🚀",
+    "test": "🧪",
+    "build": "📦",
+    "ci": "👷",
+    "chore": "🔧",
+    "revert": "⏪"
+  }
+}
+```
+
+可以只覆盖部分类型，未配置的使用默认 emoji。
 
 </details>
 

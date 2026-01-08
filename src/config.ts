@@ -20,6 +20,22 @@ export interface GwConfig {
   autoPush?: boolean;
   // commit 时是否自动暂存所有更改，默认 true
   autoStage?: boolean;
+  // commit 时是否使用 emoji，默认 true
+  useEmoji?: boolean;
+  // 自定义 commit 类型的 emoji
+  commitEmojis?: {
+    feat?: string;
+    fix?: string;
+    docs?: string;
+    style?: string;
+    refactor?: string;
+    perf?: string;
+    test?: string;
+    build?: string;
+    ci?: string;
+    chore?: string;
+    revert?: string;
+  };
 }
 
 const defaultConfig: GwConfig = {
@@ -29,6 +45,7 @@ const defaultConfig: GwConfig = {
   featureIdLabel: "Story ID",
   hotfixIdLabel: "Issue ID",
   autoStage: true,
+  useEmoji: true,
 };
 
 function getGitRoot(): string {

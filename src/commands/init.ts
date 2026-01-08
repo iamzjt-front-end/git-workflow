@@ -5,6 +5,21 @@ import type { GwConfig } from "../config.js";
 
 const CONFIG_FILE = ".gwrc.json";
 
+// 默认的 commit emoji 配置
+const DEFAULT_COMMIT_EMOJIS = {
+  feat: "✨",
+  fix: "🐛",
+  docs: "📝",
+  style: "💄",
+  refactor: "♻️",
+  perf: "⚡️",
+  test: "✅",
+  build: "📦",
+  ci: "👷",
+  chore: "🔧",
+  revert: "⏪",
+};
+
 export async function init(): Promise<void> {
   if (existsSync(CONFIG_FILE)) {
     const overwrite = await confirm({
@@ -94,10 +109,35 @@ export async function init(): Promise<void> {
 
   divider();
 
+  // Commit 配置
+  const autoStage = await confirm({
+    message: "Commit 时是否自动暂存所有更改?",
+    default: true,
+    theme,
+  });
+  if (!autoStage) config.autoStage = false;
+
+  const useEmoji = await confirm({
+    message: "Commit 时是否使用 emoji?",
+    default: true,
+    theme,
+  });
+  if (!useEmoji) config.useEmoji = false;
+
+  // 始终写入默认的 commitEmojis 配置，方便用户修改
+  config.commitEmojis = DEFAULT_COMMIT_EMOJIS;
+
+  divider();
+
   // 写入配置
   const content = JSON.stringify(config, null, 2);
   writeFileSync(CONFIG_FILE, content + "\n");
 
   console.log(colors.green(`✓ 配置已保存到 ${CONFIG_FILE}`));
+  console.log(
+    colors.dim(
+      "\n提示: 可以在配置文件中修改 commitEmojis 来自定义各类型的 emoji"
+    )
+  );
   console.log(colors.dim("\n" + content));
 }
