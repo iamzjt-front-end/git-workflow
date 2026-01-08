@@ -138,6 +138,17 @@ async function performUpdate(packageName: string): Promise<void> {
   }).start();
 
   try {
+    // 先尝试卸载旧版本（无 scope 的版本）
+    try {
+      execSync("npm uninstall -g git-workflow", {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      spinner.text = "已卸载旧版本，正在安装新版本...";
+    } catch {
+      // 旧版本不存在，忽略错误
+    }
+
     // 执行更新命令
     execSync(`npm install -g ${packageName}`, {
       encoding: "utf-8",
@@ -157,6 +168,12 @@ async function performUpdate(packageName: string): Promise<void> {
     spinner.fail(colors.red + "更新失败" + colors.reset);
     console.log("");
     console.log(colors.dim + "  你可以手动运行以下命令更新:" + colors.reset);
+    console.log(
+      colors.yellow + "  # 如果之前安装过旧版本，先卸载:" + colors.reset
+    );
+    console.log(colors.cyan + "  npm uninstall -g git-workflow" + colors.reset);
+    console.log("");
+    console.log(colors.yellow + "  # 然后安装新版本:" + colors.reset);
     console.log(colors.cyan + `  npm install -g ${packageName}` + colors.reset);
     console.log("");
   }

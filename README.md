@@ -59,6 +59,24 @@ pnpm add -g @zjex/git-workflow
 yarn global add @zjex/git-workflow
 ```
 
+### 从旧版本升级
+
+如果你之前安装过 `git-workflow`（无 scope），需要先卸载旧版本：
+
+```bash
+# 卸载旧版本
+npm uninstall -g git-workflow
+
+# 安装新版本
+npm install -g @zjex/git-workflow
+```
+
+或者使用一行命令：
+
+```bash
+npm uninstall -g git-workflow && npm install -g @zjex/git-workflow
+```
+
 ### 初次使用
 
 ```bash
