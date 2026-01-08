@@ -138,50 +138,107 @@ check_tag_exists() {
   fi
 }
 
+# 计算下一个版本号
+calculate_next_version() {
+  local current=$1
+  local type=$2
+  
+  IFS='.' read -r major minor patch <<< "$current"
+  
+  case $type in
+    patch)
+      echo "${major}.${minor}.$((patch + 1))"
+      ;;
+    minor)
+      echo "${major}.$((minor + 1)).0"
+      ;;
+    major)
+      echo "$((major + 1)).0.0"
+      ;;
+  esac
+}
+
+# 验证版本号格式
+validate_version() {
+  if [[ ! $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$ ]]; then
+    return 1
+  fi
+  return 0
+}
+
 # 选择版本类型
 echo ""
-echo "选择版本类型:"
-PATCH_VERSION=$(npm version patch --no-git-tag-version --dry-run 2>/dev/null | tail -1 | sed 's/v//')
-MINOR_VERSION=$(npm version minor --no-git-tag-version --dry-run 2>/dev/null | tail -1 | sed 's/v//')
-MAJOR_VERSION=$(npm version major --no-git-tag-version --dry-run 2>/dev/null | tail -1 | sed 's/v//')
+print_step "选择新版本号"
+echo ""
 
-echo "  1) patch  (${CURRENT_VERSION} → ${PATCH_VERSION})"
-echo "  2) minor  (${CURRENT_VERSION} → ${MINOR_VERSION})"
-echo "  3) major  (${CURRENT_VERSION} → ${MAJOR_VERSION})"
-echo "  4) 自定义版本号"
-echo "  5) 取消"
+PATCH_VERSION=$(calculate_next_version "$CURRENT_VERSION" "patch")
+MINOR_VERSION=$(calculate_next_version "$CURRENT_VERSION" "minor")
+MAJOR_VERSION=$(calculate_next_version "$CURRENT_VERSION" "major")
+
+echo -e "  ${GREEN}1)${NC} patch  ${CYAN}${CURRENT_VERSION}${NC} → ${GREEN}${PATCH_VERSION}${NC}  (bug 修复)"
+echo -e "  ${GREEN}2)${NC} minor  ${CYAN}${CURRENT_VERSION}${NC} → ${GREEN}${MINOR_VERSION}${NC}  (新功能)"
+echo -e "  ${GREEN}3)${NC} major  ${CYAN}${CURRENT_VERSION}${NC} → ${GREEN}${MAJOR_VERSION}${NC}  (破坏性更新)"
+echo -e "  ${GREEN}4)${NC} custom (自定义版本号)"
+echo -e "  ${RED}5)${NC} cancel (取消发布)"
 echo ""
-read -p "请选择 (1-5): " -n 1 -r VERSION_TYPE
-echo ""
+
+while true; do
+  read -p "请选择 (1-5): " -n 1 -r VERSION_TYPE
+  echo ""
+  
+  if [[ "$VERSION_TYPE" =~ ^[1-5]$ ]]; then
+    break
+  else
+    print_error "无效的选择，请输入 1-5"
+  fi
+done
 
 # 备份 package.json
 cp package.json package.json.backup
 
 case $VERSION_TYPE in
   1)
-    NEW_VERSION=$(npm version patch --no-git-tag-version 2>/dev/null | sed 's/v//')
+    NEW_VERSION=$PATCH_VERSION
     ;;
   2)
-    NEW_VERSION=$(npm version minor --no-git-tag-version 2>/dev/null | sed 's/v//')
+    NEW_VERSION=$MINOR_VERSION
     ;;
   3)
-    NEW_VERSION=$(npm version major --no-git-tag-version 2>/dev/null | sed 's/v//')
+    NEW_VERSION=$MAJOR_VERSION
     ;;
   4)
-    read -p "请输入版本号 (如 1.0.0): " CUSTOM_VERSION
-    NEW_VERSION=$(npm version "$CUSTOM_VERSION" --no-git-tag-version 2>/dev/null | sed 's/v//')
+    while true; do
+      read -p "请输入版本号 (如 1.0.0 或 1.0.0-beta.1): " CUSTOM_VERSION
+      
+      if [[ -z "$CUSTOM_VERSION" ]]; then
+        print_error "版本号不能为空"
+        continue
+      fi
+      
+      if ! validate_version "$CUSTOM_VERSION"; then
+        print_error "版本号格式无效，请使用语义化版本格式 (如 1.0.0 或 1.0.0-beta.1)"
+        continue
+      fi
+      
+      NEW_VERSION=$CUSTOM_VERSION
+      break
+    done
     ;;
   5)
     rm package.json.backup
-    print_info "已取消"
+    print_info "已取消发布"
     exit 0
     ;;
-  *)
-    rm package.json.backup
-    print_error "无效的选择"
-    exit 1
-    ;;
 esac
+
+# 更新 package.json 中的版本号
+if [[ "$DRY_RUN" == false ]]; then
+  npm version "$NEW_VERSION" --no-git-tag-version > /dev/null 2>&1 || {
+    print_error "更新版本号失败"
+    mv package.json.backup package.json
+    exit 1
+  }
+fi
 
 print_success "版本号已更新: ${CURRENT_VERSION} → ${NEW_VERSION}"
 

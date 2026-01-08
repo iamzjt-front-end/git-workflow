@@ -1,9 +1,9 @@
 # @zjex/git-workflow
 
 <p align="center">
-  <img src="https://img.shields.io/npm/v/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm version">
-  <img src="https://img.shields.io/npm/dm/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm downloads">
-  <img src="https://img.shields.io/npm/l/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="license">
+  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/v/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/dm/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm downloads"></a>
+  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/l/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="license"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D18-28CF8D?style=flat&colorA=18181B" alt="node version">
 </p>
 
