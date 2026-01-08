@@ -89,11 +89,11 @@ print_step "生成 CHANGELOG..."
 npm run changelog
 print_success "CHANGELOG 已更新"
 
-# 提交更改
-print_step "提交更改..."
-git add package.json package-lock.json CHANGELOG.md dist
-git commit -m "🔖 chore(release): v${NEW_VERSION}"
-print_success "更改已提交"
+# 提交版本更新和 changelog
+print_step "提交版本更新..."
+git add package.json CHANGELOG.md
+git commit -m "🔖 chore(release): 发布 v${NEW_VERSION}"
+print_success "版本更新已提交"
 
 # 创建 tag
 print_step "创建 tag: v${NEW_VERSION}..."
