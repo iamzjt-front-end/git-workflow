@@ -1,4 +1,7 @@
 import { execSync } from "child_process";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 import boxen from "boxen";
 import { select } from "@inquirer/prompts";
 import ora from "ora";
@@ -180,16 +183,13 @@ async function performUpdate(packageName: string): Promise<void> {
  */
 function readCache(): UpdateCache | null {
   try {
-    const fs = require("fs");
-    const os = require("os");
-    const path = require("path");
-    const cacheFile = path.join(os.homedir(), CACHE_FILE);
+    const cacheFile = join(homedir(), CACHE_FILE);
 
-    if (!fs.existsSync(cacheFile)) {
+    if (!existsSync(cacheFile)) {
       return null;
     }
 
-    const content = fs.readFileSync(cacheFile, "utf-8");
+    const content = readFileSync(cacheFile, "utf-8");
     return JSON.parse(content);
   } catch {
     return null;
@@ -201,12 +201,9 @@ function readCache(): UpdateCache | null {
  */
 function writeCache(cache: UpdateCache): void {
   try {
-    const fs = require("fs");
-    const os = require("os");
-    const path = require("path");
-    const cacheFile = path.join(os.homedir(), CACHE_FILE);
+    const cacheFile = join(homedir(), CACHE_FILE);
 
-    fs.writeFileSync(cacheFile, JSON.stringify(cache), "utf-8");
+    writeFileSync(cacheFile, JSON.stringify(cache), "utf-8");
   } catch {
     // 静默失败
   }
