@@ -562,6 +562,22 @@ npm run build
 npm link
 ```
 
+## 发布
+
+```bash
+# 自动化发布（推荐）
+npm run release
+
+# 手动发布
+npm run build
+npm run changelog
+npm version patch  # 或 minor/major
+git push origin main --tags
+npm publish
+```
+
+详见 [发布脚本文档](./scripts/README.md)
+
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
