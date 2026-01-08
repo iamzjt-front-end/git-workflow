@@ -11,6 +11,7 @@ import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
 import { commit } from "./commands/commit.js";
 import { showHelp } from "./commands/help.js";
+import { checkForUpdates } from "./update-notifier.js";
 
 // 捕获 Ctrl+C 退出，静默处理
 process.on("uncaughtException", (err) => {
@@ -32,6 +33,9 @@ const version: string =
 
 // 交互式主菜单
 async function mainMenu(): Promise<void> {
+  // 检查更新（异步，不阻塞主流程）
+  checkForUpdates(version, "@zjex/git-workflow").catch(() => {});
+
   // ASCII Art Logo
   console.log(
     colors.green(`
