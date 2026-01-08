@@ -1,6 +1,6 @@
 {
 	"name": "@zjex/git-workflow",
-	"version": "0.2.5",
+	"version": "0.2.6",
 	"description": "个人常用的 Git 工作流工具，快速创建规范的开发分支和管理 Tag",
 	"type": "module",
 	"bin": {
