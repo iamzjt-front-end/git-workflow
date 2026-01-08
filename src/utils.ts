@@ -4,14 +4,20 @@ export interface Colors {
   red: (s: string) => string;
   green: (s: string) => string;
   yellow: (s: string) => string;
+  cyan: (s: string) => string;
   dim: (s: string) => string;
+  bold: (s: string) => string;
+  reset: string;
 }
 
 export const colors: Colors = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
   green: (s) => `\x1b[32m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
+  cyan: (s) => `\x1b[36m${s}\x1b[0m`,
   dim: (s) => `\x1b[2m${s}\x1b[0m`,
+  bold: (s) => `\x1b[1m${s}\x1b[0m`,
+  reset: "\x1b[0m",
 };
 
 export const TODAY: string = new Date()
