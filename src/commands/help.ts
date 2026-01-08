@@ -34,6 +34,11 @@ Stash 命令:
   gw s                            同上 (别名)
   gw st                           同上 (别名)
 
+Commit 命令:
+  gw commit                       交互式提交 (Conventional Commits + Gitmoji)
+  gw c                            同上 (别名)
+  gw cm                           同上 (别名)
+
 示例:
   gw f                            基于 main/master 创建 feature 分支
   gw f --base develop             基于 develop 分支创建 feature 分支
@@ -44,6 +49,7 @@ Stash 命令:
   gw t                            交互式创建 tag
   gw r                            交互式发布版本
   gw s                            交互式管理 stash
+  gw c                            交互式提交代码
 
 分支命名格式:
   feature/${TODAY}-<Story ID>-<描述>

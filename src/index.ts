@@ -1,13 +1,15 @@
 // @ts-nocheck shebang handled by tsup banner
 
 import { cac } from "cac";
+import { select } from "@inquirer/prompts";
 import { ExitPromptError } from "@inquirer/core";
-import { checkGitRepo } from "./utils.js";
+import { checkGitRepo, theme, colors } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import { listTags, createTag } from "./commands/tag.js";
 import { release } from "./commands/release.js";
 import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
+import { commit } from "./commands/commit.js";
 import { showHelp } from "./commands/help.js";
 
 // 捕获 Ctrl+C 退出，静默处理
@@ -28,7 +30,116 @@ const version: string =
     : (await import("../package.json", { with: { type: "json" } })).default
         .version;
 
+// 交互式主菜单
+async function mainMenu(): Promise<void> {
+  // ASCII Art Logo
+  console.log(
+    colors.green(`
+ ███████╗     ██╗███████╗██╗  ██╗
+ ╚══███╔╝     ██║██╔════╝╚██╗██╔╝
+   ███╔╝      ██║█████╗   ╚███╔╝ 
+  ███╔╝  ██   ██║██╔══╝   ██╔██╗ 
+ ███████╗╚█████╔╝███████╗██╔╝ ██╗
+ ╚══════╝ ╚════╝ ╚══════╝╚═╝  ╚═╝
+`)
+  );
+  console.log(colors.dim(`  git-workflow v${version}\n`));
+
+  const action = await select({
+    message: "选择操作:",
+    choices: [
+      {
+        name: `[1] ✨ 创建 feature 分支      ${colors.dim("gw f")}`,
+        value: "feature",
+      },
+      {
+        name: `[2] 🐛 创建 hotfix 分支       ${colors.dim("gw h")}`,
+        value: "hotfix",
+      },
+      {
+        name: `[3] 🗑️  删除分支               ${colors.dim("gw d")}`,
+        value: "delete",
+      },
+      {
+        name: `[4] 📝 提交代码               ${colors.dim("gw c")}`,
+        value: "commit",
+      },
+      {
+        name: `[5] 🏷️  创建 tag               ${colors.dim("gw t")}`,
+        value: "tag",
+      },
+      {
+        name: `[6] 📋 列出 tags              ${colors.dim("gw ts")}`,
+        value: "tags",
+      },
+      {
+        name: `[7] 📦 发布版本               ${colors.dim("gw r")}`,
+        value: "release",
+      },
+      {
+        name: `[8] 💾 管理 stash             ${colors.dim("gw s")}`,
+        value: "stash",
+      },
+      {
+        name: `[9] ⚙️  初始化配置             ${colors.dim("gw init")}`,
+        value: "init",
+      },
+      { name: "[0] ❓ 帮助", value: "help" },
+      { name: "[q] 退出", value: "exit" },
+    ],
+    loop: false,
+    theme,
+  });
+
+  switch (action) {
+    case "feature":
+      checkGitRepo();
+      await createBranch("feature");
+      break;
+    case "hotfix":
+      checkGitRepo();
+      await createBranch("hotfix");
+      break;
+    case "delete":
+      checkGitRepo();
+      await deleteBranch();
+      break;
+    case "tag":
+      checkGitRepo();
+      await createTag();
+      break;
+    case "tags":
+      checkGitRepo();
+      await listTags();
+      break;
+    case "commit":
+      checkGitRepo();
+      await commit();
+      break;
+    case "release":
+      await release();
+      break;
+    case "stash":
+      checkGitRepo();
+      await stash();
+      break;
+    case "init":
+      await init();
+      break;
+    case "help":
+      console.log(showHelp());
+      break;
+    case "exit":
+      break;
+  }
+}
+
 const cli = cac("gw");
+
+// 默认命令 - 显示交互式菜单
+cli.command("", "显示交互式菜单").action(() => {
+  return mainMenu();
+});
 
 cli
   .command("feature", "创建 feature 分支")
@@ -93,6 +204,15 @@ cli
   .action(() => {
     checkGitRepo();
     return stash();
+  });
+
+cli
+  .command("commit", "交互式提交 (Conventional Commits + Gitmoji)")
+  .alias("c")
+  .alias("cm")
+  .action(() => {
+    checkGitRepo();
+    return commit();
   });
 
 cli.help((sections) => {

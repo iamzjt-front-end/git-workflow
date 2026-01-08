@@ -18,6 +18,8 @@ export interface GwConfig {
   defaultTagPrefix?: string;
   // 创建分支后是否自动推送，默认询问
   autoPush?: boolean;
+  // commit 时是否自动暂存所有更改，默认 true
+  autoStage?: boolean;
 }
 
 const defaultConfig: GwConfig = {
@@ -26,6 +28,7 @@ const defaultConfig: GwConfig = {
   requireId: false,
   featureIdLabel: "Story ID",
   hotfixIdLabel: "Issue ID",
+  autoStage: true,
 };
 
 function getGitRoot(): string {
