@@ -1,8 +1,9 @@
 import { execSync } from "child_process";
-import { select, input, confirm, checkbox } from "@inquirer/prompts";
+import { select, input, checkbox } from "@inquirer/prompts";
 import ora from "ora";
 import { colors, theme, execOutput, divider } from "../utils.js";
 import { getConfig } from "../config.js";
+import { generateAICommitMessage, isAICommitAvailable } from "../ai-service.js";
 
 // Conventional Commits 类型 + Gitmoji
 const DEFAULT_COMMIT_TYPES = [
@@ -140,6 +141,119 @@ export async function commit(): Promise<void> {
     divider();
   }
 
+  // 询问用户选择手动还是 AI 生成
+  const aiAvailable = isAICommitAvailable(config);
+  let commitMode: "ai" | "manual" = "manual";
+
+  if (aiAvailable) {
+    commitMode = await select({
+      message: "选择 commit 方式:",
+      choices: [
+        {
+          name: "🤖 AI 自动生成 commit message",
+          value: "ai",
+          description: "使用 AI 分析代码变更自动生成",
+        },
+        {
+          name: "✍️  手动编写 commit message",
+          value: "manual",
+          description: "传统的交互式输入方式",
+        },
+      ],
+      theme,
+    });
+  }
+
+  let message: string;
+
+  if (commitMode === "ai") {
+    // AI 生成模式
+    const spinner = ora("AI 正在分析代码变更...").start();
+
+    try {
+      const aiMessage = await generateAICommitMessage(config);
+      spinner.succeed("AI 生成完成");
+
+      console.log("");
+      console.log("AI 生成的 commit message:");
+      console.log(colors.green(aiMessage));
+      divider();
+
+      const useAI = await select({
+        message: "使用这个 commit message?",
+        choices: [
+          { name: "✅ 使用", value: true },
+          { name: "❌ 不使用，切换到手动模式", value: false },
+        ],
+        theme,
+      });
+
+      if (useAI) {
+        message = aiMessage;
+      } else {
+        spinner.info("切换到手动模式");
+        commitMode = "manual";
+      }
+    } catch (error) {
+      spinner.fail("AI 生成失败");
+      console.log(
+        colors.red(error instanceof Error ? error.message : String(error))
+      );
+      console.log(colors.yellow("\n切换到手动模式..."));
+      divider();
+      commitMode = "manual";
+    }
+  }
+
+  if (commitMode === "manual") {
+    // 手动输入模式（原有逻辑）
+    message = await buildManualCommitMessage(config);
+  }
+
+  divider();
+  console.log("提交信息预览:");
+  console.log(colors.green(message));
+  divider();
+
+  const shouldCommit = await select({
+    message: "确认提交?",
+    choices: [
+      { name: "✅ 确认提交", value: true },
+      { name: "❌ 取消", value: false },
+    ],
+    theme,
+  });
+
+  if (!shouldCommit) {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  const spinner = ora("正在提交...").start();
+
+  try {
+    // 使用 -m 参数，需要转义引号
+    const escapedMessage = message.replace(/"/g, '\\"');
+    execSync(`git commit -m "${escapedMessage}"`, { stdio: "pipe" });
+    spinner.succeed("提交成功");
+
+    // 显示提交信息
+    const commitHash = execOutput("git rev-parse --short HEAD");
+    console.log(colors.dim(`commit: ${commitHash}`));
+  } catch (error) {
+    spinner.fail("提交失败");
+    if (error instanceof Error) {
+      console.log(colors.red(error.message));
+    }
+  }
+}
+
+/**
+ * 手动构建 commit message
+ */
+async function buildManualCommitMessage(
+  config: ReturnType<typeof getConfig>
+): Promise<string> {
   // 获取提交类型（支持自定义 emoji）
   const commitTypes = getCommitTypes(config);
 
@@ -177,9 +291,12 @@ export async function commit(): Promise<void> {
   });
 
   // 是否有破坏性变更
-  const hasBreaking = await confirm({
+  const hasBreaking = await select({
     message: "是否包含破坏性变更 (BREAKING CHANGE)?",
-    default: false,
+    choices: [
+      { name: "否", value: false },
+      { name: "是", value: true },
+    ],
     theme,
   });
 
@@ -227,37 +344,5 @@ export async function commit(): Promise<void> {
     }
   }
 
-  divider();
-  console.log("提交信息预览:");
-  console.log(colors.green(message));
-  divider();
-
-  const shouldCommit = await confirm({
-    message: "确认提交?",
-    default: true,
-    theme,
-  });
-
-  if (!shouldCommit) {
-    console.log(colors.yellow("已取消"));
-    return;
-  }
-
-  const spinner = ora("正在提交...").start();
-
-  try {
-    // 使用 -m 参数，需要转义引号
-    const escapedMessage = message.replace(/"/g, '\\"');
-    execSync(`git commit -m "${escapedMessage}"`, { stdio: "pipe" });
-    spinner.succeed("提交成功");
-
-    // 显示提交信息
-    const commitHash = execOutput("git rev-parse --short HEAD");
-    console.log(colors.dim(`commit: ${commitHash}`));
-  } catch (error) {
-    spinner.fail("提交失败");
-    if (error instanceof Error) {
-      console.log(colors.red(error.message));
-    }
-  }
+  return message;
 }

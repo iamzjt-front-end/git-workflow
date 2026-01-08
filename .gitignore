@@ -18,3 +18,11 @@ package-lock.json
 
 # Logs
 *.log
+
+# Config files (may contain API keys)
+.gwrc.json
+.gwrc
+gw.config.json
+
+# Update check cache
+.gw-update-check

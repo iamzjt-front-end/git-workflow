@@ -36,6 +36,15 @@ export interface GwConfig {
     chore?: string;
     revert?: string;
   };
+  // AI commit 配置
+  aiCommit?: {
+    enabled?: boolean; // 是否启用 AI commit，默认 true
+    provider?: "github" | "groq" | "openai" | "claude" | "ollama"; // AI 提供商，默认 github
+    apiKey?: string; // API key，空则使用内置 key
+    model?: string; // 模型名称
+    language?: "zh-CN" | "en-US"; // 生成语言，默认 zh-CN
+    maxTokens?: number; // 最大 token 数，默认 200
+  };
 }
 
 const defaultConfig: GwConfig = {

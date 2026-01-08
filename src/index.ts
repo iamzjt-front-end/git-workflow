@@ -12,15 +12,37 @@ import { stash } from "./commands/stash.js";
 import { commit } from "./commands/commit.js";
 import { showHelp } from "./commands/help.js";
 import { checkForUpdates } from "./update-notifier.js";
-import { checkForUpdates } from "./update-notifier.js";
 
 // 捕获 Ctrl+C 退出，静默处理
 process.on("uncaughtException", (err) => {
   if (err instanceof ExitPromptError) {
+    console.log(""); // 输出空行，让界面更整洁
     process.exit(0);
   }
   console.error(err);
   process.exit(1);
+});
+
+// 捕获未处理的 Promise 拒绝
+process.on("unhandledRejection", (reason) => {
+  if (reason instanceof ExitPromptError) {
+    console.log("");
+    process.exit(0);
+  }
+  console.error("未处理的 Promise 拒绝:", reason);
+  process.exit(1);
+});
+
+// 捕获 SIGINT 信号 (Ctrl+C)
+process.on("SIGINT", () => {
+  console.log("");
+  process.exit(0);
+});
+
+// 捕获 SIGTERM 信号
+process.on("SIGTERM", () => {
+  console.log("");
+  process.exit(0);
 });
 
 declare const __VERSION__: string | undefined;
