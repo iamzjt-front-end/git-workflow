@@ -32,6 +32,17 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
   exit 1
 fi
 
+# 检查是否有未提交的更改（发布前的脏工作区）
+if [[ -n $(git status --porcelain) ]]; then
+  echo ""
+  print_error "检测到未提交的更改，请先提交后再发布"
+  echo ""
+  git status --short
+  echo ""
+  print_info "提示: 可以使用 'gw c' 或 'git add . && git commit' 提交更改"
+  exit 1
+fi
+
 # 检查 npm 登录状态
 print_step "检查 npm 登录状态..."
 if ! npm whoami &> /dev/null; then
@@ -44,40 +55,6 @@ print_success "已登录 npm (用户: ${NPM_USER})"
 # 获取当前分支
 CURRENT_BRANCH=$(git branch --show-current)
 print_info "当前分支: ${CURRENT_BRANCH}"
-
-# 检查是否有未提交的更改（发布前的脏工作区）
-if [[ -n $(git status --porcelain) ]]; then
-  git status --short
-  
-  # 使用 Node.js 交互式提示
-  STASH_CHOICE=$(node scripts/stash-prompt.js)
-  EXIT_CODE=$?
-  
-  # 如果用户按了 Ctrl+C (退出码 130)
-  if [[ $EXIT_CODE -eq 130 ]]; then
-    print_info "已取消发布"
-    exit 0
-  fi
-  
-  case $STASH_CHOICE in
-    stash)
-      print_step "暂存未提交的更改..."
-      git stash push -m "Auto stash before publish at $(date '+%Y-%m-%d %H:%M:%S')"
-      print_success "更改已暂存"
-      
-      # 设置标志，发布完成后恢复
-      STASHED=true
-      ;;
-    cancel)
-      print_info "已取消发布"
-      exit 0
-      ;;
-    *)
-      print_error "操作已取消"
-      exit 1
-      ;;
-  esac
-fi
 
 # 拉取最新代码
 print_step "拉取最新代码..."
@@ -141,16 +118,3 @@ echo "版本: v${NEW_VERSION}"
 echo "GitHub: https://github.com/iamzjt-front-end/git-workflow/releases/tag/v${NEW_VERSION}"
 echo "npm: https://www.npmjs.com/package/@zjex/git-workflow/v/${NEW_VERSION}"
 echo ""
-
-# 如果之前暂存了更改，询问是否恢复
-if [[ "$STASHED" == true ]]; then
-  RESTORE_CHOICE=$(node scripts/restore-prompt.js)
-  
-  if [[ "$RESTORE_CHOICE" == "yes" ]]; then
-    print_step "恢复暂存的更改..."
-    git stash pop
-    print_success "更改已恢复"
-  else
-    print_info "更改仍在 stash 中，可以稍后使用 'git stash pop' 恢复"
-  fi
-fi

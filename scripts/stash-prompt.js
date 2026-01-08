@@ -18,6 +18,11 @@ async function main() {
       message: "请选择操作 (Ctrl+C 退出):",
       choices: [
         {
+          name: "提交这些更改后继续",
+          value: "commit",
+          description: "先提交当前更改，然后继续发布流程",
+        },
+        {
           name: "暂存 (stash) 这些更改后继续",
           value: "stash",
           description: "将更改保存到 stash，发布完成后可以恢复",
@@ -30,13 +35,12 @@ async function main() {
       ],
     });
 
-    // 输出结果供 shell 脚本读取
-    console.log(answer);
+    // 输出结果到 stdout
+    process.stdout.write(answer + "\n");
     process.exit(0);
   } catch (error) {
     if (error.name === "ExitPromptError") {
       // Ctrl+C 被按下，静默退出
-      process.stderr.write("\n");
       process.exit(130); // 130 是 Ctrl+C 的标准退出码
     }
     process.exit(1);

@@ -17,14 +17,13 @@ async function main() {
       default: false,
     });
 
-    // 输出结果供 shell 脚本读取
-    console.log(answer ? "yes" : "no");
+    // 输出结果到 stdout
+    process.stdout.write((answer ? "yes" : "no") + "\n");
     process.exit(0);
   } catch (error) {
     if (error.name === "ExitPromptError") {
       // Ctrl+C 被按下，静默退出，默认不恢复
-      process.stderr.write("\n");
-      console.log("no");
+      process.stdout.write("no\n");
       process.exit(0);
     }
     process.exit(1);
