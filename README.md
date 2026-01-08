@@ -1,9 +1,9 @@
-# git-workflow
+# @zjex/git-workflow
 
 <p align="center">
-  <img src="https://img.shields.io/npm/v/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm version">
-  <img src="https://img.shields.io/npm/dm/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm downloads">
-  <img src="https://img.shields.io/npm/l/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="license">
+  <img src="https://img.shields.io/npm/v/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm version">
+  <img src="https://img.shields.io/npm/dm/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm downloads">
+  <img src="https://img.shields.io/npm/l/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="license">
   <img src="https://img.shields.io/badge/node-%3E%3D18-28CF8D?style=flat&colorA=18181B" alt="node version">
 </p>
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 为什么选择 git-workflow？
+## 为什么选择 @zjex/git-workflow？
 
 在日常开发中，你是否经常遇到这些问题：
 
@@ -48,13 +48,13 @@
 
 ```bash
 # npm
-npm install -g git-workflow
+npm install -g @zjex/git-workflow
 
 # pnpm
-pnpm add -g git-workflow
+pnpm add -g @zjex/git-workflow
 
 # yarn
-yarn global add git-workflow
+yarn global add @zjex/git-workflow
 ```
 
 ### 30 秒上手
@@ -346,7 +346,7 @@ gw st
 
 ```bash
 # 克隆仓库
-git clone https://github.com/iamzjt/git-workflow.git
+git clone https://github.com/iamzjt-front-end/git-workflow.git
 cd git-workflow
 
 # 安装依赖

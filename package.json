@@ -1,11 +1,14 @@
 {
-	"name": "git-workflow",
+	"name": "@zjex/git-workflow",
 	"version": "0.0.1",
 	"description": "个人常用的 Git 工作流工具，快速创建规范的开发分支和管理 Tag",
 	"type": "module",
 	"bin": {
 		"git-flow": "./dist/index.js",
 		"gw": "./dist/index.js"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"scripts": {
 		"build": "tsup",
@@ -22,11 +25,15 @@
 		"tag",
 		"cli"
 	],
-	"author": "",
+	"author": "zjex",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": ""
+		"url": "git+https://github.com/iamzjt-front-end/git-workflow.git"
+	},
+	"homepage": "https://github.com/iamzjt-front-end/git-workflow#readme",
+	"bugs": {
+		"url": "https://github.com/iamzjt-front-end/git-workflow/issues"
 	},
 	"dependencies": {
 		"@inquirer/prompts": "^7.0.0",
