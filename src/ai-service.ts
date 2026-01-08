@@ -1,9 +1,6 @@
 import { execOutput } from "./utils.js";
 import type { GwConfig } from "./config.js";
 
-// 内置的 GitHub Models token (你需要替换成真实的)
-const BUILTIN_GITHUB_TOKEN = "github_pat_your_token_here";
-
 interface AIProvider {
   name: string;
   endpoint: string;
@@ -15,7 +12,7 @@ interface AIProvider {
 const AI_PROVIDERS: Record<string, AIProvider> = {
   github: {
     name: "GitHub Models",
-    endpoint: "https://models.inference.ai.azure.com/chat/completions",
+    endpoint: "https://models.github.ai/inference/chat/completions",
     defaultModel: "gpt-4o-mini",
     free: true,
     needsKey: true,
@@ -307,15 +304,11 @@ export async function generateAICommitMessage(
   const model = aiConfig.model || providerInfo.defaultModel;
 
   // 获取 API key
-  let apiKey = aiConfig.apiKey || "";
-  if (!apiKey && provider === "github") {
-    // 使用内置 GitHub token
-    apiKey = BUILTIN_GITHUB_TOKEN;
-  }
+  const apiKey = aiConfig.apiKey || "";
 
   if (providerInfo.needsKey && !apiKey) {
     throw new Error(
-      `${providerInfo.name} 需要 API key。请在配置文件中设置 aiCommit.apiKey`
+      `${providerInfo.name} 需要 API key。请运行 'gw init' 配置 AI commit，或在 .gwrc.json 中设置 aiCommit.apiKey`
     );
   }
 

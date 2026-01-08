@@ -719,5 +719,3 @@ npm publish
 <p align="center">
   如果这个工具对你有帮助，请给个 ⭐️ 支持一下！
 </p>
-test
-更新文档
