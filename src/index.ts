@@ -1,6 +1,7 @@
 // @ts-nocheck shebang handled by tsup banner
 
 import { cac } from "cac";
+import { ExitPromptError } from "@inquirer/core";
 import { checkGitRepo } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import { listTags, createTag } from "./commands/tag.js";
@@ -9,7 +10,23 @@ import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
 import { showHelp } from "./commands/help.js";
 
-declare const __VERSION__: string;
+// 捕获 Ctrl+C 退出，静默处理
+process.on("uncaughtException", (err) => {
+  if (err instanceof ExitPromptError) {
+    process.exit(0);
+  }
+  console.error(err);
+  process.exit(1);
+});
+
+declare const __VERSION__: string | undefined;
+
+// 开发环境下从 package.json 读取版本号
+const version: string =
+  typeof __VERSION__ !== "undefined"
+    ? __VERSION__
+    : (await import("../package.json", { with: { type: "json" } })).default
+        .version;
 
 const cli = cac("gw");
 
@@ -83,6 +100,6 @@ cli.help((sections) => {
     body: showHelp(),
   });
 });
-cli.version(__VERSION__);
+cli.version(version);
 
 cli.parse();

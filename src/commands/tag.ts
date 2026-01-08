@@ -42,6 +42,14 @@ interface TagChoice {
   value: string;
 }
 
+// 获取指定前缀的最新 tag（不依赖 shell 管道）
+function getLatestTag(prefix: string): string {
+  const tags = execOutput(`git tag -l "${prefix}*" --sort=-v:refname`)
+    .split("\n")
+    .filter(Boolean);
+  return tags[0] || "";
+}
+
 export async function createTag(inputPrefix?: string): Promise<void> {
   const config = getConfig();
   const fetchSpinner = ora("正在获取 tags...").start();
@@ -60,13 +68,68 @@ export async function createTag(inputPrefix?: string): Promise<void> {
 
   if (!prefix) {
     const allTags = execOutput("git tag -l").split("\n").filter(Boolean);
+
+    // 仓库没有任何 tag 的情况
+    if (allTags.length === 0) {
+      prefix = await input({
+        message: "当前仓库没有 tag，请输入前缀 (如 v):",
+        default: "v",
+        theme,
+      });
+      if (!prefix) {
+        console.log(colors.yellow("已取消"));
+        return;
+      }
+
+      // 选择初始版本号
+      const initialVersion = await select({
+        message: "选择初始版本号:",
+        choices: [
+          { name: `${prefix}0.0.1`, value: "0.0.1" },
+          { name: `${prefix}0.1.0`, value: "0.1.0" },
+          { name: `${prefix}1.0.0`, value: "1.0.0" },
+          { name: "自定义...", value: "__custom__" },
+        ],
+        theme,
+      });
+
+      let version = initialVersion;
+      if (initialVersion === "__custom__") {
+        version = await input({
+          message: "请输入版本号 (如 0.0.1):",
+          theme,
+        });
+        if (!version) {
+          console.log(colors.yellow("已取消"));
+          return;
+        }
+      }
+
+      const newTag = `${prefix}${version}`;
+      const ok = await select({
+        message: `确认创建 ${newTag}?`,
+        choices: [
+          { name: "是", value: true },
+          { name: "否", value: false },
+        ],
+        theme,
+      });
+      if (ok) {
+        doCreateTag(newTag);
+      }
+      return;
+    }
+
+    // 从现有 tag 中提取前缀
     const prefixes = [
       ...new Set(allTags.map((t) => t.replace(/[0-9].*/, "")).filter(Boolean)),
     ];
 
     if (prefixes.length === 0) {
+      // 有 tag 但无法提取前缀（比如纯数字 tag）
       prefix = await input({
-        message: "当前仓库没有 tag，请输入新前缀 (如 v):",
+        message: "请输入 tag 前缀 (如 v):",
+        default: "v",
         theme,
       });
       if (!prefix) {
@@ -75,9 +138,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
       }
     } else {
       const prefixWithDate: PrefixInfo[] = prefixes.map((p) => {
-        const latest = execOutput(
-          `git tag -l "${p}*" --sort=-v:refname | head -1`
-        );
+        const latest = getLatestTag(p);
         const date = latest
           ? execOutput(`git log -1 --format=%ct "${latest}" 2>/dev/null`)
           : "0";
@@ -108,9 +169,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
     }
   }
 
-  const latestTag = execOutput(
-    `git tag -l "${prefix}*" --sort=-v:refname | head -1`
-  );
+  const latestTag = getLatestTag(prefix);
 
   if (!latestTag) {
     const newTag = `${prefix}1.0.0`;
