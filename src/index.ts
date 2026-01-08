@@ -12,6 +12,7 @@ import { stash } from "./commands/stash.js";
 import { commit } from "./commands/commit.js";
 import { showHelp } from "./commands/help.js";
 import { checkForUpdates } from "./update-notifier.js";
+import { checkForUpdates } from "./update-notifier.js";
 
 // 捕获 Ctrl+C 退出，静默处理
 process.on("uncaughtException", (err) => {
@@ -26,10 +27,9 @@ declare const __VERSION__: string | undefined;
 
 // 开发环境下从 package.json 读取版本号
 const version: string =
-  typeof __VERSION__ !== "undefined"
+  typeof __VERSION__ !== "undefined" && __VERSION__ !== ""
     ? __VERSION__
-    : (await import("../package.json", { with: { type: "json" } })).default
-        .version;
+    : "0.0.0-dev";
 
 // 交互式主菜单
 async function mainMenu(): Promise<void> {
