@@ -53,7 +53,11 @@ export async function checkForUpdates(
       // action === "continue" 时直接继续，不记录
     }
   } catch (error) {
-    // 静默失败，不影响主程序
+    // 如果是用户按 Ctrl+C，重新抛出让全局处理
+    if (error?.constructor?.name === "ExitPromptError") {
+      throw error;
+    }
+    // 其他错误静默失败，不影响主程序
   }
 }
 
@@ -123,9 +127,9 @@ async function showUpdateMessage(
 
     return action as "update" | "continue" | "dismiss";
   } catch (error) {
-    // 用户按了 Ctrl+C，视为继续
+    // 用户按了 Ctrl+C，重新抛出错误让全局处理
     console.log("");
-    return "continue";
+    throw error;
   }
 }
 

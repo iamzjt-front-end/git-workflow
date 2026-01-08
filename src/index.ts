@@ -33,8 +33,8 @@ const version: string =
 
 // 交互式主菜单
 async function mainMenu(): Promise<void> {
-  // 检查更新（异步，不阻塞主流程）
-  checkForUpdates(version, "@zjex/git-workflow").catch(() => {});
+  // 先检查更新，等待完成后再显示主菜单
+  await checkForUpdates(version, "@zjex/git-workflow");
 
   // ASCII Art Logo
   console.log(
