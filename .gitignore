@@ -26,3 +26,8 @@ gw.config.json
 
 # Update check cache
 .gw-update-check
+
+# Test files
+test-*.sh
+test-*.js
+*.svg
