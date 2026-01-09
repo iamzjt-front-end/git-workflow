@@ -236,36 +236,33 @@ async function main() {
   console.log("");
 
   try {
-    // 创建临时文件来捕获输出
-    const tmpFile = "/tmp/npm-publish-output.txt";
     const fs = require("fs");
+    const tmpFile = "/tmp/npm-publish-output.txt";
 
-    // 使用 tee 命令捕获输出到文件，同时显示在终端
-    execSync(`npm publish 2>&1 | tee ${tmpFile}`, {
+    // 使用 script 命令捕获所有输出（包括交互）
+    // -q 静默模式，不输出 script 自己的消息
+    // -c 执行命令
+    // /dev/null 不保存 typescript 文件
+    execSync(`script -q ${tmpFile} npm publish < /dev/tty > /dev/tty 2>&1`, {
       stdio: "inherit",
       shell: "/bin/bash",
     });
 
     // 读取输出文件并计算行数
     const output = fs.readFileSync(tmpFile, "utf-8");
-    const outputLines = output.split("\n").length - 1; // 减1因为最后一行是空的
+    const outputLines = output.split("\n").length - 1;
 
     // 清理临时文件
     fs.unlinkSync(tmpFile);
 
     // 计算需要清除的总行数
-    // 包括：
-    // - "[11/11] 发布到 npm..." (1行)
-    // - 空行 (1行)
-    // - npm publish 的实际输出 (outputLines)
     const linesToClear = 2 + outputLines;
 
     for (let i = 0; i < linesToClear; i++) {
-      process.stdout.write("\x1b[1A"); // 向上移动一行
-      process.stdout.write("\x1b[2K"); // 清除整行
+      process.stdout.write("\x1b[1A");
+      process.stdout.write("\x1b[2K");
     }
 
-    // 显示简洁的成功信息
     console.log(`${colors.green("✔")} ${colors.blue("[11/11]")} 发布到 npm`);
   } catch (error) {
     console.log("");
