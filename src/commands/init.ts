@@ -80,14 +80,14 @@ export async function init(): Promise<void> {
     default: "feature",
     theme,
   });
-  if (featurePrefix !== "feature") config.featurePrefix = featurePrefix;
+  config.featurePrefix = featurePrefix;
 
   const hotfixPrefix = await input({
     message: "Hotfix 分支前缀:",
     default: "hotfix",
     theme,
   });
-  if (hotfixPrefix !== "hotfix") config.hotfixPrefix = hotfixPrefix;
+  config.hotfixPrefix = hotfixPrefix;
 
   divider();
 
@@ -100,21 +100,21 @@ export async function init(): Promise<void> {
     ],
     theme,
   });
-  if (requireId) config.requireId = true;
+  config.requireId = requireId;
 
   const featureIdLabel = await input({
     message: "Feature 分支 ID 标签:",
     default: "Story ID",
     theme,
   });
-  if (featureIdLabel !== "Story ID") config.featureIdLabel = featureIdLabel;
+  config.featureIdLabel = featureIdLabel;
 
   const hotfixIdLabel = await input({
     message: "Hotfix 分支 ID 标签:",
     default: "Issue ID",
     theme,
   });
-  if (hotfixIdLabel !== "Issue ID") config.hotfixIdLabel = hotfixIdLabel;
+  config.hotfixIdLabel = hotfixIdLabel;
 
   divider();
 
@@ -135,8 +135,12 @@ export async function init(): Promise<void> {
     ],
     theme,
   });
-  if (autoPushChoice === "yes") config.autoPush = true;
-  if (autoPushChoice === "no") config.autoPush = false;
+  if (autoPushChoice === "yes") {
+    config.autoPush = true;
+  } else if (autoPushChoice === "no") {
+    config.autoPush = false;
+  }
+  // autoPushChoice === "ask" 时不设置，使用默认行为（每次询问）
 
   divider();
 
@@ -149,7 +153,7 @@ export async function init(): Promise<void> {
     ],
     theme,
   });
-  if (!autoStage) config.autoStage = false;
+  config.autoStage = autoStage;
 
   const useEmoji = await select({
     message: "Commit 时是否使用 emoji?",
@@ -159,7 +163,7 @@ export async function init(): Promise<void> {
     ],
     theme,
   });
-  if (!useEmoji) config.useEmoji = false;
+  config.useEmoji = useEmoji;
 
   // 始终写入默认的 commitEmojis 配置，方便用户修改
   config.commitEmojis = DEFAULT_COMMIT_EMOJIS;

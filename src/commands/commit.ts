@@ -79,22 +79,8 @@ export async function commit(): Promise<void> {
   const config = getConfig();
   let { staged, unstaged } = parseGitStatus();
 
-  // 没有暂存的更改
-  if (staged.length === 0) {
-    if (unstaged.length === 0) {
-      console.log(colors.yellow("工作区干净，没有需要提交的更改"));
-      return;
-    }
-
-    console.log(colors.yellow("没有暂存的更改"));
-    divider();
-    console.log("未暂存的文件:");
-    for (const { status, file } of unstaged) {
-      console.log(`  ${formatFileStatus(status)} ${file}`);
-    }
-    divider();
-
-    // 根据配置决定是否自动暂存
+  // 如果有未暂存的更改，根据配置决定是否自动暂存
+  if (unstaged.length > 0) {
     const autoStage = config.autoStage ?? true;
 
     if (autoStage) {
@@ -105,7 +91,17 @@ export async function commit(): Promise<void> {
       // 重新获取状态
       const newStatus = parseGitStatus();
       staged = newStatus.staged;
-    } else {
+      unstaged = newStatus.unstaged;
+    } else if (staged.length === 0) {
+      // 没有暂存的文件，且不自动暂存，让用户选择
+      console.log(colors.yellow("没有暂存的更改"));
+      divider();
+      console.log("未暂存的文件:");
+      for (const { status, file } of unstaged) {
+        console.log(`  ${formatFileStatus(status)} ${file}`);
+      }
+      divider();
+
       // 让用户选择要暂存的文件
       const filesToStage = await checkbox({
         message: "选择要暂存的文件:",
@@ -133,13 +129,20 @@ export async function commit(): Promise<void> {
       const newStatus = parseGitStatus();
       staged = newStatus.staged;
     }
-  } else {
-    console.log("已暂存的文件:");
-    for (const { status, file } of staged) {
-      console.log(`  ${formatFileStatus(status)} ${file}`);
-    }
-    divider();
   }
+
+  // 没有暂存的更改
+  if (staged.length === 0) {
+    console.log(colors.yellow("工作区干净，没有需要提交的更改"));
+    return;
+  }
+
+  // 显示已暂存的文件
+  console.log("已暂存的文件:");
+  for (const { status, file } of staged) {
+    console.log(`  ${formatFileStatus(status)} ${file}`);
+  }
+  divider();
 
   // 询问用户选择手动还是 AI 生成
   const aiAvailable = isAICommitAvailable(config);
@@ -168,10 +171,6 @@ export async function commit(): Promise<void> {
 
   if (commitMode === "ai") {
     // AI 生成模式
-    console.log(
-      "DEBUG: config.aiCommit =",
-      JSON.stringify(config.aiCommit, null, 2)
-    );
     const spinner = ora("AI 正在分析代码变更...").start();
 
     try {
