@@ -29,11 +29,14 @@ function exec(command, silent = false) {
   }
 }
 
-function runStep(stepNum, stepName, command) {
+async function runStep(stepNum, stepName, command) {
   const spinner = ora({
     text: `${colors.blue(`[${stepNum}/${TOTAL_STEPS}]`)} ${stepName}...`,
     spinner: "dots",
   }).start();
+
+  // 给 spinner 一点时间渲染
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   try {
     execSync(command, { encoding: "utf-8", stdio: "pipe" });
@@ -56,7 +59,7 @@ async function main() {
   console.log("");
 
   // [1] 检查 Git 仓库
-  if (!runStep(1, "检查 Git 仓库", "git rev-parse --git-dir")) {
+  if (!(await runStep(1, "检查 Git 仓库", "git rev-parse --git-dir"))) {
     console.log(colors.red("✖ 当前目录不是 git 仓库"));
     process.exit(1);
   }
@@ -66,6 +69,8 @@ async function main() {
     text: `${colors.blue("[2/11]")} 检查工作区状态...`,
     spinner: "dots",
   }).start();
+
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   const status = exec("git status --porcelain", true);
   if (status && status.trim()) {
@@ -86,6 +91,8 @@ async function main() {
     spinner: "dots",
   }).start();
 
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
   const npmUser = exec("npm whoami", true);
   if (!npmUser) {
     spinner3.fail(`${colors.blue("[3/11]")} 检查 npm 登录状态`);
@@ -102,7 +109,7 @@ async function main() {
   const currentBranch = exec("git branch --show-current", true).trim();
 
   // [4] 拉取最新代码
-  if (!runStep(4, "拉取最新代码", `git pull origin ${currentBranch}`)) {
+  if (!(await runStep(4, "拉取最新代码", `git pull origin ${currentBranch}`))) {
     process.exit(1);
   }
 
@@ -167,12 +174,12 @@ async function main() {
   );
 
   // [6] 构建项目
-  if (!runStep(6, "构建项目", "npm run build")) {
+  if (!(await runStep(6, "构建项目", "npm run build"))) {
     process.exit(1);
   }
 
   // [7] 生成 CHANGELOG
-  if (!runStep(7, "生成 CHANGELOG", "npm run changelog")) {
+  if (!(await runStep(7, "生成 CHANGELOG", "npm run changelog"))) {
     process.exit(1);
   }
 
@@ -181,6 +188,8 @@ async function main() {
     text: `${colors.blue("[8/11]")} 提交版本更新...`,
     spinner: "dots",
   }).start();
+
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   try {
     execSync("git add package.json CHANGELOG.md", { stdio: "pipe" });
@@ -206,6 +215,8 @@ async function main() {
     spinner: "dots",
   }).start();
 
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
   try {
     execSync(`git tag -a "v${newVersion}" -m "Release v${newVersion}"`, {
       stdio: "pipe",
@@ -226,6 +237,8 @@ async function main() {
     text: `${colors.blue("[10/11]")} 推送到远程仓库...`,
     spinner: "dots",
   }).start();
+
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   try {
     execSync(`git push origin ${currentBranch}`, { stdio: "pipe" });

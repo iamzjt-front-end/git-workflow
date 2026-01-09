@@ -145,19 +145,8 @@ async function performUpdate(packageName: string): Promise<void> {
   }).start();
 
   try {
-    // 先卸载当前版本，确保干净安装
-    try {
-      execSync(`npm uninstall -g ${packageName}`, {
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-      });
-      spinner.text = "正在安装新版本...";
-    } catch {
-      // 当前版本不存在，忽略错误
-    }
-
-    // 执行安装命令
-    execSync(`npm install -g ${packageName}`, {
+    // 直接安装最新版本（npm 会自动覆盖旧版本）
+    execSync(`npm install -g ${packageName}@latest`, {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -169,11 +158,7 @@ async function performUpdate(packageName: string): Promise<void> {
         [
           colors.bold("✨ 更新完成！"),
           "",
-          colors.dim("请运行以下命令刷新并使用新版本:"),
-          "",
-          colors.yellow("  hash -r && gw --version"),
-          "",
-          colors.dim("或者重新打开终端"),
+          colors.dim("请重新打开终端使用新版本"),
         ].join("\n"),
         {
           padding: 1,
@@ -191,7 +176,7 @@ async function performUpdate(packageName: string): Promise<void> {
     spinner.fail(colors.red("更新失败"));
     console.log("");
     console.log(colors.dim("  你可以手动运行以下命令更新:"));
-    console.log(colors.cyan(`  npm install -g ${packageName}`));
+    console.log(colors.cyan(`  npm install -g ${packageName}@latest`));
     console.log("");
   }
 }

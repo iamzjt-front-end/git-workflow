@@ -66,7 +66,7 @@ async function mainMenu(): Promise<void> {
  ╚══════╝ ╚════╝ ╚══════╝╚═╝  ╚═╝
 `)
   );
-  console.log(colors.dim(`  git-workflow v${version}\n`));
+  console.log(colors.dim(`  git-workflow v${colors.yellow(version)}\n`));
 
   const action = await select({
     message: "选择操作:",
@@ -287,6 +287,15 @@ cli.help((sections) => {
     body: showHelp(),
   });
 });
-cli.version(version);
+
+// 不使用 cac 的 version，手动处理 --version
+cli.option("-v, --version", "显示版本号");
+
+// 在 parse 之前检查 --version
+const args = process.argv.slice(2);
+if (args.includes("-v") || args.includes("--version")) {
+  console.log(colors.yellow(`v${version}`));
+  process.exit(0);
+}
 
 cli.parse();
