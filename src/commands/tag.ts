@@ -334,3 +334,167 @@ function doCreateTag(tagName: string): void {
     );
   }
 }
+
+/**
+ * 删除 tag
+ */
+export async function deleteTag(): Promise<void> {
+  const fetchSpinner = ora("正在获取 tags...").start();
+  exec("git fetch --tags", true);
+  fetchSpinner.stop();
+
+  const tags = execOutput("git tag -l --sort=-v:refname")
+    .split("\n")
+    .filter(Boolean);
+
+  if (tags.length === 0) {
+    console.log(colors.yellow("没有可删除的 tag"));
+    return;
+  }
+
+  divider();
+
+  const choices = tags.map((tag) => ({ name: tag, value: tag }));
+  choices.push({ name: "取消", value: "__cancel__" });
+
+  const tagToDelete = await select({
+    message: "选择要删除的 tag:",
+    choices,
+    theme,
+  });
+
+  if (tagToDelete === "__cancel__") {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  const confirm = await select({
+    message: `确认删除 tag: ${colors.red(tagToDelete)}?`,
+    choices: [
+      { name: "是", value: true },
+      { name: "否", value: false },
+    ],
+    theme,
+  });
+
+  if (!confirm) {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  divider();
+
+  const spinner = ora(`正在删除本地 tag: ${tagToDelete}`).start();
+
+  try {
+    execSync(`git tag -d "${tagToDelete}"`, { stdio: "pipe" });
+    spinner.succeed(`本地 tag 已删除: ${tagToDelete}`);
+  } catch {
+    spinner.fail("本地 tag 删除失败");
+    return;
+  }
+
+  const deleteRemote = await select({
+    message: "是否同时删除远程 tag?",
+    choices: [
+      { name: "是", value: true },
+      { name: "否", value: false },
+    ],
+    theme,
+  });
+
+  if (deleteRemote) {
+    const pushSpinner = ora("正在删除远程 tag...").start();
+    try {
+      execSync(`git push origin --delete "${tagToDelete}"`, { stdio: "pipe" });
+      pushSpinner.succeed(`远程 tag 已删除: ${tagToDelete}`);
+    } catch {
+      pushSpinner.warn(
+        `远程删除失败，可稍后手动执行: git push origin --delete ${tagToDelete}`
+      );
+    }
+  }
+}
+
+/**
+ * 修改 tag（重新打标签）
+ */
+export async function updateTag(): Promise<void> {
+  const fetchSpinner = ora("正在获取 tags...").start();
+  exec("git fetch --tags", true);
+  fetchSpinner.stop();
+
+  const tags = execOutput("git tag -l --sort=-v:refname")
+    .split("\n")
+    .filter(Boolean);
+
+  if (tags.length === 0) {
+    console.log(colors.yellow("没有可修改的 tag"));
+    return;
+  }
+
+  divider();
+
+  const choices = tags.map((tag) => ({ name: tag, value: tag }));
+  choices.push({ name: "取消", value: "__cancel__" });
+
+  const tagToUpdate = await select({
+    message: "选择要修改的 tag:",
+    choices,
+    theme,
+  });
+
+  if (tagToUpdate === "__cancel__") {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  const newMessage = await input({
+    message: "输入新的 tag 消息:",
+    default: `Release ${tagToUpdate}`,
+    theme,
+  });
+
+  if (!newMessage) {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  divider();
+
+  const spinner = ora(`正在更新 tag: ${tagToUpdate}`).start();
+
+  try {
+    // 删除旧 tag
+    execSync(`git tag -d "${tagToUpdate}"`, { stdio: "pipe" });
+    // 创建新 tag（在同一个 commit 上）
+    execSync(`git tag -a "${tagToUpdate}" -m "${newMessage}"`, {
+      stdio: "pipe",
+    });
+    spinner.succeed(`Tag 已更新: ${tagToUpdate}`);
+  } catch {
+    spinner.fail("tag 更新失败");
+    return;
+  }
+
+  const pushRemote = await select({
+    message: "是否推送到远程（会强制覆盖）?",
+    choices: [
+      { name: "是", value: true },
+      { name: "否", value: false },
+    ],
+    theme,
+  });
+
+  if (pushRemote) {
+    const pushSpinner = ora("正在推送到远程...").start();
+    try {
+      execSync(`git push origin "${tagToUpdate}" --force`, { stdio: "pipe" });
+      pushSpinner.succeed(`Tag 已推送: ${tagToUpdate}`);
+    } catch {
+      pushSpinner.warn(
+        `远程推送失败，可稍后手动执行: git push origin ${tagToUpdate} --force`
+      );
+    }
+  }
+}

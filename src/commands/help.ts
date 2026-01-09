@@ -22,6 +22,12 @@ Tag 命令:
   gw tag [prefix]                 交互式选择版本类型并创建 tag
   gw t [prefix]                   同上 (别名)
 
+  gw tag:delete                   删除 tag
+  gw td                           同上 (别名)
+
+  gw tag:update                   修改 tag 消息
+  gw tu                           同上 (别名)
+
 发布命令:
   gw release                      交互式选择版本号并更新 package.json
   gw r                            同上 (别名)
@@ -47,6 +53,8 @@ Commit 命令:
   gw d feature/xxx                直接删除指定分支
   gw ts v                         列出所有 v 开头的 tag
   gw t                            交互式创建 tag
+  gw td                           交互式删除 tag
+  gw tu                           交互式修改 tag
   gw r                            交互式发布版本
   gw s                            交互式管理 stash
   gw c                            交互式提交代码

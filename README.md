@@ -1,10 +1,12 @@
 # @zjex/git-workflow
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/v/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm version"></a>
-  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/dm/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="npm downloads"></a>
-  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/l/@zjex/git-workflow.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="license"></a>
-  <img src="https://img.shields.io/badge/node-%3E%3D18-28CF8D?style=flat&colorA=18181B" alt="node version">
+  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/v/@zjex/git-workflow?style=flat&colorA=18181B&colorB=F0DB4F" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/dt/@zjex/git-workflow?style=flat&colorA=18181B&colorB=3178C6" alt="npm downloads"></a>
+  <a href="https://github.com/iamzjt-front-end/git-workflow"><img src="https://img.shields.io/github/stars/iamzjt-front-end/git-workflow?style=flat&colorA=18181B&colorB=F59E0B" alt="github stars"></a>
+  <a href="https://github.com/iamzjt-front-end/git-workflow/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/@zjex/git-workflow?style=flat&colorA=18181B&colorB=10B981" alt="license"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D18-339933?style=flat&logo=node.js&logoColor=white&colorA=18181B" alt="node version"></a>
+  <a href="https://github.com/iamzjt-front-end/git-workflow/issues"><img src="https://img.shields.io/github/issues/iamzjt-front-end/git-workflow?style=flat&colorA=18181B&colorB=EC4899" alt="issues"></a>
 </p>
 
 <p align="center">

@@ -5,7 +5,7 @@ import { select } from "@inquirer/prompts";
 import { ExitPromptError } from "@inquirer/core";
 import { checkGitRepo, theme, colors } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
-import { listTags, createTag } from "./commands/tag.js";
+import { listTags, createTag, deleteTag, updateTag } from "./commands/tag.js";
 import { release } from "./commands/release.js";
 import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
@@ -55,9 +55,6 @@ const version: string =
 
 // 交互式主菜单
 async function mainMenu(): Promise<void> {
-  // 先检查更新，等待完成后再显示主菜单
-  await checkForUpdates(version, "@zjex/git-workflow");
-
   // ASCII Art Logo
   console.log(
     colors.green(`
@@ -95,19 +92,27 @@ async function mainMenu(): Promise<void> {
         value: "tag",
       },
       {
-        name: `[6] 📋 列出 tags              ${colors.dim("gw ts")}`,
+        name: `[6] 🗑️  删除 tag               ${colors.dim("gw td")}`,
+        value: "tag-delete",
+      },
+      {
+        name: `[7] ✏️  修改 tag               ${colors.dim("gw tu")}`,
+        value: "tag-update",
+      },
+      {
+        name: `[8] 📋 列出 tags              ${colors.dim("gw ts")}`,
         value: "tags",
       },
       {
-        name: `[7] 📦 发布版本               ${colors.dim("gw r")}`,
+        name: `[9] 📦 发布版本               ${colors.dim("gw r")}`,
         value: "release",
       },
       {
-        name: `[8] 💾 管理 stash             ${colors.dim("gw s")}`,
+        name: `[a] 💾 管理 stash             ${colors.dim("gw s")}`,
         value: "stash",
       },
       {
-        name: `[9] ⚙️  初始化配置             ${colors.dim("gw init")}`,
+        name: `[b] ⚙️  初始化配置             ${colors.dim("gw init")}`,
         value: "init",
       },
       { name: "[0] ❓ 帮助", value: "help" },
@@ -133,6 +138,14 @@ async function mainMenu(): Promise<void> {
     case "tag":
       checkGitRepo();
       await createTag();
+      break;
+    case "tag-delete":
+      checkGitRepo();
+      await deleteTag();
+      break;
+    case "tag-update":
+      checkGitRepo();
+      await updateTag();
       break;
     case "tags":
       checkGitRepo();
@@ -163,7 +176,8 @@ async function mainMenu(): Promise<void> {
 const cli = cac("gw");
 
 // 默认命令 - 显示交互式菜单
-cli.command("", "显示交互式菜单").action(() => {
+cli.command("", "显示交互式菜单").action(async () => {
+  await checkForUpdates(version, "@zjex/git-workflow");
   return mainMenu();
 });
 
@@ -172,7 +186,8 @@ cli
   .alias("feat")
   .alias("f")
   .option("--base <branch>", "指定基础分支")
-  .action((options: { base?: string }) => {
+  .action(async (options: { base?: string }) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return createBranch("feature", options.base);
   });
@@ -182,7 +197,8 @@ cli
   .alias("fix")
   .alias("h")
   .option("--base <branch>", "指定基础分支")
-  .action((options: { base?: string }) => {
+  .action(async (options: { base?: string }) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return createBranch("hotfix", options.base);
   });
@@ -191,7 +207,8 @@ cli
   .command("delete [branch]", "删除本地/远程分支")
   .alias("del")
   .alias("d")
-  .action((branch?: string) => {
+  .action(async (branch?: string) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return deleteBranch(branch);
   });
@@ -199,7 +216,8 @@ cli
 cli
   .command("tags [prefix]", "列出所有 tag，可按前缀过滤")
   .alias("ts")
-  .action((prefix?: string) => {
+  .action(async (prefix?: string) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return listTags(prefix);
   });
@@ -207,19 +225,40 @@ cli
 cli
   .command("tag [prefix]", "交互式选择版本类型并创建 tag")
   .alias("t")
-  .action((prefix?: string) => {
+  .action(async (prefix?: string) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return createTag(prefix);
   });
 
 cli
+  .command("tag:delete", "删除 tag")
+  .alias("td")
+  .action(async () => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    return deleteTag();
+  });
+
+cli
+  .command("tag:update", "修改 tag 消息")
+  .alias("tu")
+  .action(async () => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    return updateTag();
+  });
+
+cli
   .command("release", "交互式选择版本号并更新 package.json")
   .alias("r")
-  .action(() => {
+  .action(async () => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     return release();
   });
 
-cli.command("init", "初始化配置文件 .gwrc.json").action(() => {
+cli.command("init", "初始化配置文件 .gwrc.json").action(async () => {
+  await checkForUpdates(version, "@zjex/git-workflow");
   return init();
 });
 
@@ -227,7 +266,8 @@ cli
   .command("stash", "交互式管理 stash")
   .alias("s")
   .alias("st")
-  .action(() => {
+  .action(async () => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return stash();
   });
@@ -236,7 +276,8 @@ cli
   .command("commit", "交互式提交 (Conventional Commits + Gitmoji)")
   .alias("c")
   .alias("cm")
-  .action(() => {
+  .action(async () => {
+    await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return commit();
   });
