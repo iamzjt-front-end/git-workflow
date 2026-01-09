@@ -145,18 +145,18 @@ async function performUpdate(packageName: string): Promise<void> {
   }).start();
 
   try {
-    // 先尝试卸载旧版本（无 scope 的版本）
+    // 先卸载当前版本，确保干净安装
     try {
-      execSync("npm uninstall -g git-workflow", {
+      execSync(`npm uninstall -g ${packageName}`, {
         encoding: "utf-8",
         stdio: ["pipe", "pipe", "pipe"],
       });
-      spinner.text = "已卸载旧版本，正在安装新版本...";
+      spinner.text = "正在安装新版本...";
     } catch {
-      // 旧版本不存在，忽略错误
+      // 当前版本不存在，忽略错误
     }
 
-    // 执行更新命令
+    // 执行安装命令
     execSync(`npm install -g ${packageName}`, {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
@@ -164,8 +164,26 @@ async function performUpdate(packageName: string): Promise<void> {
 
     spinner.succeed(colors.green("更新成功！"));
     console.log("");
-    console.log(colors.cyan("  提示: 请重新运行命令以使用新版本"));
-    console.log("");
+    console.log(
+      boxen(
+        [
+          colors.bold("✨ 更新完成！"),
+          "",
+          colors.dim("请运行以下命令刷新并使用新版本:"),
+          "",
+          colors.yellow("  hash -r && gw --version"),
+          "",
+          colors.dim("或者重新打开终端"),
+        ].join("\n"),
+        {
+          padding: 1,
+          margin: { top: 0, bottom: 1, left: 2, right: 2 },
+          borderStyle: "round",
+          borderColor: "green",
+          align: "left",
+        }
+      )
+    );
 
     // 更新成功后退出，让用户重新运行
     process.exit(0);
@@ -173,10 +191,6 @@ async function performUpdate(packageName: string): Promise<void> {
     spinner.fail(colors.red("更新失败"));
     console.log("");
     console.log(colors.dim("  你可以手动运行以下命令更新:"));
-    console.log(colors.yellow("  # 如果之前安装过旧版本，先卸载:"));
-    console.log(colors.cyan("  npm uninstall -g git-workflow"));
-    console.log("");
-    console.log(colors.yellow("  # 然后安装新版本:"));
     console.log(colors.cyan(`  npm install -g ${packageName}`));
     console.log("");
   }
