@@ -4,16 +4,23 @@ import ora from "ora";
 import { colors, theme, exec, execOutput, divider } from "../utils.js";
 import { getConfig } from "../config.js";
 
+/**
+ * 列出 tags（最新的显示在最下面，多个前缀分列展示）
+ * @param prefix 可选的 tag 前缀过滤
+ */
 export async function listTags(prefix?: string): Promise<void> {
+  // 1. 获取远程 tags
   const spinner = ora("正在获取 tags...").start();
   exec("git fetch --tags", true);
   spinner.stop();
 
+  // 2. 获取 tags 列表（按版本号升序排序，最新的在最后）
   const pattern = prefix ? `${prefix}*` : "";
-  const tags = execOutput(`git tag -l ${pattern} --sort=-v:refname`)
+  const tags = execOutput(`git tag -l ${pattern} --sort=v:refname`)
     .split("\n")
     .filter(Boolean);
 
+  // 3. 如果没有 tags，提示并返回
   if (tags.length === 0) {
     console.log(
       colors.yellow(prefix ? `没有 '${prefix}' 开头的 tag` : "没有 tag")
@@ -21,13 +28,95 @@ export async function listTags(prefix?: string): Promise<void> {
     return;
   }
 
-  console.log(
-    colors.green(prefix ? `以 '${prefix}' 开头的 tags:` : "所有 tags:")
-  );
-  tags.slice(0, 20).forEach((tag) => console.log(`  ${tag}`));
+  // 4. 如果指定了前缀，直接显示单列（最多 20 个）
+  if (prefix) {
+    console.log(colors.green(`以 '${prefix}' 开头的 tags:`));
+    const displayTags = tags.length > 20 ? tags.slice(-20) : tags;
+    displayTags.forEach((tag) => console.log(`  ${tag}`));
+    if (tags.length > 20) {
+      console.log(colors.yellow(`\n共 ${tags.length} 个，仅显示最新 20 个`));
+    }
+    return;
+  }
 
-  if (tags.length > 20) {
-    console.log(colors.yellow(`\n共 ${tags.length} 个，仅显示前 20 个`));
+  // 5. 按前缀分组（提取 tag 名称中数字前的部分作为前缀）
+  const grouped = new Map<string, string[]>();
+  tags.forEach((tag) => {
+    // 提取前缀：去掉数字及之后的部分，如 "v0.1.0" -> "v"
+    const prefix = tag.replace(/[0-9].*/, "") || "无前缀";
+    if (!grouped.has(prefix)) {
+      grouped.set(prefix, []);
+    }
+    grouped.get(prefix)!.push(tag);
+  });
+
+  // 6. 如果只有一个前缀，使用单列显示（最多 20 个）
+  if (grouped.size === 1) {
+    console.log(colors.green("所有 tags:"));
+    const displayTags = tags.length > 20 ? tags.slice(-20) : tags;
+    displayTags.forEach((tag) => console.log(`  ${tag}`));
+    if (tags.length > 20) {
+      console.log(colors.yellow(`\n共 ${tags.length} 个，仅显示最新 20 个`));
+    }
+    return;
+  }
+
+  // 7. 多个前缀，分列显示
+  console.log(colors.green("所有 tags (按前缀分组):"));
+  console.log("");
+
+  // 8. 准备每列的数据（每列最多显示 5 个最新的 tag）
+  const columns: Array<{ prefix: string; tags: string[]; hasMore: boolean }> =
+    [];
+  grouped.forEach((tagList, prefix) => {
+    const hasMore = tagList.length > 5;
+    // 取最后 5 个（最新的）
+    const displayTags = hasMore ? tagList.slice(-5) : tagList;
+    columns.push({ prefix, tags: displayTags, hasMore });
+  });
+
+  // 9. 计算每列的宽度（取所有 tag 中最长的，至少 20 字符）
+  const maxTagLength = Math.max(
+    ...columns.flatMap((col) => col.tags.map((t) => t.length))
+  );
+  const columnWidth = Math.max(maxTagLength + 4, 20);
+
+  // 10. 打印表头（显示前缀和总数）
+  const headers = columns.map((col) => {
+    const total = grouped.get(col.prefix)!.length;
+    const header = `${col.prefix} (${total})`;
+    return header.padEnd(columnWidth);
+  });
+  console.log(colors.cyan("  " + headers.join("  ")));
+
+  // 11. 打印分隔线
+  console.log(
+    colors.dim(
+      "  " + "─".repeat(columnWidth * columns.length + (columns.length - 1) * 2)
+    )
+  );
+
+  // 12. 打印省略号（如果某列有超过 5 个 tag）
+  const ellipsisRow = columns
+    .map((col) => {
+      const text = col.hasMore ? "..." : "";
+      return text.padEnd(columnWidth);
+    })
+    .join("  ");
+  if (columns.some((col) => col.hasMore)) {
+    console.log(colors.dim("  " + ellipsisRow));
+  }
+
+  // 13. 打印 tags 内容（按行打印，每行包含所有列的对应 tag）
+  const maxRows = Math.max(...columns.map((col) => col.tags.length));
+  for (let i = 0; i < maxRows; i++) {
+    const row = columns
+      .map((col) => {
+        const tag = col.tags[i] || ""; // 如果该列没有这一行，填充空字符串
+        return tag.padEnd(columnWidth);
+      })
+      .join("  ");
+    console.log("  " + row);
   }
 }
 
