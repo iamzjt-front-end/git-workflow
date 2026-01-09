@@ -1,6 +1,6 @@
 {
 	"name": "@zjex/git-workflow",
-	"version": "0.2.10",
+	"version": "0.2.11",
 	"description": "🚀 极简的 Git 工作流 CLI 工具，让分支管理和版本发布变得轻松愉快",
 	"type": "module",
 	"bin": {
