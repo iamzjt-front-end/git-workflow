@@ -132,13 +132,18 @@ async function main() {
   }
 
   // 清除上面的输出，重新显示步骤5
-  process.stdout.write("\x1b[2A"); // 向上移动2行
-  process.stdout.write("\x1b[0J"); // 清除从光标到屏幕底部
+  // npm run version 输出大约 8 行
+  const linesToClear = 8;
+
+  for (let i = 0; i < linesToClear; i++) {
+    process.stdout.write("\x1b[1A"); // 向上移动一行
+    process.stdout.write("\x1b[2K"); // 清除整行
+  }
 
   console.log(
-    `${colors.blue("[5/11]")} 选择新版本号... ${colors.green(
-      "✅"
-    )} ${colors.dim(`(${currentVersion} → ${newVersion})`)}`
+    `${colors.green("✔")} ${colors.blue("[5/11]")} 选择新版本号 ${colors.dim(
+      `(${currentVersion} → ${newVersion})`
+    )}`
   );
 
   // [6] 构建项目
@@ -219,18 +224,52 @@ async function main() {
   }
 
   // [11] 发布到 npm
+  const spinner11 = ora({
+    text: `${colors.blue("[11/11]")} 发布到 npm...`,
+    spinner: "dots",
+  }).start();
+
+  // 停止 spinner，保持交互式
+  spinner11.stop();
+
   console.log(`${colors.blue("[11/11]")} 发布到 npm...`);
   console.log("");
 
   try {
-    execSync("npm publish", { stdio: "inherit" });
-    console.log("");
-    console.log(
-      `${colors.blue("[11/11]")} 发布到 npm... ${colors.green("✅")}`
-    );
+    // 创建临时文件来捕获输出
+    const tmpFile = "/tmp/npm-publish-output.txt";
+    const fs = require("fs");
+
+    // 使用 tee 命令捕获输出到文件，同时显示在终端
+    execSync(`npm publish 2>&1 | tee ${tmpFile}`, {
+      stdio: "inherit",
+      shell: "/bin/bash",
+    });
+
+    // 读取输出文件并计算行数
+    const output = fs.readFileSync(tmpFile, "utf-8");
+    const outputLines = output.split("\n").length - 1; // 减1因为最后一行是空的
+
+    // 清理临时文件
+    fs.unlinkSync(tmpFile);
+
+    // 计算需要清除的总行数
+    // 包括：
+    // - "[11/11] 发布到 npm..." (1行)
+    // - 空行 (1行)
+    // - npm publish 的实际输出 (outputLines)
+    const linesToClear = 2 + outputLines;
+
+    for (let i = 0; i < linesToClear; i++) {
+      process.stdout.write("\x1b[1A"); // 向上移动一行
+      process.stdout.write("\x1b[2K"); // 清除整行
+    }
+
+    // 显示简洁的成功信息
+    console.log(`${colors.green("✔")} ${colors.blue("[11/11]")} 发布到 npm`);
   } catch (error) {
     console.log("");
-    console.log(`${colors.blue("[11/11]")} 发布到 npm... ${colors.red("❌")}`);
+    console.log(`${colors.red("✖")} ${colors.blue("[11/11]")} 发布到 npm`);
     process.exit(1);
   }
 
