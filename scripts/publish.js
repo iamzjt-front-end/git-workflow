@@ -259,17 +259,8 @@ async function main() {
     execSync("npm publish", { stdio: "inherit" });
 
     // 清除 npm publish 的所有输出
-    // npm publish 输出包括：
-    // - prepublishOnly hook (build 输出，约30行)
-    // - prepare hook (husky 输出，约5行)
-    // - npm notice 信息 (约15行)
-    // - OTP 认证提示和输入 (约3行)
-    // - 发布成功信息 (约2行)
-    // 加上我们自己的：
-    // - "[11/11] 发布到 npm..." (1行)
-    // - 空行 (1行)
-    // 总共约 57 行，为了保险使用 60 行
-    const linesToClear = 60;
+    // 根据实际测试，需要删除约 95 行
+    const linesToClear = 95;
 
     for (let i = 0; i < linesToClear; i++) {
       process.stdout.write("\x1b[1A");
