@@ -417,7 +417,7 @@ export async function deleteTag(): Promise<void> {
 }
 
 /**
- * 修改 tag（重新打标签）
+ * 修改 tag 名称（重命名 tag）
  */
 export async function updateTag(): Promise<void> {
   const fetchSpinner = ora("正在获取 tags...").start();
@@ -438,47 +438,71 @@ export async function updateTag(): Promise<void> {
   const choices = tags.map((tag) => ({ name: tag, value: tag }));
   choices.push({ name: "取消", value: "__cancel__" });
 
-  const tagToUpdate = await select({
-    message: "选择要修改的 tag:",
+  const oldTag = await select({
+    message: "选择要重命名的 tag:",
     choices,
     theme,
   });
 
-  if (tagToUpdate === "__cancel__") {
+  if (oldTag === "__cancel__") {
     console.log(colors.yellow("已取消"));
     return;
   }
 
-  const newMessage = await input({
-    message: "输入新的 tag 消息:",
-    default: `Release ${tagToUpdate}`,
+  console.log("");
+  console.log(colors.dim(`当前 tag: ${oldTag}`));
+  console.log("");
+
+  const newTag = await input({
+    message: "输入新的 tag 名称:",
+    default: oldTag,
     theme,
   });
 
-  if (!newMessage) {
+  if (!newTag || newTag === oldTag) {
     console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  // 检查新 tag 是否已存在
+  const existingTags = execOutput("git tag -l").split("\n").filter(Boolean);
+  if (existingTags.includes(newTag)) {
+    console.log(colors.red(`Tag ${newTag} 已存在，无法重命名`));
     return;
   }
 
   divider();
 
-  const spinner = ora(`正在更新 tag: ${tagToUpdate}`).start();
+  const spinner = ora(`正在重命名 tag: ${oldTag} → ${newTag}`).start();
 
   try {
+    // 获取旧 tag 的 commit 和消息
+    const commit = execOutput(`git rev-list -n 1 "${oldTag}"`).trim();
+    const message = execOutput(
+      `git tag -l --format='%(contents)' "${oldTag}"`
+    ).trim();
+
+    // 创建新 tag（指向同一个 commit）
+    if (message) {
+      execSync(`git tag -a "${newTag}" "${commit}" -m "${message}"`, {
+        stdio: "pipe",
+      });
+    } else {
+      execSync(`git tag "${newTag}" "${commit}"`, { stdio: "pipe" });
+    }
+
     // 删除旧 tag
-    execSync(`git tag -d "${tagToUpdate}"`, { stdio: "pipe" });
-    // 创建新 tag（在同一个 commit 上）
-    execSync(`git tag -a "${tagToUpdate}" -m "${newMessage}"`, {
-      stdio: "pipe",
-    });
-    spinner.succeed(`Tag 已更新: ${tagToUpdate}`);
-  } catch {
-    spinner.fail("tag 更新失败");
+    execSync(`git tag -d "${oldTag}"`, { stdio: "pipe" });
+
+    spinner.succeed(`Tag 已重命名: ${oldTag} → ${newTag}`);
+  } catch (error) {
+    spinner.fail("tag 重命名失败");
+    console.log(colors.red(String(error)));
     return;
   }
 
   const pushRemote = await select({
-    message: "是否推送到远程（会强制覆盖）?",
+    message: "是否同步到远程?",
     choices: [
       { name: "是", value: true },
       { name: "否", value: false },
@@ -487,13 +511,16 @@ export async function updateTag(): Promise<void> {
   });
 
   if (pushRemote) {
-    const pushSpinner = ora("正在推送到远程...").start();
+    const pushSpinner = ora("正在同步到远程...").start();
     try {
-      execSync(`git push origin "${tagToUpdate}" --force`, { stdio: "pipe" });
-      pushSpinner.succeed(`Tag 已推送: ${tagToUpdate}`);
+      // 推送新 tag
+      execSync(`git push origin "${newTag}"`, { stdio: "pipe" });
+      // 删除远程旧 tag
+      execSync(`git push origin --delete "${oldTag}"`, { stdio: "pipe" });
+      pushSpinner.succeed(`远程 tag 已同步: ${oldTag} → ${newTag}`);
     } catch {
       pushSpinner.warn(
-        `远程推送失败，可稍后手动执行: git push origin ${tagToUpdate} --force`
+        `远程同步失败，可稍后手动执行:\n  git push origin ${newTag}\n  git push origin --delete ${oldTag}`
       );
     }
   }

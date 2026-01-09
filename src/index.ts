@@ -97,7 +97,7 @@ async function mainMenu(): Promise<void> {
         value: "tag-delete",
       },
       {
-        name: `[7] ✏️  修改 tag               ${colors.dim("gw tu")}`,
+        name: `[7] ✏️  重命名 tag               ${colors.dim("gw tu")}`,
         value: "tag-update",
       },
       {
@@ -242,7 +242,7 @@ cli
   });
 
 cli
-  .command("tag:update", "修改 tag 消息")
+  .command("tag:update", "重命名 tag")
   .alias("tu")
   .action(async () => {
     await checkForUpdates(version, "@zjex/git-workflow");

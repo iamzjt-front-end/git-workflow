@@ -25,7 +25,7 @@ Tag 命令:
   gw tag:delete                   删除 tag
   gw td                           同上 (别名)
 
-  gw tag:update                   修改 tag 消息
+  gw tag:update                   重命名 tag
   gw tu                           同上 (别名)
 
 发布命令:
