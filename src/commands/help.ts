@@ -38,6 +38,10 @@ Tag 命令:
                                   • 项目配置: .gwrc.json (仅当前项目)
                                   运行时可选择配置范围
 
+更新命令:
+  gw update                       检查并更新到最新版本
+  gw upt                          同上 (别名)
+
 Stash 命令:
   gw stash                        交互式管理 stash
   gw s                            同上 (别名)

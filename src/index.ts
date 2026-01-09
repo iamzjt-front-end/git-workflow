@@ -12,6 +12,7 @@ import { stash } from "./commands/stash.js";
 import { commit } from "./commands/commit.js";
 import { showHelp } from "./commands/help.js";
 import { checkForUpdates } from "./update-notifier.js";
+import { update } from "./commands/update.js";
 
 // 捕获 Ctrl+C 退出，静默处理
 process.on("uncaughtException", (err) => {
@@ -280,6 +281,13 @@ cli
     await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return commit();
+  });
+
+cli
+  .command("update", "检查并更新到最新版本")
+  .alias("upt")
+  .action(async () => {
+    return update(version);
   });
 
 cli.help((sections) => {
