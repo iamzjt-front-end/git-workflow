@@ -17,7 +17,6 @@ const DEFAULT_COMMIT_TYPES = [
   { type: "build", emoji: "📦", description: "构建/依赖相关" },
   { type: "ci", emoji: "👷", description: "CI/CD 相关" },
   { type: "chore", emoji: "🔧", description: "其他杂项" },
-  { type: "revert", emoji: "⏪", description: "回退提交" },
 ] as const;
 
 type CommitType = (typeof DEFAULT_COMMIT_TYPES)[number]["type"];
@@ -263,10 +262,17 @@ async function buildManualCommitMessage(
   // 选择提交类型
   const typeChoice = await select({
     message: "选择提交类型:",
-    choices: commitTypes.map((t) => ({
-      name: `${t.emoji}  ${t.type.padEnd(10)} ${colors.dim(t.description)}`,
-      value: t,
-    })),
+    choices: commitTypes.map((t) => {
+      // 使用固定宽度格式化，不依赖 emoji 宽度
+      const typeText = t.type.padEnd(10);
+      // 针对 refactor 特殊处理，因为 ♻️ emoji 宽度不一致
+      const spacing = t.type === "refactor" ? "   " : "  ";
+      return {
+        name: `${t.emoji}${spacing}${typeText} ${colors.dim(t.description)}`,
+        value: t,
+      };
+    }),
+    pageSize: commitTypes.length, // 显示所有选项，不滚动
     theme,
   });
 
