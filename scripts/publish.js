@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-warnings
 
 import { execSync } from "child_process";
 import { readFileSync } from "fs";
@@ -135,17 +135,9 @@ async function main() {
   // 需要清除：
   // - "[5/11] 选择新版本号..." (1行)
   // - 空行 (1行)
-  // - "> @zjex/git-workflow@x.x.x version" (1行)
-  // - "> node scripts/version.js" (1行)
-  // - 空行 (1行)
-  // - "ℹ 当前版本: x.x.x" (1行)
-  // - 空行 (1行)
-  // - "✔ 选择新版本号: ..." (1行)
-  // - 空行 (1行)
-  // - "ℹ 正在更新版本号到..." (1行)
-  // - "✔ 版本号已更新: ..." (1行)
-  // 总共 11 行
-  const linesToClear = 11;
+  // - npm run version 的所有输出 (约11行)
+  // 总共 13 行
+  const linesToClear = 13;
 
   for (let i = 0; i < linesToClear; i++) {
     process.stdout.write("\x1b[1A"); // 向上移动一行
@@ -248,27 +240,13 @@ async function main() {
   console.log("");
 
   try {
-    const fs = require("fs");
-    const tmpFile = "/tmp/npm-publish-output.txt";
+    execSync("npm publish", { stdio: "inherit" });
 
-    // 使用 script 命令捕获所有输出（包括交互）
-    // -q 静默模式，不输出 script 自己的消息
-    // -c 执行命令
-    // /dev/null 不保存 typescript 文件
-    execSync(`script -q ${tmpFile} npm publish < /dev/tty > /dev/tty 2>&1`, {
-      stdio: "inherit",
-      shell: "/bin/bash",
-    });
-
-    // 读取输出文件并计算行数
-    const output = fs.readFileSync(tmpFile, "utf-8");
-    const outputLines = output.split("\n").length - 1;
-
-    // 清理临时文件
-    fs.unlinkSync(tmpFile);
-
-    // 计算需要清除的总行数
-    const linesToClear = 2 + outputLines;
+    // 清除 npm publish 的所有输出
+    // 根据实际测试，npm publish 输出约 50-60 行
+    // 包括：prepublishOnly、build、prepare、husky、npm notice、认证等
+    // 为了确保清除干净，使用 60 行
+    const linesToClear = 60;
 
     for (let i = 0; i < linesToClear; i++) {
       process.stdout.write("\x1b[1A");
