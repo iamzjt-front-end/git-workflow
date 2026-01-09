@@ -43,7 +43,7 @@ export async function listTags(prefix?: string): Promise<void> {
   const grouped = new Map<string, string[]>();
   tags.forEach((tag) => {
     // 提取前缀：去掉数字及之后的部分，如 "v0.1.0" -> "v"
-    const prefix = tag.replace(/[0-9].*/, "") || "无前缀";
+    const prefix = tag.replace(/[0-9].*/, "") || "(无前缀)";
     if (!grouped.has(prefix)) {
       grouped.set(prefix, []);
     }

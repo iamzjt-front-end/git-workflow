@@ -6,6 +6,7 @@
   <a href="https://github.com/iamzjt-front-end/git-workflow"><img src="https://img.shields.io/github/stars/iamzjt-front-end/git-workflow?style=flat&colorA=18181B&colorB=F59E0B" alt="github stars"></a>
   <a href="https://github.com/iamzjt-front-end/git-workflow/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/@zjex/git-workflow?style=flat&colorA=18181B&colorB=10B981" alt="license"></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D18-339933?style=flat&logo=node.js&logoColor=white&colorA=18181B" alt="node version"></a>
+  <a href="https://github.com/iamzjt-front-end/git-workflow/actions"><img src="https://img.shields.io/badge/tests-100%20passed-success?style=flat&colorA=18181B" alt="tests"></a>
   <a href="https://github.com/iamzjt-front-end/git-workflow/issues"><img src="https://img.shields.io/github/issues/iamzjt-front-end/git-workflow?style=flat&colorA=18181B&colorB=EC4899" alt="issues"></a>
 </p>
 
@@ -1150,10 +1151,64 @@ npm run dev
 # 构建
 npm run build
 
+# 运行测试
+npm test
+
+# 监听模式（开发时使用）
+npm run test:watch
+
+# 可视化测试界面
+npm run test:ui
+
+# 生成测试覆盖率报告
+npm run test:coverage
+
 # 本地测试
 npm link
 gw --version
 ```
+
+### 测试
+
+本项目使用 [Vitest](https://vitest.dev/) 作为测试框架，确保每次变更不会影响现有功能。
+
+**测试覆盖：**
+
+- ✅ Tag 功能（前缀提取、分组、显示逻辑）
+- ✅ Commit 功能（提交类型、消息格式、emoji）
+- ✅ 工具函数
+
+**运行测试：**
+
+```bash
+# 单次运行所有测试
+npm test
+
+# 监听模式（开发时推荐）
+npm run test:watch
+
+# 可视化界面
+npm run test:ui
+
+# 生成覆盖率报告
+npm run test:coverage
+```
+
+**添加新测试：**
+
+在 `tests/` 目录创建对应的测试文件：
+
+```typescript
+import { describe, it, expect } from "vitest";
+
+describe("新功能", () => {
+  it("应该正确工作", () => {
+    expect(result).toBe(expected);
+  });
+});
+```
+
+详细测试指南请查看 [tests/README.md](./tests/README.md)。
 
 ## 📦 发布
 
