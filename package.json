@@ -42,10 +42,12 @@
 		"@inquirer/prompts": "^7.0.0",
 		"boxen": "^8.0.1",
 		"cac": "^6.7.14",
-		"ora": "^9.0.0"
+		"ora": "^9.0.0",
+		"semver": "^7.7.3"
 	},
 	"devDependencies": {
 		"@types/node": "^25.0.3",
+		"@types/semver": "^7.7.1",
 		"changelogen": "^0.6.2",
 		"husky": "^9.1.7",
 		"tsup": "^8.5.1",

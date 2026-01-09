@@ -1,7 +1,27 @@
 import { execSync } from "child_process";
 import ora from "ora";
 import boxen from "boxen";
+import semver from "semver";
+import { existsSync, unlinkSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 import { colors } from "../utils.js";
+
+const CACHE_FILE = ".gw-update-check";
+
+/**
+ * 清理更新缓存文件
+ */
+function clearUpdateCache(): void {
+  try {
+    const cacheFile = join(homedir(), CACHE_FILE);
+    if (existsSync(cacheFile)) {
+      unlinkSync(cacheFile);
+    }
+  } catch {
+    // 静默失败
+  }
+}
 
 /**
  * 获取 npm 上的最新版本
@@ -42,11 +62,12 @@ export async function update(currentVersion: string): Promise<void> {
 
     spinner.stop();
 
-    if (latestVersion === currentVersion) {
+    // 使用 semver 比较版本
+    if (semver.gte(currentVersion, latestVersion)) {
       console.log(
         boxen(
           [
-            colors.bold("✅ 已是最新版本"),
+            colors.green(colors.bold("✅ 已是最新版本")),
             "",
             `当前版本: ${colors.green(currentVersion)}`,
           ].join("\n"),
@@ -63,21 +84,30 @@ export async function update(currentVersion: string): Promise<void> {
     }
 
     // 有新版本
+    const versionText = `${currentVersion}  →  ${latestVersion}`;
+    const maxWidth = Math.max(
+      "🎉 发现新版本！".length,
+      versionText.length,
+      "✨ 更新完成！".length,
+      "请重新打开终端使用新版本".length
+    );
+
     console.log(
       boxen(
         [
-          colors.bold("🎉 发现新版本！"),
+          colors.yellow(colors.bold("🎉 发现新版本！")),
           "",
           `${colors.dim(currentVersion)}  →  ${colors.green(
             colors.bold(latestVersion)
           )}`,
         ].join("\n"),
         {
-          padding: 1,
+          padding: { top: 1, bottom: 1, left: 3, right: 3 },
           margin: { top: 0, bottom: 1, left: 2, right: 2 },
           borderStyle: "round",
           borderColor: "yellow",
-          align: "left",
+          align: "center",
+          width: 40,
         }
       )
     );
@@ -91,20 +121,25 @@ export async function update(currentVersion: string): Promise<void> {
     });
 
     updateSpinner.succeed(colors.green("更新成功！"));
+
+    // 清理缓存文件
+    clearUpdateCache();
+
     console.log("");
     console.log(
       boxen(
         [
-          colors.bold("✨ 更新完成！"),
+          colors.green(colors.bold("✨ 更新完成！")),
           "",
           colors.dim("请重新打开终端使用新版本"),
         ].join("\n"),
         {
-          padding: 1,
+          padding: { top: 1, bottom: 1, left: 3, right: 3 },
           margin: { top: 0, bottom: 1, left: 2, right: 2 },
           borderStyle: "round",
           borderColor: "green",
-          align: "left",
+          align: "center",
+          width: 40,
         }
       )
     );

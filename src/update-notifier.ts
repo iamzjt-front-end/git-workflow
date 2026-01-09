@@ -1,57 +1,72 @@
 import { execSync } from "child_process";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 import boxen from "boxen";
 import { select } from "@inquirer/prompts";
 import ora from "ora";
+import semver from "semver";
 import { colors } from "./utils.js";
 
+const CHECK_INTERVAL = 1000 * 60 * 60 * 4; // 4 小时检查一次
 const DISMISS_INTERVAL = 1000 * 60 * 60 * 24; // 24 小时后再次提示
 const CACHE_FILE = ".gw-update-check";
 
 interface UpdateCache {
+  lastCheck?: number; // 上次检查更新的时间
   lastDismiss?: number; // 用户上次关闭提示的时间
-  latestVersion?: string;
+  latestVersion?: string; // 最新版本号
+  checkedVersion?: string; // 检查时的当前版本
 }
 
 /**
- * 检查是否有新版本
+ * 检查是否有新版本（异步静默检查）
+ * @param currentVersion 当前版本
+ * @param packageName 包名
+ * @param interactive 是否交互式（true: 显示完整提示并可选择更新，false: 只显示简单提示）
  */
 export async function checkForUpdates(
   currentVersion: string,
-  packageName: string = "@zjex/git-workflow"
+  packageName: string = "@zjex/git-workflow",
+  interactive: boolean = false
 ): Promise<void> {
   try {
-    // 读取缓存
     const cache = readCache();
     const now = Date.now();
 
-    // 如果用户在 24 小时内关闭过提示，跳过
-    if (cache?.lastDismiss && now - cache.lastDismiss < DISMISS_INTERVAL) {
-      return;
-    }
-
-    // 获取最新版本
-    const latestVersion = await getLatestVersion(packageName);
-
-    // 如果有新版本，显示提示
-    if (latestVersion && latestVersion !== currentVersion) {
-      const action = await showUpdateMessage(
-        currentVersion,
-        latestVersion,
-        packageName
-      );
-
-      if (action === "update") {
-        // 用户选择立即更新
-        await performUpdate(packageName);
-      } else if (action === "dismiss") {
-        // 用户选择跳过，记录时间
-        writeCache({ lastDismiss: now, latestVersion });
+    // 1. 先检查缓存中是否有新版本需要提示
+    if (cache?.latestVersion && cache.checkedVersion === currentVersion) {
+      // 如果用户在 24 小时内关闭过提示，跳过
+      if (cache.lastDismiss && now - cache.lastDismiss < DISMISS_INTERVAL) {
+        // 继续后台检查（不阻塞）
+        backgroundCheck(currentVersion, packageName);
+        return;
       }
-      // action === "continue" 时直接继续，不记录
+
+      // 使用 semver 比较版本
+      if (semver.gt(cache.latestVersion, currentVersion)) {
+        if (interactive) {
+          // 交互式模式：显示完整提示，可选择更新
+          const action = await showUpdateMessage(
+            currentVersion,
+            cache.latestVersion,
+            packageName
+          );
+
+          if (action === "update") {
+            await performUpdate(packageName);
+          } else if (action === "dismiss") {
+            writeCache({ ...cache, lastDismiss: now });
+          }
+        } else {
+          // 非交互式模式：只显示简单提示
+          showSimpleNotification(currentVersion, cache.latestVersion);
+        }
+      }
     }
+
+    // 2. 后台异步检查更新（不阻塞当前命令）
+    backgroundCheck(currentVersion, packageName);
   } catch (error) {
     // 如果是用户按 Ctrl+C，重新抛出让全局处理
     if (error?.constructor?.name === "ExitPromptError") {
@@ -59,6 +74,37 @@ export async function checkForUpdates(
     }
     // 其他错误静默失败，不影响主程序
   }
+}
+
+/**
+ * 后台异步检查更新（不阻塞）
+ */
+function backgroundCheck(currentVersion: string, packageName: string): void {
+  const cache = readCache();
+  const now = Date.now();
+
+  // 如果距离上次检查不到 4 小时，跳过
+  if (cache?.lastCheck && now - cache.lastCheck < CHECK_INTERVAL) {
+    return;
+  }
+
+  // 使用 Promise 异步执行，不阻塞当前命令
+  Promise.resolve().then(async () => {
+    try {
+      const latestVersion = await getLatestVersion(packageName);
+
+      if (latestVersion) {
+        writeCache({
+          ...cache,
+          lastCheck: now,
+          latestVersion,
+          checkedVersion: currentVersion,
+        });
+      }
+    } catch {
+      // 静默失败
+    }
+  });
 }
 
 /**
@@ -78,7 +124,29 @@ async function getLatestVersion(packageName: string): Promise<string | null> {
 }
 
 /**
- * 显示更新提示消息并让用户选择
+ * 显示简单的更新通知（非交互式，不阻塞）
+ */
+function showSimpleNotification(current: string, latest: string): void {
+  const message = `${colors.yellow("🎉 发现新版本")} ${colors.dim(
+    current
+  )} → ${colors.green(latest)}    ${colors.dim("运行")} ${colors.cyan(
+    "gw update"
+  )} ${colors.dim("更新")}`;
+
+  console.log("");
+  console.log(
+    boxen(message, {
+      padding: { top: 0, bottom: 0, left: 2, right: 2 },
+      margin: { top: 0, bottom: 1, left: 0, right: 0 },
+      borderStyle: "round",
+      borderColor: "yellow",
+      align: "center",
+    })
+  );
+}
+
+/**
+ * 显示更新提示消息并让用户选择（交互式）
  * @returns "update" | "continue" | "dismiss"
  */
 async function showUpdateMessage(
@@ -87,7 +155,7 @@ async function showUpdateMessage(
   packageName: string
 ): Promise<"update" | "continue" | "dismiss"> {
   const message = [
-    colors.bold("� 发现新版新本可用！"),
+    colors.yellow(colors.bold("🎉 发现新版本！")),
     "",
     `${colors.dim(current)}  →  ${colors.green(colors.bold(latest))}`,
   ].join("\n");
@@ -95,11 +163,12 @@ async function showUpdateMessage(
   console.log("");
   console.log(
     boxen(message, {
-      padding: 1,
+      padding: { top: 1, bottom: 1, left: 3, right: 3 },
       margin: 1,
       borderStyle: "round",
       borderColor: "yellow",
-      align: "left",
+      align: "center",
+      width: 40,
     })
   );
 
@@ -152,20 +221,25 @@ async function performUpdate(packageName: string): Promise<void> {
     });
 
     spinner.succeed(colors.green("更新成功！"));
+
+    // 清理缓存文件
+    clearUpdateCache();
+
     console.log("");
     console.log(
       boxen(
         [
-          colors.bold("✨ 更新完成！"),
+          colors.green(colors.bold("✨ 更新完成！")),
           "",
           colors.dim("请重新打开终端使用新版本"),
         ].join("\n"),
         {
-          padding: 1,
+          padding: { top: 1, bottom: 1, left: 3, right: 3 },
           margin: { top: 0, bottom: 1, left: 2, right: 2 },
           borderStyle: "round",
           borderColor: "green",
-          align: "left",
+          align: "center",
+          width: 40,
         }
       )
     );
@@ -178,6 +252,20 @@ async function performUpdate(packageName: string): Promise<void> {
     console.log(colors.dim("  你可以手动运行以下命令更新:"));
     console.log(colors.cyan(`  npm install -g ${packageName}@latest`));
     console.log("");
+  }
+}
+
+/**
+ * 清理更新缓存文件
+ */
+export function clearUpdateCache(): void {
+  try {
+    const cacheFile = join(homedir(), CACHE_FILE);
+    if (existsSync(cacheFile)) {
+      unlinkSync(cacheFile);
+    }
+  } catch {
+    // 静默失败
   }
 }
 

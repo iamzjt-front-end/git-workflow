@@ -42,6 +42,9 @@ Tag 命令:
   gw update                       检查并更新到最新版本
   gw upt                          同上 (别名)
 
+清理命令:
+  gw clean                        清理缓存文件
+
 Stash 命令:
   gw stash                        交互式管理 stash
   gw s                            同上 (别名)

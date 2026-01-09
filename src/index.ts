@@ -178,7 +178,7 @@ const cli = cac("gw");
 
 // 默认命令 - 显示交互式菜单
 cli.command("", "显示交互式菜单").action(async () => {
-  await checkForUpdates(version, "@zjex/git-workflow");
+  await checkForUpdates(version, "@zjex/git-workflow", true);
   return mainMenu();
 });
 
@@ -289,6 +289,14 @@ cli
   .action(async () => {
     return update(version);
   });
+
+cli.command("clean", "清理缓存文件").action(async () => {
+  const { clearUpdateCache } = await import("./update-notifier.js");
+  clearUpdateCache();
+  console.log("");
+  console.log(colors.green("✔ 缓存已清理"));
+  console.log("");
+});
 
 cli.help((sections) => {
   sections.push({
