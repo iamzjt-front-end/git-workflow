@@ -17,7 +17,7 @@
 		"version": "node scripts/version.js",
 		"release": "./scripts/release.sh",
 		"release:dry": "./scripts/release.sh --dry-run",
-		"publish:npm": "node scripts/publish.js",
+		"publish:npm": "NODE_NO_WARNINGS=1 node scripts/publish.js",
 		"prepublishOnly": "npm run build",
 		"prepare": "husky"
 	},

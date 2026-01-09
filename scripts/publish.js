@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings
+#!/usr/bin/env node
 
 import { execSync } from "child_process";
 import { readFileSync } from "fs";
@@ -111,6 +111,14 @@ async function main() {
   const currentVersion = pkg.version;
 
   // [5] 选择新版本号
+  const spinner5 = ora({
+    text: `${colors.blue("[5/11]")} 选择新版本号...`,
+    spinner: "dots",
+  }).start();
+
+  // 停止 spinner，保持交互式
+  spinner5.stop();
+
   console.log(`${colors.blue("[5/11]")} 选择新版本号...`);
   console.log("");
 
@@ -132,12 +140,20 @@ async function main() {
   }
 
   // 清除上面的输出，重新显示步骤5
-  // 需要清除：
+  // npm run version 输出：
+  // - "> @zjex/git-workflow@x.x.x version" (1行)
+  // - "> node scripts/version.js" (1行)
+  // - 空行 (1行)
+  // - "? 选择版本升级类型:" (1行)
+  // - 选项列表 (4行: patch, minor, major, custom)
+  // - 空行 (1行)
+  // - "✔ 版本已更新: x.x.x → x.x.x" (1行)
+  // - 空行 (1行)
+  // 加上我们自己的：
   // - "[5/11] 选择新版本号..." (1行)
   // - 空行 (1行)
-  // - npm run version 的所有输出 (约11行)
-  // 总共 13 行
-  const linesToClear = 13;
+  // 总共约 14 行
+  const linesToClear = 14;
 
   for (let i = 0; i < linesToClear; i++) {
     process.stdout.write("\x1b[1A"); // 向上移动一行
@@ -243,9 +259,16 @@ async function main() {
     execSync("npm publish", { stdio: "inherit" });
 
     // 清除 npm publish 的所有输出
-    // 根据实际测试，npm publish 输出约 50-60 行
-    // 包括：prepublishOnly、build、prepare、husky、npm notice、认证等
-    // 为了确保清除干净，使用 60 行
+    // npm publish 输出包括：
+    // - prepublishOnly hook (build 输出，约30行)
+    // - prepare hook (husky 输出，约5行)
+    // - npm notice 信息 (约15行)
+    // - OTP 认证提示和输入 (约3行)
+    // - 发布成功信息 (约2行)
+    // 加上我们自己的：
+    // - "[11/11] 发布到 npm..." (1行)
+    // - 空行 (1行)
+    // 总共约 57 行，为了保险使用 60 行
     const linesToClear = 60;
 
     for (let i = 0; i < linesToClear; i++) {
