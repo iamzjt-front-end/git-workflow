@@ -46,31 +46,6 @@ run_step() {
   fi
 }
 
-# 执行步骤（显示关键信息）
-run_step_with_info() {
-  local step_num=$1
-  local step_name=$2
-  local command=$3
-  local info_msg=$4
-  
-  echo -ne "${BLUE}[${step_num}/${TOTAL_STEPS}]${NC} ${step_name}... "
-  
-  # 执行命令并捕获输出
-  if output=$(eval "$command" 2>&1); then
-    echo -e "${GREEN}✅${NC}"
-    if [[ -n "$info_msg" ]]; then
-      print_dim "$info_msg"
-    fi
-    return 0
-  else
-    echo -e "${RED}❌${NC}"
-    echo ""
-    echo -e "${RED}错误详情:${NC}"
-    echo "$output"
-    return 1
-  fi
-}
-
 # 执行步骤（显示输出，用于交互式命令）
 run_step_interactive() {
   local step_num=$1
@@ -150,8 +125,8 @@ if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
   exit 0
 fi
 
-print_info "  📌 版本: ${CURRENT_VERSION} → ${BOLD}${NEW_VERSION}${NC}"
-echo ""
+# 显示版本升级信息
+echo -e "${GREEN}    ✅${NC} ${DIM}(${CURRENT_VERSION} → ${NEW_VERSION})${NC}"
 
 # [6] 构建项目
 if ! run_step "6" "构建项目" "npm run build"; then
@@ -164,21 +139,33 @@ if ! run_step "7" "生成 CHANGELOG" "npm run changelog"; then
 fi
 
 # [8] 提交版本更新和 changelog
-if ! run_step_with_info "8" "提交版本更新" "git add package.json CHANGELOG.md && git commit -m '🔖 chore(release): 发布 v${NEW_VERSION}'" "  📝 Commit: 🔖 chore(release): 发布 v${NEW_VERSION}"; then
+echo -ne "${BLUE}[8/${TOTAL_STEPS}]${NC} 提交版本更新... "
+if output=$(git add package.json CHANGELOG.md && git commit -m "🔖 chore(release): 发布 v${NEW_VERSION}" 2>&1); then
+  echo -e "${GREEN}✅${NC} ${DIM}(🔖 chore(release): 发布 v${NEW_VERSION})${NC}"
+else
+  echo -e "${RED}❌${NC}"
+  echo ""
+  echo -e "${RED}错误详情:${NC}"
+  echo "$output"
   exit 1
 fi
 
 # [9] 创建 tag
-if ! run_step_with_info "9" "创建 Git Tag" "git tag -a 'v${NEW_VERSION}' -m 'Release v${NEW_VERSION}'" "  🏷️  Tag: v${NEW_VERSION}"; then
+echo -ne "${BLUE}[9/${TOTAL_STEPS}]${NC} 创建 Git Tag... "
+if output=$(git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}" 2>&1); then
+  echo -e "${GREEN}✅${NC} ${DIM}(v${NEW_VERSION})${NC}"
+else
+  echo -e "${RED}❌${NC}"
+  echo ""
+  echo -e "${RED}错误详情:${NC}"
+  echo "$output"
   exit 1
 fi
 
 # [10] 推送到远程
 echo -ne "${BLUE}[10/${TOTAL_STEPS}]${NC} 推送到远程仓库... "
 if output=$(git push origin "$CURRENT_BRANCH" && git push origin "v${NEW_VERSION}" 2>&1); then
-  echo -e "${GREEN}✅${NC}"
-  print_dim "  🌐 Branch: ${CURRENT_BRANCH}"
-  print_dim "  🏷️  Tag: v${NEW_VERSION}"
+  echo -e "${GREEN}✅${NC} ${DIM}(${CURRENT_BRANCH}, v${NEW_VERSION})${NC}"
 else
   echo -e "${RED}❌${NC}"
   echo ""
@@ -193,15 +180,4 @@ if ! run_step "11" "发布到 npm" "npm publish"; then
 fi
 
 # 成功总结
-echo ""
-echo -e "${GREEN}╭────────────────────────────────────────╮${NC}"
-echo -e "${GREEN}│                                        │${NC}"
-echo -e "${GREEN}│${NC}  ${BOLD}🎉 发布成功！${NC}                       ${GREEN}│${NC}"
-echo -e "${GREEN}│                                        │${NC}"
-echo -e "${GREEN}│${NC}  ${CYAN}版本:${NC} ${BOLD}v${NEW_VERSION}${NC}                        ${GREEN}│${NC}"
-echo -e "${GREEN}│                                        │${NC}"
-echo -e "${GREEN}╰────────────────────────────────────────╯${NC}"
-echo ""
-print_dim "🔗 GitHub: https://github.com/iamzjt-front-end/git-workflow/releases/tag/v${NEW_VERSION}"
-print_dim "📦 npm: https://www.npmjs.com/package/@zjex/git-workflow"
-echo ""
+node scripts/publish-success.js "${NEW_VERSION}"
