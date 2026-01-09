@@ -132,8 +132,20 @@ async function main() {
   }
 
   // 清除上面的输出，重新显示步骤5
-  // npm run version 输出大约 8 行
-  const linesToClear = 8;
+  // 需要清除：
+  // - "[5/11] 选择新版本号..." (1行)
+  // - 空行 (1行)
+  // - "> @zjex/git-workflow@x.x.x version" (1行)
+  // - "> node scripts/version.js" (1行)
+  // - 空行 (1行)
+  // - "ℹ 当前版本: x.x.x" (1行)
+  // - 空行 (1行)
+  // - "✔ 选择新版本号: ..." (1行)
+  // - 空行 (1行)
+  // - "ℹ 正在更新版本号到..." (1行)
+  // - "✔ 版本号已更新: ..." (1行)
+  // 总共 11 行
+  const linesToClear = 11;
 
   for (let i = 0; i < linesToClear; i++) {
     process.stdout.write("\x1b[1A"); // 向上移动一行
