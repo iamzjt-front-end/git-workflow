@@ -40,10 +40,23 @@ async function getLatestVersion(packageName: string): Promise<string | null> {
 }
 
 /**
+ * 检测是否使用 Volta
+ */
+function isUsingVolta(): boolean {
+  try {
+    const whichGw = execSync("which gw", { encoding: "utf-8" }).trim();
+    return whichGw.includes(".volta");
+  } catch {
+    return false;
+  }
+}
+
+/**
  * 手动更新命令
  */
 export async function update(currentVersion: string): Promise<void> {
   const packageName = "@zjex/git-workflow";
+  const usingVolta = isUsingVolta();
 
   console.log("");
   console.log(colors.bold("🔍 检查更新..."));
@@ -85,12 +98,6 @@ export async function update(currentVersion: string): Promise<void> {
 
     // 有新版本
     const versionText = `${currentVersion}  →  ${latestVersion}`;
-    const maxWidth = Math.max(
-      "🎉 发现新版本！".length,
-      versionText.length,
-      "✨ 更新完成！".length,
-      "请重新打开终端使用新版本".length
-    );
 
     console.log(
       boxen(
@@ -115,7 +122,12 @@ export async function update(currentVersion: string): Promise<void> {
     // 开始更新
     const updateSpinner = ora("正在更新...").start();
 
-    execSync(`npm install -g ${packageName}@latest`, {
+    // 根据包管理器选择更新命令
+    const updateCommand = usingVolta
+      ? `volta install ${packageName}@latest`
+      : `npm install -g ${packageName}@latest`;
+
+    execSync(updateCommand, {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -131,15 +143,20 @@ export async function update(currentVersion: string): Promise<void> {
         [
           colors.green(colors.bold("✨ 更新完成！")),
           "",
-          colors.dim("请重新打开终端使用新版本"),
+          `新版本: ${colors.green(colors.bold(latestVersion))}`,
+          "",
+          colors.dim("请执行以下命令验证:"),
+          colors.cyan("  hash -r && gw --version"),
+          "",
+          colors.dim("或重新打开终端"),
         ].join("\n"),
         {
-          padding: { top: 1, bottom: 1, left: 3, right: 3 },
+          padding: { top: 1, bottom: 1, left: 2, right: 2 },
           margin: { top: 0, bottom: 1, left: 2, right: 2 },
           borderStyle: "round",
           borderColor: "green",
-          align: "center",
-          width: 40,
+          align: "left",
+          width: 50,
         }
       )
     );
@@ -150,7 +167,10 @@ export async function update(currentVersion: string): Promise<void> {
     spinner.fail(colors.red("更新失败"));
     console.log("");
     console.log(colors.dim("  你可以手动运行以下命令更新:"));
-    console.log(colors.cyan(`  npm install -g ${packageName}@latest`));
+    const updateCommand = usingVolta
+      ? `volta install ${packageName}@latest`
+      : `npm install -g ${packageName}@latest`;
+    console.log(colors.cyan(`  ${updateCommand}`));
     console.log("");
     process.exit(1);
   }

@@ -108,6 +108,18 @@ function backgroundCheck(currentVersion: string, packageName: string): void {
 }
 
 /**
+ * 检测是否使用 Volta
+ */
+function isUsingVolta(): boolean {
+  try {
+    const whichGw = execSync("which gw", { encoding: "utf-8" }).trim();
+    return whichGw.includes(".volta");
+  } catch {
+    return false;
+  }
+}
+
+/**
  * 获取 npm 上的最新版本
  */
 async function getLatestVersion(packageName: string): Promise<string | null> {
@@ -172,6 +184,11 @@ async function showUpdateMessage(
     })
   );
 
+  const usingVolta = isUsingVolta();
+  const updateCommand = usingVolta
+    ? `volta install ${packageName}@latest`
+    : `npm install -g ${packageName}@latest`;
+
   try {
     const action = await select({
       message: "你想做什么？",
@@ -179,7 +196,7 @@ async function showUpdateMessage(
         {
           name: "🚀 立即更新",
           value: "update",
-          description: `运行 npm install -g ${packageName}`,
+          description: `运行 ${updateCommand}`,
         },
         {
           name: "⏭️  稍后更新，继续使用",
@@ -208,14 +225,19 @@ async function showUpdateMessage(
 async function performUpdate(packageName: string): Promise<void> {
   console.log("");
 
+  const usingVolta = isUsingVolta();
+  const updateCommand = usingVolta
+    ? `volta install ${packageName}@latest`
+    : `npm install -g ${packageName}@latest`;
+
   const spinner = ora({
     text: "正在更新...",
     spinner: "dots",
   }).start();
 
   try {
-    // 直接安装最新版本（npm 会自动覆盖旧版本）
-    execSync(`npm install -g ${packageName}@latest`, {
+    // 根据包管理器选择更新命令
+    execSync(updateCommand, {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -231,15 +253,18 @@ async function performUpdate(packageName: string): Promise<void> {
         [
           colors.green(colors.bold("✨ 更新完成！")),
           "",
-          colors.dim("请重新打开终端使用新版本"),
+          colors.dim("请执行以下命令验证:"),
+          colors.cyan("  hash -r && gw --version"),
+          "",
+          colors.dim("或重新打开终端"),
         ].join("\n"),
         {
-          padding: { top: 1, bottom: 1, left: 3, right: 3 },
+          padding: { top: 1, bottom: 1, left: 2, right: 2 },
           margin: { top: 0, bottom: 1, left: 2, right: 2 },
           borderStyle: "round",
           borderColor: "green",
-          align: "center",
-          width: 40,
+          align: "left",
+          width: 50,
         }
       )
     );
@@ -250,7 +275,7 @@ async function performUpdate(packageName: string): Promise<void> {
     spinner.fail(colors.red("更新失败"));
     console.log("");
     console.log(colors.dim("  你可以手动运行以下命令更新:"));
-    console.log(colors.cyan(`  npm install -g ${packageName}@latest`));
+    console.log(colors.cyan(`  ${updateCommand}`));
     console.log("");
   }
 }
