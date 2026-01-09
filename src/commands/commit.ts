@@ -168,6 +168,10 @@ export async function commit(): Promise<void> {
 
   if (commitMode === "ai") {
     // AI 生成模式
+    console.log(
+      "DEBUG: config.aiCommit =",
+      JSON.stringify(config.aiCommit, null, 2)
+    );
     const spinner = ora("AI 正在分析代码变更...").start();
 
     try {

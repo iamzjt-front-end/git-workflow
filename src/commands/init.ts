@@ -1,9 +1,9 @@
 import { existsSync, writeFileSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
 import { select, input } from "@inquirer/prompts";
 import { colors, theme, divider } from "../utils.js";
 import type { GwConfig } from "../config.js";
-
-const CONFIG_FILE = ".gwrc.json";
 
 // 默认的 commit emoji 配置
 const DEFAULT_COMMIT_EMOJIS = {
@@ -21,9 +21,34 @@ const DEFAULT_COMMIT_EMOJIS = {
 };
 
 export async function init(): Promise<void> {
-  if (existsSync(CONFIG_FILE)) {
+  console.log("");
+  console.log(colors.bold("⚙️  初始化 git-workflow 配置"));
+  console.log("");
+
+  // 选择配置范围
+  const configScope = await select({
+    message: "选择配置范围:",
+    choices: [
+      {
+        name: "全局配置（所有项目生效）",
+        value: "global",
+        description: "保存到 ~/.gwrc.json，所有项目都会使用此配置",
+      },
+      {
+        name: "项目配置（仅当前项目）",
+        value: "project",
+        description: "保存到当前目录 .gwrc.json，仅当前项目使用",
+      },
+    ],
+    theme,
+  });
+
+  const isGlobal = configScope === "global";
+  const configFile = isGlobal ? join(homedir(), ".gwrc.json") : ".gwrc.json";
+
+  if (existsSync(configFile)) {
     const overwrite = await select({
-      message: `${CONFIG_FILE} 已存在，是否覆盖?`,
+      message: `${isGlobal ? "全局" : "项目"}配置文件已存在，是否覆盖?`,
       choices: [
         { name: "否，取消", value: false },
         { name: "是，覆盖", value: true },
@@ -165,11 +190,6 @@ export async function init(): Promise<void> {
           description: "使用 GitHub 账号，每天 150 次免费",
         },
         {
-          name: "Groq（免费）",
-          value: "groq",
-          description: "需要注册，每天 14,400 次免费",
-        },
-        {
           name: "OpenAI（付费）",
           value: "openai",
           description: "需要付费 API key",
@@ -188,28 +208,42 @@ export async function init(): Promise<void> {
       theme,
     });
 
-    const useBuiltinKey = await select({
-      message: "API Key 配置:",
-      choices: [
-        {
-          name: "使用内置 Key（开箱即用）",
-          value: true,
-          description: "使用工具内置的 API key，共享限额",
-        },
-        {
-          name: "使用自己的 Key（推荐）",
-          value: false,
-          description: "配置自己的 API key，独享限额",
-        },
-      ],
-      theme,
-    });
-
     let apiKey = "";
-    if (!useBuiltinKey) {
+
+    // GitHub Models 需要配置 GitHub Token
+    if (aiProvider === "github") {
+      console.log("");
+      console.log(colors.cyan("💡 如何获取 GitHub Token:"));
+      console.log(
+        colors.dim("  1. 访问: https://github.com/settings/tokens/new")
+      );
+      console.log(colors.dim("  2. 勾选 'repo' 权限"));
+      console.log(colors.dim("  3. 生成并复制 token"));
+      console.log("");
+
+      apiKey = await input({
+        message: "输入你的 GitHub Token:",
+        validate: (value) => {
+          if (!value.trim()) return "GitHub Token 不能为空";
+          return true;
+        },
+        theme,
+      });
+    } else if (aiProvider !== "ollama") {
+      // OpenAI 和 Claude 必须配置 API key
+      console.log("");
+      if (aiProvider === "openai") {
+        console.log(colors.cyan("💡 如何获取 OpenAI API Key:"));
+        console.log(colors.dim("  访问: https://platform.openai.com/api-keys"));
+      } else {
+        console.log(colors.cyan("💡 如何获取 Claude API Key:"));
+        console.log(colors.dim("  访问: https://console.anthropic.com/"));
+      }
+      console.log("");
+
       apiKey = await input({
         message: `输入你的 ${
-          aiProvider === "github" ? "GitHub Token" : "API Key"
+          aiProvider === "openai" ? "OpenAI API Key" : "Claude API Key"
         }:`,
         validate: (value) => {
           if (!value.trim()) return "API Key 不能为空";
@@ -230,12 +264,7 @@ export async function init(): Promise<void> {
 
     config.aiCommit = {
       enabled: true,
-      provider: aiProvider as
-        | "github"
-        | "groq"
-        | "openai"
-        | "claude"
-        | "ollama",
+      provider: aiProvider as "github" | "openai" | "claude" | "ollama",
       apiKey: apiKey || undefined,
       language: language as "zh-CN" | "en-US",
     };
@@ -243,7 +272,6 @@ export async function init(): Promise<void> {
     // 根据提供商设置默认模型
     const defaultModels: Record<string, string> = {
       github: "gpt-4o-mini",
-      groq: "llama-3.1-8b-instant",
       openai: "gpt-4o-mini",
       claude: "claude-3-haiku-20240307",
       ollama: "qwen2.5-coder:7b",
@@ -259,14 +287,34 @@ export async function init(): Promise<void> {
 
   // 写入配置
   const content = JSON.stringify(config, null, 2);
-  writeFileSync(CONFIG_FILE, content + "\n");
+  writeFileSync(configFile, content + "\n");
 
-  console.log(colors.green(`✓ 配置已保存到 ${CONFIG_FILE}`));
   console.log(
-    colors.dim(
-      "\n提示: 可以在配置文件中修改 commitEmojis 来自定义各类型的 emoji"
+    colors.green(
+      `✓ 配置已保存到 ${
+        isGlobal ? "全局配置文件" : "项目配置文件"
+      }: ${configFile}`
     )
   );
+
+  if (isGlobal) {
+    console.log("");
+    console.log(colors.cyan("💡 提示:"));
+    console.log(
+      colors.dim("  • 全局配置对所有项目生效，无需在每个项目中重复配置")
+    );
+    console.log(
+      colors.dim("  • 如需为特定项目自定义配置，可在项目中运行 gw init")
+    );
+    console.log(colors.dim("  • 项目配置会覆盖全局配置"));
+  } else {
+    console.log("");
+    console.log(
+      colors.dim(
+        "提示: 可以在配置文件中修改 commitEmojis 来自定义各类型的 emoji"
+      )
+    );
+  }
 
   if (config.aiCommit?.enabled) {
     console.log(

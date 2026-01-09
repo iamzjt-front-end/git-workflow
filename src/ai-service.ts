@@ -17,13 +17,6 @@ const AI_PROVIDERS: Record<string, AIProvider> = {
     free: true,
     needsKey: true,
   },
-  groq: {
-    name: "Groq",
-    endpoint: "https://api.groq.com/openai/v1/chat/completions",
-    defaultModel: "llama-3.1-8b-instant",
-    free: true,
-    needsKey: true,
-  },
   openai: {
     name: "OpenAI",
     endpoint: "https://api.openai.com/v1/chat/completions",
@@ -138,38 +131,6 @@ async function callGitHubAPI(
 }
 
 /**
- * 调用 Groq API
- */
-async function callGroqAPI(
-  prompt: string,
-  apiKey: string,
-  model: string,
-  maxTokens: number
-): Promise<string> {
-  const response = await fetch(AI_PROVIDERS.groq.endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.3,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Groq API 错误: ${response.status} ${error}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0]?.message?.content?.trim() || "";
-}
-
-/**
  * 调用 OpenAI API
  */
 async function callOpenAIAPI(
@@ -277,7 +238,7 @@ export async function generateAICommitMessage(
   config: GwConfig
 ): Promise<string> {
   const aiConfig = config.aiCommit || {};
-  const provider = aiConfig.provider || "groq";
+  const provider = aiConfig.provider || "github";
   const language = aiConfig.language || "zh-CN";
   const maxTokens = aiConfig.maxTokens || 200;
 
@@ -316,8 +277,6 @@ export async function generateAICommitMessage(
   switch (provider) {
     case "github":
       return await callGitHubAPI(prompt, apiKey, model, maxTokens);
-    case "groq":
-      return await callGroqAPI(prompt, apiKey, model, maxTokens);
     case "openai":
       return await callOpenAIAPI(prompt, apiKey, model, maxTokens);
     case "claude":

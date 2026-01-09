@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { homedir } from "os";
 import { execOutput } from "./utils.js";
 
 export interface GwConfig {
@@ -39,7 +40,7 @@ export interface GwConfig {
   // AI commit 配置
   aiCommit?: {
     enabled?: boolean; // 是否启用 AI commit，默认 true
-    provider?: "github" | "groq" | "openai" | "claude" | "ollama"; // AI 提供商，默认 github
+    provider?: "github" | "openai" | "claude" | "ollama"; // AI 提供商，默认 github
     apiKey?: string; // API key，空则使用内置 key
     model?: string; // 模型名称
     language?: "zh-CN" | "en-US"; // 生成语言，默认 zh-CN
@@ -89,21 +90,55 @@ function findConfigFile(): string | null {
   return null;
 }
 
+function findGlobalConfigFile(): string | null {
+  const globalConfigPath = join(homedir(), ".gwrc.json");
+  return existsSync(globalConfigPath) ? globalConfigPath : null;
+}
+
 export function loadConfig(): GwConfig {
-  const configPath = findConfigFile();
+  let config = { ...defaultConfig };
 
-  if (!configPath) {
-    return defaultConfig;
+  // 1. 先加载全局配置
+  const globalConfigPath = findGlobalConfigFile();
+  if (globalConfigPath) {
+    try {
+      const content = readFileSync(globalConfigPath, "utf-8");
+      const globalConfig = JSON.parse(content) as Partial<GwConfig>;
+      // 深度合并 aiCommit 配置
+      config = {
+        ...config,
+        ...globalConfig,
+        aiCommit: {
+          ...config.aiCommit,
+          ...globalConfig.aiCommit,
+        },
+      };
+    } catch (e) {
+      console.warn(`全局配置文件解析失败: ${globalConfigPath}`);
+    }
   }
 
-  try {
-    const content = readFileSync(configPath, "utf-8");
-    const userConfig = JSON.parse(content) as Partial<GwConfig>;
-    return { ...defaultConfig, ...userConfig };
-  } catch (e) {
-    console.warn(`配置文件解析失败: ${configPath}`);
-    return defaultConfig;
+  // 2. 再加载项目配置（会覆盖全局配置）
+  const projectConfigPath = findConfigFile();
+  if (projectConfigPath) {
+    try {
+      const content = readFileSync(projectConfigPath, "utf-8");
+      const projectConfig = JSON.parse(content) as Partial<GwConfig>;
+      // 深度合并 aiCommit 配置
+      config = {
+        ...config,
+        ...projectConfig,
+        aiCommit: {
+          ...config.aiCommit,
+          ...projectConfig.aiCommit,
+        },
+      };
+    } catch (e) {
+      console.warn(`项目配置文件解析失败: ${projectConfigPath}`);
+    }
   }
+
+  return config;
 }
 
 // 全局配置实例

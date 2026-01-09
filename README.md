@@ -10,20 +10,20 @@
 </p>
 
 <p align="center">
-🚀 极简的 Git 工作流 CLI 工具，让分支管理和版本发布变得轻松愉快
+  <strong>🚀 极简的 Git 工作流 CLI 工具，让分支管理和版本发布变得轻松愉快</strong>
 </p>
 
 <p align="center">
-  <a href="#特性">特性</a> •
-  <a href="#快速开始">快速开始</a> •
-  <a href="#命令详解">命令详解</a> •
-  <a href="#配置文件">配置文件</a> •
-  <a href="#最佳实践">最佳实践</a>
+  <a href="#✨-特性">特性</a> •
+  <a href="#⚡️-快速开始">快速开始</a> •
+  <a href="#📚-命令详解">命令详解</a> •
+  <a href="#⚙️-配置文件">配置文件</a> •
+  <a href="#💡-最佳实践">最佳实践</a>
 </p>
 
 ---
 
-## 为什么选择 @zjex/git-workflow？
+## 🎯 为什么选择 git-workflow？
 
 在日常开发中，你是否经常遇到这些问题：
 
@@ -32,23 +32,71 @@
 - 📝 提交信息格式不统一，难以生成 CHANGELOG？
 - 🔄 删除分支时需要分别处理本地和远程？
 - 📋 团队成员的分支命名风格五花八门？
+- 💬 写 commit message 总是词穷，不知道怎么描述？
 
 **git-workflow** 就是为解决这些痛点而生的。它提供了一套简洁的命令，让你专注于编码，而不是 Git 操作。
 
-## 特性
+## ✨ 特性
+
+### 核心功能
 
 - ⚡️ **极速上手** - 零配置开箱即用，交互式菜单引导操作
-- 🤖 **AI 智能提交** - 使用 AI 自动分析代码变更生成 commit message（支持 GitHub Models、Groq 等）
-- 🎯 **规范命名** - 自动生成带日期的规范分支名，告别命名混乱
-- 🏷️ **智能版本** - 自动识别当前版本，交互式选择下一版本（支持 semver + 预发布）
+- 🤖 **AI 智能提交** - 使用 AI 自动分析代码变更生成 commit message（支持 GitHub Models、OpenAI 等）
+- 🎯 **规范命名** - 自动生成带日期的规范分支名（`feature/20260109-PROJ-123-add-login`）
+- 🏷️ **智能版本** - 自动识别当前版本，交互式选择下一版本（支持 semver + 预发布版本）
 - 📝 **规范提交** - 遵循 Conventional Commits + Gitmoji，提交信息更清晰
 - 🗑️ **批量清理** - 一键删除本地+远程分支，按最近使用排序
-- ⚙️ **灵活配置** - 支持项目级配置文件，不同项目不同规范
-- 🎨 **优雅交互** - 友好的命令行界面，支持键盘快捷操作
-- 📦 **轻量依赖** - 打包体积小，安装快速无负担
+- 💾 **Stash 管理** - 可视化管理 stash，支持预览、应用、创建分支等操作
 - 🔔 **版本提醒** - 自动检测新版本，一键更新
 
-## 快速开始
+### 分支管理
+
+- ✅ 自动检测基础分支（main/master）
+- ✅ 支持自定义基础分支（`--base develop`）
+- ✅ 自动处理未提交更改（询问是否 stash）
+- ✅ 创建后可选自动推送到远程
+- ✅ 删除时自动检测并清理远程分支
+- ✅ 按最近使用时间排序，方便选择
+
+### 🏷️ Tag 管理
+
+- ✅ 自动检测现有 tag 前缀（v、release-、@scope/等）
+- ✅ 支持多种 tag 前缀，灵活适配不同项目
+- ✅ 智能版本递增（patch/minor/major）
+- ✅ 支持预发布版本（alpha/beta/rc）
+- ✅ 预发布版本可升级或转正式版本
+- ✅ 自动推送到远程
+- ✅ 支持删除和修改 tag
+
+### Commit 管理
+
+- ✅ AI 自动生成 commit message（2-3 秒完成）
+- ✅ 支持 4 种 AI 提供商（GitHub/OpenAI/Claude/Ollama）
+- ✅ 手动模式支持 11 种提交类型
+- ✅ 自动添加 Gitmoji 表情
+- ✅ 支持 scope、详细描述、关联 Issue
+- ✅ 支持标记破坏性变更（BREAKING CHANGE）
+- ✅ 提交前预览，可取消
+- ✅ 自动暂存或手动选择文件
+
+### 配置灵活
+
+- ⚙️ 支持项目级配置文件（`.gwrc.json`）
+- ⚙️ 不同项目可使用不同规范
+- ⚙️ 支持自定义分支前缀、ID 标签等
+- ⚙️ 支持自定义 commit emoji
+- ⚙️ 支持配置 AI 提供商和模型
+
+### 用户体验
+
+- 🎨 优雅的命令行界面
+- 🎯 键盘快捷操作（方向键、空格、回车）
+- 🔍 实时搜索和过滤
+- 📋 详细的操作提示和错误信息
+- 🚫 优雅处理 Ctrl+C 退出
+- 📦 轻量依赖，安装快速
+
+## ⚡️ 快速开始
 
 ### 安装
 
@@ -63,80 +111,53 @@ pnpm add -g @zjex/git-workflow
 yarn global add @zjex/git-workflow
 ```
 
-### 从旧版本升级
+> **💡 安装后第一件事：** 运行 `gw init` 创建全局配置，启用 AI commit 等功能！
 
-如果你之前安装过 `git-workflow`（无 scope），需要先卸载旧版本：
-
-```bash
-# 卸载旧版本
-npm uninstall -g git-workflow
-
-# 安装新版本
-npm install -g @zjex/git-workflow
-```
-
-或者使用一行命令：
+### 三步开始使用
 
 ```bash
-npm uninstall -g git-workflow && npm install -g @zjex/git-workflow
+# 第 1 步：创建全局配置（只需一次）
+gw init
+# 选择 "全局配置（所有项目生效）"
+# 配置 AI commit、分支规范等
+
+# 第 2 步：在任意项目中使用
+cd your-project
+gw c                    # AI 自动生成 commit message
+gw f                    # 创建规范的 feature 分支
+gw t                    # 创建语义化版本 tag
+
+# 第 3 步：享受高效的 Git 工作流 🎉
 ```
 
 ### 初次使用
 
 ```bash
-# 1. 初始化配置（可选，使用默认配置可跳过）
+# 1. 查看版本
+gw --version
+
+# 2. 创建全局配置（推荐，一次配置所有项目生效）
 gw init
+# 选择 "全局配置（所有项目生效）"
+# 配置 AI commit、分支规范等
 
-# 2. 运行交互式菜单
+# 3. 运行交互式菜单
 gw
 
-# 3. 或直接使用命令
+# 4. 或直接使用命令
 gw f    # 创建 feature 分支
-gw c    # 提交代码
+gw c    # 提交代码（可使用 AI 自动生成）
 gw t    # 创建 tag
+gw d    # 删除分支
+gw s    # 管理 stash
 ```
 
-### 30 秒上手
+**💡 提示：** 创建全局配置后，所有项目都能使用 AI commit 等功能，无需重复配置！
+
+### 30 秒上手示例
 
 ```bash
-# 交互式菜单（推荐新手）
-gw
-# 显示 ZJEX Logo 和操作菜单，选择你要执行的操作
-
-# 或直接使用命令
-# 创建 feature 分支
-gw f
-# ? 请输入 Story ID (可跳过): PROJ-123
-# ? 请输入描述: add-user-login
-# ✔ 分支创建成功: feature/20260107-PROJ-123-add-user-login
-
-# 提交代码
-gw c
-# ? 选择提交类型: ✨ feat 新功能
-# ? 输入简短描述: add user login
-# ✔ 提交成功
-
-# 创建 tag
-gw t
-# ? 选择 tag 前缀: v (最新: v1.2.0)
-# ? 选择版本类型: patch → v1.2.1
-# ✔ Tag 创建成功: v1.2.1
-# ✔ Tag 已推送: v1.2.1
-
-# 删除分支
-gw d
-# ? 选择要删除的分支: feature/20260105-old-feature (本地+远程)
-# ✔ 本地分支已删除
-# ✔ 远程分支已删除
-```
-
-## 命令详解
-
-### 交互式菜单
-
-直接运行 `gw` 显示交互式菜单，适合新手快速上手：
-
-```bash
+# 📋 交互式菜单（推荐新手）
 gw
 
  ███████╗     ██╗███████╗██╗  ██╗
@@ -146,7 +167,7 @@ gw
  ███████╗╚█████╔╝███████╗██╔╝ ██╗
  ╚══════╝ ╚════╝ ╚══════╝╚═╝  ╚═╝
 
-  git-workflow v0.0.1
+  git-workflow v0.2.16
 
 ? 选择操作:
   [1] ✨ 创建 feature 分支      gw f
@@ -154,15 +175,102 @@ gw
   [3] 🗑️  删除分支               gw d
   [4] 📝 提交代码               gw c
   [5] 🏷️  创建 tag               gw t
-  [6] 📋 列出 tags              gw ts
-  [7] 📦 发布版本               gw r
-  [8] 💾 管理 stash             gw s
-  [9] ⚙️  初始化配置             gw init
+  [6] 🗑️  删除 tag               gw td
+  [7] ✏️  修改 tag               gw tu
+  [8] 📋 列出 tags              gw ts
+  [9] 📦 发布版本               gw r
+  [a] 💾 管理 stash             gw s
+  [b] ⚙️  初始化配置             gw init    # 可选择全局或项目配置
   [0] ❓ 帮助
   [q] 退出
+
+# ✨ 创建 feature 分支
+gw f
+? 请输入 Story ID (可跳过): PROJ-123
+? 请输入描述: add-user-login
+✔ 分支创建成功: feature/20260109-PROJ-123-add-user-login
+? 是否推送到远程? 是
+✔ 已推送到远程
+
+# 📝 提交代码（AI 模式）
+gw c
+已暂存的文件:
+  src/auth.ts
+  src/login.ts
+────────────────────────────────────────
+? 选择 commit 方式:
+❯ 🤖 AI 自动生成 commit message
+  ✍️  手动编写 commit message
+
+✔ AI 生成完成
+
+AI 生成的 commit message:
+✨ feat(auth): 添加用户登录功能
+────────────────────────────────────────
+? 使用这个 commit message?
+❯ ✅ 使用
+  ❌ 不使用，切换到手动模式
+
+✔ 提交成功
+commit: a1b2c3d
+
+# 🏷️ 创建 tag
+gw t
+? 选择 tag 前缀: v (最新: v1.2.0)
+? 选择版本类型:
+❯ patch   → v1.2.1
+  minor   → v1.3.0
+  major   → v2.0.0
+  alpha   → v1.2.1-alpha.1
+  beta    → v1.2.1-beta.1
+  rc      → v1.2.1-rc.1
+
+✔ Tag 创建成功: v1.2.1
+✔ Tag 已推送: v1.2.1
+
+# 🗑️ 删除分支
+gw d
+? 选择要删除的分支:
+❯ feature/20260105-old-feature (本地+远程) 3 days ago
+  feature/20260103-test (仅本地) 5 days ago
+
+✔ 本地分支已删除: feature/20260105-old-feature
+✔ 远程分支已删除: origin/feature/20260105-old-feature
+
+# 💾 管理 stash
+gw s
+共 2 个 stash:
+
+? 选择 stash:
+❯ [0] main fix login bug (3 文件) 2 hours ago
+  [1] develop add feature (5 文件) 1 day ago
+  + 创建新 stash
+  取消
+
+? 操作:
+❯ 应用 (保留 stash)
+  弹出 (应用并删除)
+  创建分支
+  查看差异
+  删除
+  返回列表
+
+✔ Stash 已应用
 ```
 
-### 分支命令
+## 📚 命令详解
+
+### 📋 交互式菜单
+
+直接运行 `gw` 显示交互式菜单，适合新手快速上手：
+
+```bash
+gw
+```
+
+显示 ZJEX Logo 和完整的操作菜单，使用方向键选择，回车确认。
+
+### 🌿 分支命令
 
 | 命令                           | 别名              | 说明              |
 | ------------------------------ | ----------------- | ----------------- |
@@ -216,12 +324,14 @@ gw d feature/20260101-old-feature
 
 删除时会自动检测远程分支是否存在，并询问是否一并删除。
 
-### Tag 命令
+### 🏷️ Tag 命令
 
 | 命令               | 别名    | 说明                     |
 | ------------------ | ------- | ------------------------ |
 | `gw tags [prefix]` | `gw ts` | 列出 tag（可按前缀过滤） |
 | `gw tag [prefix]`  | `gw t`  | 交互式创建 tag           |
+| `gw tag:delete`    | `gw td` | 交互式删除 tag           |
+| `gw tag:update`    | `gw tu` | 交互式修改 tag 消息      |
 
 #### 列出 Tag
 
@@ -244,6 +354,19 @@ gw t
 gw t v
 ```
 
+**自动检测前缀：**
+
+工具会自动检测仓库中已有的 tag 前缀，并智能推荐：
+
+```bash
+gw t
+# 检测到以下 tag 前缀:
+# ? 选择 tag 前缀:
+# ❯ v (最新: v1.2.0)
+#   release- (最新: release-1.0.0)
+#   + 使用新前缀
+```
+
 如果仓库没有任何 tag，会引导创建初始版本：
 
 ```bash
@@ -263,7 +386,46 @@ gw t
 | `v1.2.3`        | patch → `v1.2.4`<br>minor → `v1.3.0`<br>major → `v2.0.0`<br>alpha → `v1.2.4-alpha.1`<br>beta → `v1.2.4-beta.1`<br>rc → `v1.2.4-rc.1` |
 | `v1.2.4-beta.1` | pre → `v1.2.4-beta.2`<br>release → `v1.2.4`<br>patch/minor/major...                                                                  |
 
-### 版本命令
+#### 删除 Tag
+
+```bash
+# 交互式选择要删除的 tag
+gw td
+
+# 示例流程
+? 选择要删除的 tag:
+❯ v1.2.0 (2 days ago)
+  v1.1.0 (1 week ago)
+  v1.0.0 (2 weeks ago)
+
+? 确认删除 tag v1.2.0?
+❯ 是，删除本地和远程
+  仅删除本地
+  取消
+
+✔ 本地 tag 已删除: v1.2.0
+✔ 远程 tag 已删除: origin/v1.2.0
+```
+
+#### 修改 Tag
+
+```bash
+# 交互式选择要修改的 tag
+gw tu
+
+# 示例流程
+? 选择要修改的 tag:
+❯ v1.2.0 Release v1.2.0 (2 days ago)
+  v1.1.0 Release v1.1.0 (1 week ago)
+
+当前消息: Release v1.2.0
+? 输入新的 tag 消息: Release v1.2.0 - Bug fixes
+
+✔ Tag 消息已更新: v1.2.0
+✔ 已推送到远程
+```
+
+### 📦 版本命令
 
 | 命令         | 别名   | 说明                                |
 | ------------ | ------ | ----------------------------------- |
@@ -282,25 +444,40 @@ gw r
 # ✓ 版本号已更新: 0.0.1 → 0.0.2
 ```
 
-### 配置命令
+### ⚙️ 配置命令
 
-| 命令      | 说明                            |
-| --------- | ------------------------------- |
-| `gw init` | 交互式初始化配置文件 .gwrc.json |
+| 命令      | 说明                                             |
+| --------- | ------------------------------------------------ |
+| `gw init` | 交互式初始化配置文件（可选择全局配置或项目配置） |
+
+```bash
+# 创建全局配置（推荐，一次配置所有项目生效）
+gw init
+# 选择 "全局配置（所有项目生效）"
+# 配置保存到 ~/.gwrc.json
+
+# 创建项目配置（仅当前项目生效）
+gw init
+# 选择 "项目配置（仅当前项目）"
+# 配置保存到 .gwrc.json
+```
+
+**配置流程：**
 
 ```bash
 gw init
-# 配置 git-workflow，直接回车使用默认值
-# ? 默认基础分支 (留空自动检测 main/master):
-# ? Feature 分支前缀: feature
-# ? Hotfix 分支前缀: hotfix
-# ? 是否要求必填 ID? No
-# ? 默认 Tag 前缀 (留空则每次选择): v
-# ? 创建分支后是否自动推送? 每次询问
-# ✓ 配置已保存到 .gwrc.json
+
+⚙️  初始化 git-workflow 配置
+
+? 选择配置范围:
+❯ 全局配置（所有项目生效）      # 推荐！配置一次，所有项目都能用
+  项目配置（仅当前项目）         # 为特定项目自定义配置
+
+# 然后按提示配置各项参数
+# 包括：分支前缀、ID 要求、自动推送、AI commit 等
 ```
 
-### Stash 命令
+### 💾 Stash 命令
 
 | 命令       | 别名            | 说明             |
 | ---------- | --------------- | ---------------- |
@@ -344,7 +521,7 @@ gw st
 
 创建 stash 时，如果检测到未跟踪的新文件，会询问是否一并 stash。
 
-### Commit 命令
+### 📝 Commit 命令
 
 | 命令        | 别名            | 说明                                        |
 | ----------- | --------------- | ------------------------------------------- |
@@ -386,11 +563,19 @@ gw c
 
 **支持的 AI 提供商：**
 
-- **GitHub Models**（免费，推荐）- 使用 GitHub 账号，每天 150 次
-- **Groq**（免费）- 需要注册，每天 14,400 次
-- **OpenAI**（付费）- 需要 API key
-- **Claude**（付费）- 需要 API key
-- **Ollama**（本地）- 需要安装 Ollama
+- **GitHub Models**（免费，推荐）
+  - 使用 GitHub 账号，每天 150 次免费
+  - 需要配置 GitHub Token（工具会引导你获取）
+  - 获取地址：https://github.com/settings/tokens/new
+- **OpenAI**（付费）
+  - 需要配置 OpenAI API Key
+  - 获取地址：https://platform.openai.com/api-keys
+- **Claude**（付费）
+  - 需要配置 Claude API Key
+  - 获取地址：https://console.anthropic.com/
+- **Ollama**（本地）
+  - 需要安装 Ollama，无需 API key
+  - 安装地址：https://ollama.com/
 
 #### ✍️ 手动编写
 
@@ -469,13 +654,55 @@ gw c
 # ✔ 已暂存 2 个文件
 ```
 
-## 配置文件
+## ⚙️ 配置文件
 
-在项目根目录创建配置文件，可自定义工具行为。不同项目可以有不同配置，满足多样化需求。
+git-workflow 支持两种配置方式：
 
-**支持的文件名：** `.gwrc.json` / `.gwrc` / `gw.config.json`
+### 配置优先级
 
-**查找顺序：** 当前目录 → Git 仓库根目录
+1. **项目配置**（`.gwrc.json` / `.gwrc` / `gw.config.json`）- 仅当前项目生效
+2. **全局配置**（`~/.gwrc.json`）- 所有项目生效
+3. **默认配置** - 内置默认值
+
+**配置合并规则：** 项目配置 > 全局配置 > 默认配置
+
+### 快速开始
+
+```bash
+# 创建全局配置（推荐）
+gw init
+# 选择 "全局配置（所有项目生效）"
+# 配置一次，所有项目都能使用 AI commit 等功能
+
+# 为特定项目创建自定义配置
+cd your-project
+gw init
+# 选择 "项目配置（仅当前项目）"
+# 项目配置会覆盖全局配置
+```
+
+### 配置文件位置
+
+| 类型     | 位置                                      | 说明                                 |
+| -------- | ----------------------------------------- | ------------------------------------ |
+| 全局配置 | `~/.gwrc.json`                            | 对所有项目生效，无需在每个项目中配置 |
+| 项目配置 | `.gwrc.json` / `.gwrc` / `gw.config.json` | 仅当前项目生效，可覆盖全局配置       |
+
+**查找顺序：** 当前目录 → Git 仓库根目录 → 用户主目录
+
+### 使用场景
+
+**全局配置适合：**
+
+- AI commit 配置（API key、提供商等）
+- 个人习惯配置（emoji、自动暂存等）
+- 通用的分支命名规范
+
+**项目配置适合：**
+
+- 团队统一的分支规范
+- 项目特定的 ID 要求
+- 特殊的分支前缀
 
 ### 完整配置示例
 
@@ -504,54 +731,90 @@ gw c
 
 ### 配置项说明
 
-| 配置项             | 类型      | 默认值       | 说明                                       |
-| ------------------ | --------- | ------------ | ------------------------------------------ |
-| `baseBranch`       | `string`  | 自动检测     | 默认基础分支，不设置则自动检测 main/master |
-| `featurePrefix`    | `string`  | `"feature"`  | feature 分支前缀                           |
-| `hotfixPrefix`     | `string`  | `"hotfix"`   | hotfix 分支前缀                            |
-| `requireId`        | `boolean` | `false`      | 是否要求必填 ID                            |
-| `featureIdLabel`   | `string`  | `"Story ID"` | feature 分支 ID 提示文字                   |
-| `hotfixIdLabel`    | `string`  | `"Issue ID"` | hotfix 分支 ID 提示文字                    |
-| `defaultTagPrefix` | `string`  | -            | 默认 tag 前缀，设置后跳过选择步骤          |
-| `autoPush`         | `boolean` | -            | 创建分支后是否自动推送，不设置则询问       |
-| `autoStage`        | `boolean` | `true`       | commit 时是否自动暂存所有更改              |
-| `useEmoji`         | `boolean` | `true`       | commit 时是否使用 emoji                    |
-| `commitEmojis`     | `object`  | -            | 自定义各类型 commit 的 emoji               |
-| `aiCommit`         | `object`  | -            | AI commit 配置                             |
+| 配置项             | 类型      | 默认值       | 说明                                                                            |
+| ------------------ | --------- | ------------ | ------------------------------------------------------------------------------- |
+| `baseBranch`       | `string`  | 自动检测     | 默认基础分支，不设置则自动检测 main/master                                      |
+| `featurePrefix`    | `string`  | `"feature"`  | feature 分支前缀                                                                |
+| `hotfixPrefix`     | `string`  | `"hotfix"`   | hotfix 分支前缀                                                                 |
+| `requireId`        | `boolean` | `false`      | 是否强制要求填写 ID（Story ID/Issue ID）。开启后创建分支时必须填写 ID，不能跳过 |
+| `featureIdLabel`   | `string`  | `"Story ID"` | feature 分支 ID 提示文字                                                        |
+| `hotfixIdLabel`    | `string`  | `"Issue ID"` | hotfix 分支 ID 提示文字                                                         |
+| `defaultTagPrefix` | `string`  | -            | 默认 tag 前缀，设置后跳过选择步骤                                               |
+| `autoPush`         | `boolean` | -            | 创建分支后是否自动推送到远程。`true` 自动推送，`false` 不推送，不设置则每次询问 |
+| `autoStage`        | `boolean` | `true`       | commit 时是否自动暂存所有更改                                                   |
+| `useEmoji`         | `boolean` | `true`       | commit 时是否使用 emoji                                                         |
+| `commitEmojis`     | `object`  | -            | 自定义各类型 commit 的 emoji                                                    |
+| `aiCommit`         | `object`  | -            | AI commit 配置                                                                  |
 
 #### AI Commit 配置项
 
-| 配置项               | 类型      | 默认值     | 说明                                                          |
-| -------------------- | --------- | ---------- | ------------------------------------------------------------- |
-| `aiCommit.enabled`   | `boolean` | `true`     | 是否启用 AI commit 功能                                       |
-| `aiCommit.provider`  | `string`  | `"github"` | AI 提供商：`github` / `groq` / `openai` / `claude` / `ollama` |
-| `aiCommit.apiKey`    | `string`  | -          | API key，留空使用内置 key                                     |
-| `aiCommit.model`     | `string`  | 根据提供商 | 模型名称                                                      |
-| `aiCommit.language`  | `string`  | `"zh-CN"`  | 生成语言：`zh-CN` / `en-US`                                   |
-| `aiCommit.maxTokens` | `number`  | `200`      | 最大 token 数                                                 |
+| 配置项               | 类型      | 默认值     | 说明                                                 |
+| -------------------- | --------- | ---------- | ---------------------------------------------------- |
+| `aiCommit.enabled`   | `boolean` | `true`     | 是否启用 AI commit 功能                              |
+| `aiCommit.provider`  | `string`  | `"github"` | AI 提供商：`github` / `openai` / `claude` / `ollama` |
+| `aiCommit.apiKey`    | `string`  | -          | API key，留空使用内置 key                            |
+| `aiCommit.model`     | `string`  | 根据提供商 | 模型名称                                             |
+| `aiCommit.language`  | `string`  | `"zh-CN"`  | 生成语言：`zh-CN` / `en-US`                          |
+| `aiCommit.maxTokens` | `number`  | `200`      | 最大 token 数                                        |
 
 ### 常见配置场景
 
 <details>
-<summary><b>场景一：启用 AI Commit（推荐）</b></summary>
+<summary><b>场景一：全局启用 AI Commit（强烈推荐）</b></summary>
+
+**一次配置，所有项目生效！**
+
+```bash
+# 1. 创建全局配置
+gw init
+# 选择 "全局配置（所有项目生效）"
+
+# 2. 配置 AI commit
+# 选择 AI 提供商: GitHub Models（免费，推荐）
+#
+# 💡 如何获取 GitHub Token:
+#   1. 访问: https://github.com/settings/tokens/new
+#   2. 勾选 'repo' 权限
+#   3. 生成并复制 token
+#
+# 输入你的 GitHub Token: ghp_xxxxxxxxxxxx
+# 选择语言: 中文
+```
+
+生成的全局配置文件 `~/.gwrc.json`：
 
 ```json
 {
+  "featurePrefix": "feature",
+  "hotfixPrefix": "hotfix",
+  "requireId": false,
+  "featureIdLabel": "Story ID",
+  "hotfixIdLabel": "Issue ID",
+  "autoStage": true,
+  "useEmoji": true,
   "aiCommit": {
     "enabled": true,
     "provider": "github",
-    "language": "zh-CN"
+    "language": "zh-CN",
+    "model": "gpt-4o-mini"
   }
 }
 ```
 
-**说明：**
+**效果：**
 
-- 使用 GitHub Models（免费）
-- 生成中文 commit message
-- 使用内置 API key（开箱即用）
+- ✅ 所有项目都能使用 AI commit
+- ✅ 无需在每个项目中重复配置
+- ✅ 新项目自动继承配置
+- ✅ 独享 GitHub Models 限额（每天 150 次）
 
-如果想使用自己的 key：
+**GitHub Token 权限说明：**
+
+- 只需要勾选 `repo` 权限
+- Token 仅用于调用 GitHub Models API
+- 不会访问你的代码仓库
+
+**手动编辑配置文件：**
 
 ```json
 {
@@ -569,7 +832,49 @@ gw c
 </details>
 
 <details>
-<summary><b>场景二：强制要求关联 Issue</b></summary>
+<summary><b>场景二：团队项目配置（覆盖全局配置）</b></summary>
+
+**全局配置 + 项目配置 = 灵活组合**
+
+假设你已经有全局配置（启用了 AI commit），现在要为团队项目添加特定规范：
+
+```bash
+cd team-project
+gw init
+# 选择 "项目配置（仅当前项目）"
+```
+
+项目配置 `.gwrc.json`：
+
+```json
+{
+  "requireId": true,
+  "featureIdLabel": "Jira ID",
+  "hotfixIdLabel": "Bug ID",
+  "autoPush": true,
+  "baseBranch": "develop"
+}
+```
+
+**最终生效的配置：**
+
+- ✅ AI commit 配置来自全局配置
+- ✅ 分支规范来自项目配置
+- ✅ 项目配置覆盖全局配置的同名字段
+
+**提交到仓库：**
+
+```bash
+git add .gwrc.json
+git commit -m "chore: add git-workflow config"
+```
+
+团队成员拉取代码后，自动使用统一的分支规范，同时保留各自的 AI commit 配置。
+
+</details>
+
+<details>
+<summary><b>场景三：强制关联 Issue/Story（适合团队协作）</b></summary>
 
 ```json
 {
@@ -579,22 +884,96 @@ gw c
 }
 ```
 
-</details>
+**说明：**
 
-<details>
-<summary><b>场景二：基于 develop 分支开发</b></summary>
+- `requireId: true` - 创建分支时必须填写 ID，不能跳过
+- 确保每个分支都能追溯到具体的需求或 Bug
+- 适合使用 Jira、禅道等项目管理工具的团队
 
-```json
-{
-  "baseBranch": "develop",
-  "autoPush": true
-}
+**效果对比：**
+
+```bash
+# requireId: false（默认）
+gw f
+? 请输入 Story ID (可跳过):        # 可以直接回车跳过
+? 请输入描述: add-login
+✔ 分支创建成功: feature/20260109-add-login
+
+# requireId: true
+gw f
+? 请输入 Jira ID:                  # 必须填写，不能跳过
+? 请输入描述: add-login
+✔ 分支创建成功: feature/20260109-PROJ-123-add-login
 ```
 
 </details>
 
 <details>
-<summary><b>场景三：自定义分支前缀</b></summary>
+<summary><b>场景四：自动推送到远程（提高效率）</b></summary>
+
+```json
+{
+  "autoPush": true
+}
+```
+
+**说明：**
+
+- `autoPush: true` - 创建分支后自动推送到远程，不再询问
+- `autoPush: false` - 创建分支后不推送，不再询问
+- 不设置 - 每次创建分支时询问是否推送（默认行为）
+
+**效果对比：**
+
+```bash
+# autoPush 未设置（默认）
+gw f
+✔ 分支创建成功: feature/20260109-add-login
+? 是否推送到远程?                  # 每次都会询问
+  是
+  否
+
+# autoPush: true
+gw f
+✔ 分支创建成功: feature/20260109-add-login
+(自动推送已启用)                   # 直接推送，不询问
+✔ 已推送到远程: origin/feature/20260109-add-login
+
+# autoPush: false
+gw f
+✔ 分支创建成功: feature/20260109-add-login
+                                   # 不推送，不询问
+```
+
+**适用场景：**
+
+- `true` - 团队协作，需要及时同步分支
+- `false` - 个人开发，暂时不想推送
+- 不设置 - 灵活决定，根据情况选择
+
+</details>
+
+<details>
+<summary><b>场景五：基于 develop 分支开发</b></summary>
+
+```json
+{
+  "baseBranch": "develop",
+  "autoPush": true,
+  "requireId": true
+}
+```
+
+**说明：**
+
+- 所有新分支都基于 `develop` 创建
+- 自动推送到远程
+- 强制要求填写 ID
+
+</details>
+
+<details>
+<summary><b>场景六：自定义分支前缀</b></summary>
 
 ```json
 {
@@ -603,10 +982,15 @@ gw c
 }
 ```
 
+**说明：**
+
+- 分支名变为 `feat/20260109-xxx` 和 `fix/20260109-xxx`
+- 适合有特定命名规范的团队
+
 </details>
 
 <details>
-<summary><b>场景四：禁用 Emoji（适合严格的 CI/CD 环境）</b></summary>
+<summary><b>场景七：禁用 Emoji（适合严格的 CI/CD 环境）</b></summary>
 
 ```json
 {
@@ -615,12 +999,15 @@ gw c
 }
 ```
 
-提交信息格式变为：`feat(scope): description` 而不是 `✨ feat(scope): description`
+**说明：**
+
+- 提交信息格式变为：`feat(scope): description` 而不是 `✨ feat(scope): description`
+- 手动选择要暂存的文件，而不是自动暂存所有更改
 
 </details>
 
 <details>
-<summary><b>场景五：自定义 Commit Emoji</b></summary>
+<summary><b>场景八：自定义 Commit Emoji</b></summary>
 
 ```json
 {
@@ -640,39 +1027,65 @@ gw c
 }
 ```
 
-可以只覆盖部分类型，未配置的使用默认 emoji。
+**说明：**
+
+- 可以只覆盖部分类型，未配置的使用默认 emoji
 
 </details>
 
-## 最佳实践
+## 💡 最佳实践
 
 ### 团队协作
 
 1. **统一配置** - 将 `.gwrc.json` 提交到仓库，确保团队使用相同的分支规范
 2. **强制 ID** - 开启 `requireId`，确保每个分支都能追溯到需求/Issue
 3. **自动推送** - 开启 `autoPush`，减少遗忘推送的情况
+4. **启用 AI Commit** - 配置 AI 提供商，让团队提交信息更规范统一
 
 ### 版本发布
 
 1. **预发布测试** - 使用 alpha/beta/rc 版本进行测试
-2. **语义化版本** - 遵循 semver 规范，bug 修复用 patch，新功能用 minor，破坏性变更用 major
+2. **语义化版本** - 遵循 semver 规范：
+   - Bug 修复用 `patch`（1.0.0 → 1.0.1）
+   - 新功能用 `minor`（1.0.0 → 1.1.0）
+   - 破坏性变更用 `major`（1.0.0 → 2.0.0）
+3. **Tag 与版本同步** - 发布版本后立即创建对应的 tag
 
 ### 分支清理
 
-定期使用 `gw d` 清理已合并的分支，保持仓库整洁。
+1. **定期清理** - 使用 `gw d` 定期清理已合并的分支
+2. **远程同步** - 删除分支时同时清理远程分支
+3. **保持整洁** - 避免积累过多无用分支
 
-## 与其他工具对比
+### Stash 管理
 
-| 特性         | git-workflow  | git-flow    | 手动操作  |
-| ------------ | ------------- | ----------- | --------- |
-| 学习成本     | ⭐ 极低       | ⭐⭐⭐ 较高 | ⭐⭐ 中等 |
-| 分支命名规范 | ✅ 自动生成   | ❌ 需手动   | ❌ 需手动 |
-| 版本号管理   | ✅ 智能递增   | ❌ 需手动   | ❌ 需手动 |
-| 交互式操作   | ✅ 支持       | ❌ 不支持   | ❌ 不支持 |
-| 配置灵活性   | ✅ 项目级配置 | ⚠️ 有限     | -         |
-| 远程分支同步 | ✅ 自动处理   | ⚠️ 部分     | ❌ 需手动 |
+1. **及时命名** - 创建 stash 时添加清晰的描述
+2. **定期清理** - 不再需要的 stash 及时删除
+3. **创建分支** - 对于长期保留的改动，考虑创建分支而不是 stash
 
-## 开发
+### Commit 规范
+
+1. **优先使用 AI** - AI 生成的 commit message 更规范、更准确
+2. **添加 scope** - 明确改动的模块或功能范围
+3. **关联 Issue** - 提交时关联相关的 Issue 编号
+4. **破坏性变更** - 重要的 API 变更要标记 BREAKING CHANGE
+
+## 🆚 与其他工具对比
+
+| 特性             | git-workflow  | git-flow    | 手动操作  |
+| ---------------- | ------------- | ----------- | --------- |
+| 学习成本         | ⭐ 极低       | ⭐⭐⭐ 较高 | ⭐⭐ 中等 |
+| 分支命名规范     | ✅ 自动生成   | ❌ 需手动   | ❌ 需手动 |
+| 版本号管理       | ✅ 智能递增   | ❌ 需手动   | ❌ 需手动 |
+| Tag 管理         | ✅ 完整支持   | ⚠️ 基础     | ❌ 需手动 |
+| AI Commit        | ✅ 支持       | ❌ 不支持   | ❌ 不支持 |
+| Stash 可视化管理 | ✅ 支持       | ❌ 不支持   | ❌ 不支持 |
+| 交互式操作       | ✅ 支持       | ❌ 不支持   | ❌ 不支持 |
+| 配置灵活性       | ✅ 项目级配置 | ⚠️ 有限     | -         |
+| 远程分支同步     | ✅ 自动处理   | ⚠️ 部分     | ❌ 需手动 |
+| 自动更新提醒     | ✅ 支持       | ❌ 不支持   | -         |
+
+## 🛠️ 开发
 
 ```bash
 # 克隆仓库
@@ -690,13 +1103,14 @@ npm run build
 
 # 本地测试
 npm link
+gw --version
 ```
 
-## 发布
+## 📦 发布
 
 ```bash
-# 自动化发布（推荐）
-npm run release
+# 使用内置发布脚本（推荐）
+npm run publish:npm
 
 # 手动发布
 npm run build
@@ -706,18 +1120,33 @@ git push origin main --tags
 npm publish
 ```
 
-详见 [发布脚本文档](./scripts/README.md)
-
-## 贡献
+## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## License
+在提交 PR 之前，请确保：
 
-[MIT](./LICENSE) License © 2026
+1. 代码通过 TypeScript 类型检查
+2. 遵循现有的代码风格
+3. 添加必要的注释和文档
+4. 测试你的更改
+
+## 📄 License
+
+[MIT](./LICENSE) License © 2026 [zjex](https://github.com/iamzjt-front-end)
+
+## 🙏 致谢
+
+感谢所有贡献者和使用者的支持！
 
 ---
 
 <p align="center">
-  如果这个工具对你有帮助，请给个 ⭐️ 支持一下！
+  <strong>如果这个工具对你有帮助，请给个 ⭐️ 支持一下！</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/iamzjt-front-end/git-workflow">GitHub</a> •
+  <a href="https://www.npmjs.com/package/@zjex/git-workflow">npm</a> •
+  <a href="https://github.com/iamzjt-front-end/git-workflow/issues">Issues</a>
 </p>

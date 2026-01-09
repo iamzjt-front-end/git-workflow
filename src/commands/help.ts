@@ -33,7 +33,10 @@ Tag 命令:
   gw r                            同上 (别名)
 
 配置命令:
-  gw init                         初始化配置文件 .gwrc.json
+  gw init                         初始化配置文件
+                                  • 全局配置: ~/.gwrc.json (所有项目生效)
+                                  • 项目配置: .gwrc.json (仅当前项目)
+                                  运行时可选择配置范围
 
 Stash 命令:
   gw stash                        交互式管理 stash
