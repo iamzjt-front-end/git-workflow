@@ -71,7 +71,8 @@ function buildPrompt(diff: string, language: string): string {
 2. type 必须是以下之一：feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
 3. scope 是可选的，表示影响范围
 4. subject 用中文描述，简洁明了，不超过 50 字
-5. 只返回 commit message，不要有其他解释
+5. 只返回一条 commit message，即使有多个文件改动也要总结成一条
+6. 不要有其他解释或多余内容
 
 示例：
 - feat(auth): 添加用户登录功能
@@ -84,7 +85,8 @@ Rules:
 2. type must be one of: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
 3. scope is optional, indicates the affected area
 4. subject should be concise, no more than 50 characters
-5. Return only the commit message, no explanations
+5. Return only ONE commit message, even if multiple files are changed, summarize into one message
+6. No explanations or extra content
 
 Examples:
 - feat(auth): add user login functionality
