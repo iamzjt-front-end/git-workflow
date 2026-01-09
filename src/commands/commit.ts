@@ -5,7 +5,11 @@ import { colors, theme, execOutput, divider } from "../utils.js";
 import { getConfig } from "../config.js";
 import { generateAICommitMessage, isAICommitAvailable } from "../ai-service.js";
 
-// Conventional Commits 类型 + Gitmoji
+/**
+ * Conventional Commits 类型定义 + Gitmoji
+ * 遵循 https://www.conventionalcommits.org/ 规范
+ * 使用 https://gitmoji.dev/ emoji
+ */
 const DEFAULT_COMMIT_TYPES = [
   { type: "feat", emoji: "✨", description: "新功能" },
   { type: "fix", emoji: "🐛", description: "修复 Bug" },
@@ -21,6 +25,11 @@ const DEFAULT_COMMIT_TYPES = [
 
 type CommitType = (typeof DEFAULT_COMMIT_TYPES)[number]["type"];
 
+/**
+ * 获取提交类型列表（支持自定义 emoji）
+ * @param config 用户配置
+ * @returns 提交类型列表
+ */
 function getCommitTypes(config: ReturnType<typeof getConfig>) {
   const customEmojis = config.commitEmojis || {};
   return DEFAULT_COMMIT_TYPES.map((item) => ({
@@ -29,11 +38,18 @@ function getCommitTypes(config: ReturnType<typeof getConfig>) {
   }));
 }
 
+/**
+ * 文件状态接口
+ */
 interface FileStatus {
-  status: string;
-  file: string;
+  status: string; // M=修改, A=新增, D=删除, ?=未跟踪
+  file: string; // 文件路径
 }
 
+/**
+ * 解析 git status 输出
+ * @returns 已暂存和未暂存的文件列表
+ */
 function parseGitStatus(): { staged: FileStatus[]; unstaged: FileStatus[] } {
   const output = execOutput("git status --porcelain");
   if (!output) return { staged: [], unstaged: [] };
@@ -43,9 +59,9 @@ function parseGitStatus(): { staged: FileStatus[]; unstaged: FileStatus[] } {
 
   for (const line of output.split("\n")) {
     if (!line) continue;
-    const indexStatus = line[0];
-    const workTreeStatus = line[1];
-    const file = line.slice(3);
+    const indexStatus = line[0]; // 暂存区状态
+    const workTreeStatus = line[1]; // 工作区状态
+    const file = line.slice(3); // 文件路径
 
     // 已暂存的更改 (index 有状态)
     if (indexStatus !== " " && indexStatus !== "?") {
@@ -62,23 +78,33 @@ function parseGitStatus(): { staged: FileStatus[]; unstaged: FileStatus[] } {
   return { staged, unstaged };
 }
 
+/**
+ * 格式化文件状态显示（带颜色）
+ * @param status 文件状态
+ * @returns 带颜色的状态字符串
+ */
 function formatFileStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    M: colors.yellow("M"),
-    A: colors.green("A"),
-    D: colors.red("D"),
-    R: colors.yellow("R"),
-    C: colors.yellow("C"),
-    "?": colors.green("?"),
+    M: colors.yellow("M"), // 修改
+    A: colors.green("A"), // 新增
+    D: colors.red("D"), // 删除
+    R: colors.yellow("R"), // 重命名
+    C: colors.yellow("C"), // 复制
+    "?": colors.green("?"), // 未跟踪
   };
   return statusMap[status] || status;
 }
 
+/**
+ * 交互式提交命令
+ * 支持 AI 自动生成和手动编写两种模式
+ * 遵循 Conventional Commits 规范
+ */
 export async function commit(): Promise<void> {
   const config = getConfig();
   let { staged, unstaged } = parseGitStatus();
 
-  // 如果有未暂存的更改，根据配置决定是否自动暂存
+  // ========== 步骤 1: 处理未暂存的文件 ==========
   if (unstaged.length > 0) {
     const autoStage = config.autoStage ?? true;
 
@@ -130,7 +156,7 @@ export async function commit(): Promise<void> {
     }
   }
 
-  // 没有暂存的更改
+  // ========== 步骤 2: 检查是否有文件可提交 ==========
   if (staged.length === 0) {
     console.log(colors.yellow("工作区干净，没有需要提交的更改"));
     return;
@@ -143,7 +169,7 @@ export async function commit(): Promise<void> {
   }
   divider();
 
-  // 询问用户选择手动还是 AI 生成
+  // ========== 步骤 3: 选择提交方式（AI 或手动）==========
   const aiAvailable = isAICommitAvailable(config);
   let commitMode: "ai" | "manual" = "manual";
 
@@ -166,10 +192,12 @@ export async function commit(): Promise<void> {
     });
   }
 
-  let message: string;
+  // 初始化 commit message 变量
+  let message: string = "";
 
+  // ========== 步骤 4: 生成 commit message ==========
+  // AI 生成模式
   if (commitMode === "ai") {
-    // AI 生成模式
     const spinner = ora("AI 正在分析代码变更...").start();
 
     try {
@@ -207,11 +235,12 @@ export async function commit(): Promise<void> {
     }
   }
 
+  // 手动输入模式
   if (commitMode === "manual") {
-    // 手动输入模式（原有逻辑）
     message = await buildManualCommitMessage(config);
   }
 
+  // ========== 步骤 5: 预览并确认提交 ==========
   divider();
   console.log("提交信息预览:");
   console.log(colors.green(message));
@@ -231,9 +260,23 @@ export async function commit(): Promise<void> {
     return;
   }
 
+  // ========== 步骤 6: 执行提交 ==========
   const spinner = ora("正在提交...").start();
 
   try {
+    // 提交前再次检查是否有暂存的文件
+    const finalStatus = parseGitStatus();
+    if (finalStatus.staged.length === 0) {
+      spinner.fail("没有暂存的文件可以提交");
+      console.log("");
+      console.log(colors.yellow("请先暂存文件:"));
+      console.log(colors.cyan("  git add <file>"));
+      console.log(colors.dim("  或"));
+      console.log(colors.cyan("  git add -A"));
+      console.log("");
+      return;
+    }
+
     // 使用 -m 参数，需要转义引号
     const escapedMessage = message.replace(/"/g, '\\"');
     execSync(`git commit -m "${escapedMessage}"`, { stdio: "pipe" });
@@ -244,14 +287,26 @@ export async function commit(): Promise<void> {
     console.log(colors.dim(`commit: ${commitHash}`));
   } catch (error) {
     spinner.fail("提交失败");
+    console.log("");
+
+    // 显示详细错误信息
     if (error instanceof Error) {
-      console.log(colors.red(error.message));
+      console.log(colors.red("错误信息:"));
+      console.log(colors.dim(`  ${error.message}`));
     }
+
+    console.log("");
+    console.log(colors.yellow("你可以手动执行以下命令:"));
+    console.log(colors.cyan(`  git commit -m "${message}"`));
+    console.log("");
   }
 }
 
 /**
  * 手动构建 commit message
+ * 通过交互式问答收集信息，构建符合 Conventional Commits 规范的提交信息
+ * @param config 用户配置
+ * @returns 完整的 commit message
  */
 async function buildManualCommitMessage(
   config: ReturnType<typeof getConfig>
@@ -259,13 +314,13 @@ async function buildManualCommitMessage(
   // 获取提交类型（支持自定义 emoji）
   const commitTypes = getCommitTypes(config);
 
-  // 选择提交类型
+  // ========== 1. 选择提交类型 ==========
   const typeChoice = await select({
     message: "选择提交类型:",
     choices: commitTypes.map((t) => {
       // 使用固定宽度格式化，不依赖 emoji 宽度
       const typeText = t.type.padEnd(10);
-      // 针对 refactor 特殊处理，因为 ♻️ emoji 宽度不一致
+      // 针对 refactor 特殊处理，因为 ♻️ emoji 在不同终端宽度不一致
       const spacing = t.type === "refactor" ? "   " : "  ";
       return {
         name: `${t.emoji}${spacing}${typeText} ${colors.dim(t.description)}`,
@@ -276,13 +331,13 @@ async function buildManualCommitMessage(
     theme,
   });
 
-  // 输入 scope (可选)
+  // ========== 2. 输入 scope (可选) ==========
   const scope = await input({
     message: "输入影响范围 scope (可跳过):",
     theme,
   });
 
-  // 输入简短描述
+  // ========== 3. 输入简短描述 (必填) ==========
   const subject = await input({
     message: "输入简短描述:",
     validate: (value) => {
@@ -293,13 +348,13 @@ async function buildManualCommitMessage(
     theme,
   });
 
-  // 输入详细描述 (可选)
+  // ========== 4. 输入详细描述 (可选) ==========
   const body = await input({
     message: "输入详细描述 (可跳过):",
     theme,
   });
 
-  // 是否有破坏性变更
+  // ========== 5. 是否有破坏性变更 ==========
   const hasBreaking = await select({
     message: "是否包含破坏性变更 (BREAKING CHANGE)?",
     choices: [
@@ -318,13 +373,13 @@ async function buildManualCommitMessage(
     });
   }
 
-  // 关联 Issue (可选)
+  // ========== 6. 关联 Issue (可选) ==========
   const issues = await input({
     message: "关联 Issue (如 #123, 可跳过):",
     theme,
   });
 
-  // 构建 commit message
+  // ========== 7. 构建 commit message ==========
   const { type, emoji } = typeChoice;
   const scopePart = scope ? `(${scope})` : "";
   const breakingMark = hasBreaking ? "!" : "";
@@ -336,7 +391,7 @@ async function buildManualCommitMessage(
   // Header: [emoji] type(scope)!: subject
   let message = `${emojiPrefix}${type}${scopePart}${breakingMark}: ${subject}`;
 
-  // Body
+  // Body (可选)
   if (body || hasBreaking || issues) {
     message += "\n";
 

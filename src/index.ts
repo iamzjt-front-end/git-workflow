@@ -1,3 +1,13 @@
+/**
+ * @zjex/git-workflow - Git 工作流 CLI 工具
+ *
+ * 主入口文件，负责：
+ * 1. 初始化 CLI 应用
+ * 2. 注册所有命令
+ * 3. 处理全局错误和信号
+ * 4. 显示交互式主菜单
+ */
+
 // @ts-nocheck shebang handled by tsup banner
 
 import { cac } from "cac";
@@ -14,7 +24,12 @@ import { showHelp } from "./commands/help.js";
 import { checkForUpdates } from "./update-notifier.js";
 import { update } from "./commands/update.js";
 
-// 捕获 Ctrl+C 退出，静默处理
+// ========== 全局错误处理 ==========
+
+/**
+ * 捕获未捕获的异常
+ * 主要用于优雅处理用户按 Ctrl+C 退出的情况
+ */
 process.on("uncaughtException", (err) => {
   if (err instanceof ExitPromptError) {
     console.log(""); // 输出空行，让界面更整洁
@@ -24,7 +39,9 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-// 捕获未处理的 Promise 拒绝
+/**
+ * 捕获未处理的 Promise 拒绝
+ */
 process.on("unhandledRejection", (reason) => {
   if (reason instanceof ExitPromptError) {
     console.log("");
@@ -34,29 +51,50 @@ process.on("unhandledRejection", (reason) => {
   process.exit(1);
 });
 
-// 捕获 SIGINT 信号 (Ctrl+C)
+/**
+ * 捕获 SIGINT 信号 (Ctrl+C)
+ * 确保用户按 Ctrl+C 时能优雅退出
+ */
 process.on("SIGINT", () => {
   console.log("");
   process.exit(0);
 });
 
-// 捕获 SIGTERM 信号
+/**
+ * 捕获 SIGTERM 信号
+ * 处理进程终止信号
+ */
 process.on("SIGTERM", () => {
   console.log("");
   process.exit(0);
 });
 
+// ========== 版本信息 ==========
+
+/**
+ * 版本号由构建工具注入
+ * 开发环境下使用 0.0.0-dev
+ */
 declare const __VERSION__: string | undefined;
 
-// 开发环境下从 package.json 读取版本号
+/**
+ * 当前版本号
+ * 生产环境：从构建时注入的 __VERSION__ 获取
+ * 开发环境：使用 0.0.0-dev
+ */
 const version: string =
   typeof __VERSION__ !== "undefined" && __VERSION__ !== ""
     ? __VERSION__
     : "0.0.0-dev";
 
-// 交互式主菜单
+// ========== 交互式主菜单 ==========
+
+/**
+ * 显示交互式主菜单
+ * 提供所有可用命令的可视化选择界面
+ */
 async function mainMenu(): Promise<void> {
-  // ASCII Art Logo
+  // 显示 ASCII Art Logo
   console.log(
     colors.green(`
  ███████╗     ██╗███████╗██╗  ██╗
@@ -174,9 +212,20 @@ async function mainMenu(): Promise<void> {
   }
 }
 
+// ========== CLI 应用初始化 ==========
+
+/**
+ * 创建 CLI 应用实例
+ * 使用 cac (Command And Conquer) 库
+ */
 const cli = cac("gw");
 
-// 默认命令 - 显示交互式菜单
+// ========== 命令注册 ==========
+
+/**
+ * 默认命令 - 显示交互式菜单
+ * 运行 `gw` 时触发，会检查更新（交互式模式）
+ */
 cli.command("", "显示交互式菜单").action(async () => {
   await checkForUpdates(version, "@zjex/git-workflow", true);
   return mainMenu();
