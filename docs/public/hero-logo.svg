@@ -1,90 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1800" width="320" height="320">
-  <!-- 流动背景版本 - 增强可见度 -->
+  <!-- 简洁版本 - 无背景渐变 -->
   
   <defs>
-    <!-- 流动背景渐变 - 增加透明度 -->
-    <radialGradient id="flowingBackground" cx="50%" cy="50%" r="70%">
-      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:0.8">
-        <animate attributeName="stop-color" 
-                 values="#ff6b6b;#4ecdc4;#45b7d1;#96ceb4;#feca57;#ff9ff3;#54a0ff;#ff6b6b" 
-                 dur="6s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="40%" style="stop-color:#4ecdc4;stop-opacity:0.6">
-        <animate attributeName="stop-color" 
-                 values="#4ecdc4;#45b7d1;#96ceb4;#feca57;#ff9ff3;#54a0ff;#ff6b6b;#4ecdc4" 
-                 dur="6s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="80%" style="stop-color:#45b7d1;stop-opacity:0.3">
-        <animate attributeName="stop-color" 
-                 values="#45b7d1;#96ceb4;#feca57;#ff9ff3;#54a0ff;#ff6b6b;#4ecdc4;#45b7d1" 
-                 dur="6s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="100%" style="stop-color:#transparent;stop-opacity:0"/>
-      
-      <!-- 渐变移动 -->
-      <animateTransform attributeName="gradientTransform" 
-                        type="translate" 
-                        values="0 0;200 100;0 200;-200 100;0 0" 
-                        dur="8s" 
-                        repeatCount="indefinite"/>
-    </radialGradient>
-    
-    <!-- 第二层背景 -->
-    <radialGradient id="flowingBackground2" cx="70%" cy="30%" r="60%">
-      <stop offset="0%" style="stop-color:#a8e6cf;stop-opacity:0.7">
-        <animate attributeName="stop-color" 
-                 values="#a8e6cf;#ffd93d;#6c5ce7;#fd79a8;#00b894;#e17055;#a8e6cf" 
-                 dur="8s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="50%" style="stop-color:#ffd93d;stop-opacity:0.5">
-        <animate attributeName="stop-color" 
-                 values="#ffd93d;#6c5ce7;#fd79a8;#00b894;#e17055;#a8e6cf;#ffd93d" 
-                 dur="8s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="100%" style="stop-color:#transparent;stop-opacity:0"/>
-      
-      <!-- 反向移动 -->
-      <animateTransform attributeName="gradientTransform" 
-                        type="translate" 
-                        values="0 0;-150 -80;0 -160;150 -80;0 0" 
-                        dur="10s" 
-                        repeatCount="indefinite"/>
-    </radialGradient>
-    
-    <!-- 线性流动背景 -->
-    <linearGradient id="flowingLinear" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff7675;stop-opacity:0.4">
-        <animate attributeName="stop-color" 
-                 values="#ff7675;#74b9ff;#00b894;#fdcb6e;#e84393;#ff7675" 
-                 dur="4s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="50%" style="stop-color:#74b9ff;stop-opacity:0.3">
-        <animate attributeName="stop-color" 
-                 values="#74b9ff;#00b894;#fdcb6e;#e84393;#ff7675;#74b9ff" 
-                 dur="4s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      <stop offset="100%" style="stop-color:#00b894;stop-opacity:0.4">
-        <animate attributeName="stop-color" 
-                 values="#00b894;#fdcb6e;#e84393;#ff7675;#74b9ff;#00b894" 
-                 dur="4s" 
-                 repeatCount="indefinite"/>
-      </stop>
-      
-      <!-- 渐变角度旋转 -->
-      <animateTransform attributeName="gradientTransform" 
-                        type="rotate" 
-                        values="0 900 900;360 900 900" 
-                        dur="12s" 
-                        repeatCount="indefinite"/>
-    </linearGradient>
-    
     <!-- 原有的logo渐变 -->
     <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#00baec;stop-opacity:1" />
@@ -105,42 +22,13 @@
     </filter>
   </defs>
   
-  <!-- 背景层 - 增强可见度 -->
-  <rect x="0" y="0" width="1800" height="1800" fill="url(#flowingLinear)" opacity="0.6"/>
-  
-  <!-- 流动背景圆圈 -->
-  <circle cx="900" cy="900" r="600" fill="url(#flowingBackground)">
-    <animate attributeName="r" values="400;800;400" dur="5s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="900" cy="900" r="500" fill="url(#flowingBackground2)">
-    <animate attributeName="r" values="300;700;300" dur="7s" repeatCount="indefinite"/>
-  </circle>
-  
-  <!-- 流动光点 -->
-  <circle cx="450" cy="450" r="150" fill="url(#flowingBackground)" opacity="0.8">
-    <animateTransform attributeName="transform" 
-                      type="translate" 
-                      values="0 0;900 450;1800 900;900 1350;0 0" 
-                      dur="15s" 
-                      repeatCount="indefinite"/>
-    <animate attributeName="r" values="100;200;100" dur="3s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="1350" cy="1350" r="120" fill="url(#flowingBackground2)" opacity="0.7">
-    <animateTransform attributeName="transform" 
-                      type="translate" 
-                      values="0 0;-600 -300;-1200 -600;-600 -900;0 0" 
-                      dur="12s" 
-                      repeatCount="indefinite"/>
-    <animate attributeName="r" values="80;160;80" dur="4s" repeatCount="indefinite"/>
-  </circle>
-  
-  <!-- 交叉图案 - 保持原有颜色 -->
+  <!-- 交叉图案 - 保持原有颜色和效果 -->
   <g transform="translate(900, 900) scale(16.2) translate(-51, -50)" filter="url(#glow)">
-    <!-- 蓝色条纹 -->
+    <!-- 蓝色条纹 - 使用渐变 -->
     <path d="M69.3 59.41l-9.89 9.89L51 77.73 30.46 98.26A6 6 0 0 1 22 89.83L42.56 69.3 51 60.88l9.9-9.9z" fill="url(#blueGrad)"/>
     <path d="M102 24.28a6 6 0 0 1-1.75 4.21L77.72 51l-8.42-8.44 22.5-22.5a6 6 0 0 1 10.2 4.22z" fill="url(#blueGrad)"/>
     
-    <!-- 青色条纹 -->
+    <!-- 青色条纹 - 使用渐变 -->
     <path d="M83.64 6a5.94 5.94 0 0 1-1.74 4.21L41.08 51l-8.42-8.42 9.9-9.89L51 24.24 73.48 1.75A6 6 0 0 1 83.64 6z" fill="url(#cyanGrad)"/>
     <path d="M32.66 59.41L12.13 79.93a6 6 0 0 1-8.42-8.42L24.24 51z" fill="url(#cyanGrad)"/>
     
