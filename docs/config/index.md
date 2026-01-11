@@ -159,7 +159,7 @@ gw init
     "model": "gpt-4o-mini",
     "language": "zh-CN",
     "maxTokens": 200,
-    "detailedDescription": false
+    "detailedDescription": true
   }
 }
 ```
@@ -205,7 +205,7 @@ gw init
 | `aiCommit.model`              | `string`  | 根据提供商 | 模型名称                                             |
 | `aiCommit.language`           | `string`  | `"zh-CN"`  | 生成语言：`zh-CN` / `en-US`                          |
 | `aiCommit.maxTokens`          | `number`  | `200`      | 最大 token 数                                        |
-| `aiCommit.detailedDescription` | `boolean` | `false`    | 是否生成详细的修改点描述                             |
+| `aiCommit.detailedDescription` | `boolean` | `true`     | 是否生成详细的修改点描述                             |
 
 ## 🎨 配置场景
 

@@ -121,7 +121,7 @@ describe("AI Service 模块测试", () => {
         provider: "github",
         apiKey: "test-key",
         language: "zh-CN",
-        // 不设置 maxTokens，让它使用默认值
+        // 不设置 maxTokens，让它自动计算
       },
     };
 
@@ -310,7 +310,7 @@ describe("AI Service 模块测试", () => {
     });
 
     it("应该截断过长的 diff", async () => {
-      const longDiff = "a".repeat(5000);
+      const longDiff = "a".repeat(7000); // 超过详细模式的 6000 限制
       vi.mocked(execOutput).mockReturnValue(longDiff);
 
       const mockFetch = vi.mocked(fetch);
@@ -343,6 +343,7 @@ describe("AI Service 模块测试", () => {
         aiCommit: {
           ...mockConfig.aiCommit!,
           language: "en-US" as const,
+          detailedDescription: false, // 使用简洁模式测试语言
         },
       };
 
@@ -438,6 +439,47 @@ describe("AI Service 模块测试", () => {
       expect(body.max_tokens).toBe(500);
     });
 
+    it("默认应该启用详细描述模式", async () => {
+      const defaultConfig = {
+        ...mockConfig,
+        aiCommit: {
+          ...mockConfig.aiCommit!,
+          // 不设置 detailedDescription 和 maxTokens，测试默认行为
+        },
+      };
+      // 移除 maxTokens 设置
+      delete defaultConfig.aiCommit!.maxTokens;
+
+      vi.mocked(execOutput).mockReturnValue("diff --git a/file.ts b/file.ts");
+
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: "feat(auth): 添加用户登录功能\n\n- 实现用户名密码登录接口\n- 添加登录状态验证中间件",
+              },
+            },
+          ],
+        }),
+      } as Response);
+
+      const result = await generateAICommitMessage(defaultConfig);
+
+      expect(result).toContain("feat(auth): 添加用户登录功能");
+      expect(result).toContain("- 实现用户名密码登录接口");
+
+      // 验证使用了详细描述的 prompt
+      const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(callArgs.body as string);
+      const prompt = body.messages[0].content;
+
+      expect(prompt).toContain("详细描述：列出主要修改点");
+      expect(body.max_tokens).toBe(400); // 详细模式的 token 数
+    });
+
     it("详细描述模式应该生成包含修改点的 commit message", async () => {
       const detailedConfig = {
         ...mockConfig,
@@ -484,10 +526,11 @@ describe("AI Service 模块测试", () => {
         ...mockConfig,
         aiCommit: {
           ...mockConfig.aiCommit!,
-          detailedDescription: true,
-          // 不设置 maxTokens，让它使用默认值
+          // 不设置 detailedDescription 和 maxTokens，使用默认值
         },
       };
+      // 移除 maxTokens 设置
+      delete detailedConfig.aiCommit!.maxTokens;
 
       vi.mocked(execOutput).mockReturnValue("diff --git a/file.ts b/file.ts");
 
@@ -510,7 +553,7 @@ describe("AI Service 模块测试", () => {
       const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
       const body = JSON.parse(callArgs.body as string);
 
-      // 详细描述模式应该使用 400 tokens 而不是默认的 200
+      // 默认启用详细描述模式，应该使用 400 tokens
       expect(body.max_tokens).toBe(400);
     });
 
@@ -519,7 +562,7 @@ describe("AI Service 模块测试", () => {
         ...mockConfig,
         aiCommit: {
           ...mockConfig.aiCommit!,
-          detailedDescription: true,
+          // 不设置 detailedDescription，使用默认值 true
         },
       };
 

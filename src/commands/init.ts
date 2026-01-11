@@ -270,14 +270,14 @@ export async function init(): Promise<void> {
       message: "是否生成详细的修改点描述?",
       choices: [
         { 
+          name: "是（包含修改点列表，推荐）", 
+          value: true,
+          description: "如：feat(auth): 添加用户登录功能\n\n- 实现用户名密码登录接口\n- 添加登录状态验证中间件"
+        },
+        { 
           name: "否（仅生成标题）", 
           value: false,
           description: "如：feat(auth): 添加用户登录功能"
-        },
-        { 
-          name: "是（包含修改点列表）", 
-          value: true,
-          description: "如：feat(auth): 添加用户登录功能\n\n- 实现用户名密码登录接口\n- 添加登录状态验证中间件"
         },
       ],
       theme,

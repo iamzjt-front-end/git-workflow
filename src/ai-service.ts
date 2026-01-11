@@ -298,8 +298,8 @@ export async function generateAICommitMessage(
   const aiConfig = config.aiCommit || {};
   const provider = aiConfig.provider || "github";
   const language = aiConfig.language || "zh-CN";
-  const maxTokens = aiConfig.maxTokens || (aiConfig.detailedDescription ? 400 : 200);
-  const detailedDescription = aiConfig.detailedDescription || false;
+  const detailedDescription = aiConfig.detailedDescription !== false; // 默认启用详细描述
+  const maxTokens = aiConfig.maxTokens || (detailedDescription ? 400 : 200);
 
   // 获取 git diff
   const diff = getGitDiff();

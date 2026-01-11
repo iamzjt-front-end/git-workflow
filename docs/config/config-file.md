@@ -82,7 +82,7 @@ gw.config.json      # 明确的配置文件名
     "model": "gpt-4o-mini",
     "language": "zh-CN",
     "maxTokens": 200,
-    "detailedDescription": false,
+    "detailedDescription": true,
     "temperature": 0.7,
     "customPrompt": ""
   },
@@ -392,7 +392,7 @@ gw.config.json      # 明确的配置文件名
 #### aiCommit.detailedDescription
 
 **类型：** `boolean`  
-**默认值：** `false`  
+**默认值：** `true`  
 **说明：** 是否生成详细的修改点描述
 
 ```json
