@@ -34,7 +34,7 @@
 npm run docs:dev
 ```
 
-访问：http://localhost:5173/git-workflow/
+然后在浏览器中打开显示的本地地址。
 
 ### 构建文档
 
