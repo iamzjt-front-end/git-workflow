@@ -12,19 +12,3 @@ dist
 .vscode
 *.swp
 *.swo
-
-# Logs
-*.log
-
-# Config files (may contain API keys)
-.gwrc.json
-.gwrc
-gw.config.json
-
-# Update check cache
-.gw-update-check
-
-# Test files
-test-*.sh
-test-*.js
-*.svg
