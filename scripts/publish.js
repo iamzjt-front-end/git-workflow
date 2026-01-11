@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import { readFileSync } from "fs";
 import ora from "ora";
 import boxen from "boxen";
@@ -102,7 +102,6 @@ async function main() {
     
     try {
       // 使用 spawn 而不是 exec，以便用户可以交互
-      const { spawn } = require("child_process");
       const loginProcess = spawn("npm", ["login"], {
         stdio: "inherit", // 继承父进程的 stdio，允许用户交互
         shell: true
