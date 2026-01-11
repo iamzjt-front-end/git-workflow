@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://iamzjt-front-end.github.io/git-workflow/">
-    <img src="./zjex-logo.svg" alt="zjex logo" width="120" />
+    <img src="./zjex-logo.svg" alt="zjex logo" width="200" />
   </a>
 </p>
 
