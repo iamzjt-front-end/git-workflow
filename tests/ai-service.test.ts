@@ -121,7 +121,7 @@ describe("AI Service 模块测试", () => {
         provider: "github",
         apiKey: "test-key",
         language: "zh-CN",
-        maxTokens: 200,
+        // 不设置 maxTokens，让它使用默认值
       },
     };
 
@@ -436,6 +436,198 @@ describe("AI Service 模块测试", () => {
       const body = JSON.parse(callArgs.body as string);
 
       expect(body.max_tokens).toBe(500);
+    });
+
+    it("详细描述模式应该生成包含修改点的 commit message", async () => {
+      const detailedConfig = {
+        ...mockConfig,
+        aiCommit: {
+          ...mockConfig.aiCommit!,
+          detailedDescription: true,
+        },
+      };
+
+      vi.mocked(execOutput).mockReturnValue("diff --git a/file.ts b/file.ts");
+
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: "feat(auth): 添加用户登录功能\n\n- 实现用户名密码登录接口\n- 添加登录状态验证中间件\n- 完善登录错误处理逻辑",
+              },
+            },
+          ],
+        }),
+      } as Response);
+
+      const result = await generateAICommitMessage(detailedConfig);
+
+      expect(result).toContain("feat(auth): 添加用户登录功能");
+      expect(result).toContain("- 实现用户名密码登录接口");
+      expect(result).toContain("- 添加登录状态验证中间件");
+      expect(result).toContain("- 完善登录错误处理逻辑");
+
+      // 验证 prompt 包含详细描述的指令
+      const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(callArgs.body as string);
+      const prompt = body.messages[0].content;
+
+      expect(prompt).toContain("详细描述：列出主要修改点");
+      expect(prompt).toContain("以 \"- \" 开头");
+    });
+
+    it("详细描述模式应该使用更大的 maxTokens", async () => {
+      const detailedConfig = {
+        ...mockConfig,
+        aiCommit: {
+          ...mockConfig.aiCommit!,
+          detailedDescription: true,
+          // 不设置 maxTokens，让它使用默认值
+        },
+      };
+
+      vi.mocked(execOutput).mockReturnValue("diff --git a/file.ts b/file.ts");
+
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: "feat: add feature\n\n- change 1\n- change 2",
+              },
+            },
+          ],
+        }),
+      } as Response);
+
+      await generateAICommitMessage(detailedConfig);
+
+      const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(callArgs.body as string);
+
+      // 详细描述模式应该使用 400 tokens 而不是默认的 200
+      expect(body.max_tokens).toBe(400);
+    });
+
+    it("详细描述模式应该允许更长的 diff", async () => {
+      const detailedConfig = {
+        ...mockConfig,
+        aiCommit: {
+          ...mockConfig.aiCommit!,
+          detailedDescription: true,
+        },
+      };
+
+      const longDiff = "a".repeat(5500); // 超过简洁模式的 4000 限制，但在详细模式的 6000 限制内
+      vi.mocked(execOutput).mockReturnValue(longDiff);
+
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: "feat: update",
+              },
+            },
+          ],
+        }),
+      } as Response);
+
+      await generateAICommitMessage(detailedConfig);
+
+      const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(callArgs.body as string);
+      const prompt = body.messages[0].content;
+
+      // 在详细模式下，5500 字符的 diff 不应该被截断
+      expect(prompt).toContain(longDiff);
+      expect(prompt).not.toContain("...");
+    });
+
+    it("简洁模式应该生成简短的 commit message", async () => {
+      const simpleConfig = {
+        ...mockConfig,
+        aiCommit: {
+          ...mockConfig.aiCommit!,
+          detailedDescription: false,
+        },
+      };
+
+      vi.mocked(execOutput).mockReturnValue("diff --git a/file.ts b/file.ts");
+
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: "feat(auth): 添加用户登录功能",
+              },
+            },
+          ],
+        }),
+      } as Response);
+
+      const result = await generateAICommitMessage(simpleConfig);
+
+      expect(result).toBe("feat(auth): 添加用户登录功能");
+
+      // 验证 prompt 不包含详细描述的指令
+      const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(callArgs.body as string);
+      const prompt = body.messages[0].content;
+
+      expect(prompt).not.toContain("详细描述：列出主要修改点");
+      expect(prompt).toContain("只返回一条 commit message");
+    });
+
+    it("英文详细描述模式应该使用英文指令", async () => {
+      const enDetailedConfig = {
+        ...mockConfig,
+        aiCommit: {
+          ...mockConfig.aiCommit!,
+          language: "en-US" as const,
+          detailedDescription: true,
+        },
+      };
+
+      vi.mocked(execOutput).mockReturnValue("diff --git a/file.ts b/file.ts");
+
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: "feat(auth): add user login functionality\n\n- Implement username/password login API\n- Add login status validation middleware",
+              },
+            },
+          ],
+        }),
+      } as Response);
+
+      const result = await generateAICommitMessage(enDetailedConfig);
+
+      expect(result).toContain("feat(auth): add user login functionality");
+      expect(result).toContain("- Implement username/password login API");
+
+      // 验证 prompt 使用英文指令
+      const callArgs = mockFetch.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(callArgs.body as string);
+      const prompt = body.messages[0].content;
+
+      expect(prompt).toContain("Detailed description: List main changes");
+      expect(prompt).toContain("starting with \"- \"");
+      expect(prompt).not.toContain("详细描述");
     });
   });
 

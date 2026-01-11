@@ -60,11 +60,66 @@ function getGitDiff(): string {
 /**
  * 构建 AI prompt
  */
-function buildPrompt(diff: string, language: string): string {
+function buildPrompt(diff: string, language: string, detailedDescription: boolean = false): string {
   const isZh = language === "zh-CN";
 
-  const systemPrompt = isZh
-    ? `你是一个专业的 Git commit message 生成助手。请根据提供的 git diff 生成符合 Conventional Commits 规范的 commit message。
+  if (detailedDescription) {
+    // 详细模式：生成包含修改点的完整 commit message
+    const systemPrompt = isZh
+      ? `你是一个专业的 Git commit message 生成助手。请根据提供的 git diff 生成符合 Conventional Commits 规范的详细 commit message。
+
+格式要求：
+1. 第一行：<type>(<scope>): <subject>
+2. 空行
+3. 详细描述：列出主要修改点，每个修改点一行，以 "- " 开头
+
+规则：
+- type 必须是以下之一：feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+- scope 是可选的，表示影响范围
+- subject 用中文描述，简洁明了，不超过 50 字
+- 详细描述要列出 3-6 个主要修改点，每个修改点简洁明了
+- 如果修改较少，可以只列出 2-3 个修改点
+- 不要有其他解释或多余内容
+
+示例：
+feat(auth): 添加用户登录功能
+
+- 实现用户名密码登录接口
+- 添加登录状态验证中间件
+- 完善登录错误处理逻辑
+- 更新用户认证相关文档`
+      : `You are a professional Git commit message generator. Generate a detailed commit message following Conventional Commits specification based on the provided git diff.
+
+Format requirements:
+1. First line: <type>(<scope>): <subject>
+2. Empty line
+3. Detailed description: List main changes, one per line, starting with "- "
+
+Rules:
+- type must be one of: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+- scope is optional, indicates the affected area
+- subject should be concise, no more than 50 characters
+- Detailed description should list 3-6 main changes, each change should be concise
+- If changes are minimal, list 2-3 changes
+- No explanations or extra content
+
+Example:
+feat(auth): add user login functionality
+
+- Implement username/password login API
+- Add login status validation middleware
+- Improve login error handling logic
+- Update user authentication documentation`;
+
+    const userPrompt = isZh
+      ? `请根据以下 git diff 生成详细的 commit message（包含修改点列表）：\n\n${diff}`
+      : `Generate a detailed commit message (including change list) based on the following git diff:\n\n${diff}`;
+
+    return `${systemPrompt}\n\n${userPrompt}`;
+  } else {
+    // 简洁模式：只生成标题
+    const systemPrompt = isZh
+      ? `你是一个专业的 Git commit message 生成助手。请根据提供的 git diff 生成符合 Conventional Commits 规范的 commit message。
 
 规则：
 1. 格式：<type>(<scope>): <subject>
@@ -78,7 +133,7 @@ function buildPrompt(diff: string, language: string): string {
 - feat(auth): 添加用户登录功能
 - fix(api): 修复数据获取失败的问题
 - docs(readme): 更新安装说明`
-    : `You are a professional Git commit message generator. Generate a commit message following Conventional Commits specification based on the provided git diff.
+      : `You are a professional Git commit message generator. Generate a commit message following Conventional Commits specification based on the provided git diff.
 
 Rules:
 1. Format: <type>(<scope>): <subject>
@@ -93,11 +148,12 @@ Examples:
 - fix(api): resolve data fetching failure
 - docs(readme): update installation guide`;
 
-  const userPrompt = isZh
-    ? `请根据以下 git diff 生成 commit message：\n\n${diff}`
-    : `Generate a commit message based on the following git diff:\n\n${diff}`;
+    const userPrompt = isZh
+      ? `请根据以下 git diff 生成 commit message：\n\n${diff}`
+      : `Generate a commit message based on the following git diff:\n\n${diff}`;
 
-  return `${systemPrompt}\n\n${userPrompt}`;
+    return `${systemPrompt}\n\n${userPrompt}`;
+  }
 }
 
 /**
@@ -242,7 +298,8 @@ export async function generateAICommitMessage(
   const aiConfig = config.aiCommit || {};
   const provider = aiConfig.provider || "github";
   const language = aiConfig.language || "zh-CN";
-  const maxTokens = aiConfig.maxTokens || 200;
+  const maxTokens = aiConfig.maxTokens || (aiConfig.detailedDescription ? 400 : 200);
+  const detailedDescription = aiConfig.detailedDescription || false;
 
   // 获取 git diff
   const diff = getGitDiff();
@@ -251,12 +308,12 @@ export async function generateAICommitMessage(
   }
 
   // 限制 diff 长度，避免超过 token 限制
-  const maxDiffLength = 4000;
+  const maxDiffLength = detailedDescription ? 6000 : 4000;
   const truncatedDiff =
     diff.length > maxDiffLength ? diff.slice(0, maxDiffLength) + "\n..." : diff;
 
   // 构建 prompt
-  const prompt = buildPrompt(truncatedDiff, language);
+  const prompt = buildPrompt(truncatedDiff, language, detailedDescription);
 
   // 根据提供商调用对应的 API
   const providerInfo = AI_PROVIDERS[provider];

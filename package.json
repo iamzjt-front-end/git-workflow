@@ -24,7 +24,10 @@
 		"release:dry": "./scripts/release.sh --dry-run",
 		"publish:npm": "NODE_NO_WARNINGS=1 node scripts/publish.js",
 		"prepublishOnly": "npm run build",
-		"prepare": "husky"
+		"prepare": "husky",
+		"docs:dev": "vitepress dev docs",
+		"docs:build": "vitepress build docs",
+		"docs:preview": "vitepress preview docs"
 	},
 	"keywords": [
 		"git",
@@ -64,6 +67,7 @@
 		"tsup": "^8.5.1",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
+		"vitepress": "^1.6.4",
 		"vitest": "^4.0.16"
 	}
 }
