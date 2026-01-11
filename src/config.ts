@@ -46,6 +46,7 @@ export interface GwConfig {
     language?: "zh-CN" | "en-US"; // 生成语言，默认 zh-CN
     maxTokens?: number; // 最大 token 数，默认 200
     detailedDescription?: boolean; // 是否生成详细的修改点描述，默认 false
+    useEmoji?: boolean; // AI生成的commit message是否包含emoji，默认继承全局useEmoji设置
   };
 }
 

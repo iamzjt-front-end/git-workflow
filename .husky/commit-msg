@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 格式化 commit message（自动添加/修正 emoji）
+node scripts/format-commit-msg.js "$1"

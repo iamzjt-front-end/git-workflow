@@ -43,15 +43,30 @@ function parseCommitMessage(message) {
   // 移除开头和结尾的空白字符
   const cleanMessage = message.trim();
   
-  // 检测是否以 emoji 开头
-  const emojiMatch = cleanMessage.match(/^(\p{Emoji})\s*/u);
-  const hasEmoji = emojiMatch !== null;
-  const currentEmoji = hasEmoji ? emojiMatch[1] : null;
+  // 检测是否以已知的emoji开头
+  const allEmojis = Object.values(EMOJI_MAP);
+  let hasEmoji = false;
+  let currentEmoji = null;
+  let messageWithoutEmoji = cleanMessage;
   
-  // 移除 emoji 后的消息
-  const messageWithoutEmoji = hasEmoji 
-    ? cleanMessage.replace(/^(\p{Emoji})\s*/u, '').trim()
-    : cleanMessage;
+  for (const emoji of allEmojis) {
+    if (cleanMessage.startsWith(emoji)) {
+      hasEmoji = true;
+      currentEmoji = emoji;
+      messageWithoutEmoji = cleanMessage.substring(emoji.length).trim();
+      break;
+    }
+  }
+  
+  // 如果没有找到已知emoji，检查是否以其他emoji开头
+  if (!hasEmoji) {
+    const emojiMatch = cleanMessage.match(/^(\p{Emoji})\s*/u);
+    if (emojiMatch) {
+      hasEmoji = true;
+      currentEmoji = emojiMatch[1];
+      messageWithoutEmoji = cleanMessage.replace(/^(\p{Emoji})\s*/u, '').trim();
+    }
+  }
   
   // 解析 Conventional Commits 格式: type(scope): subject
   const conventionalMatch = messageWithoutEmoji.match(/^(\w+)(\([^)]+\))?(!)?:\s*(.+)/);

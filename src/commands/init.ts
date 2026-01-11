@@ -283,12 +283,35 @@ export async function init(): Promise<void> {
       theme,
     });
 
+    const aiUseEmoji = await select({
+      message: "AI 生成的 commit message 是否包含 emoji?",
+      choices: [
+        { 
+          name: "是（推荐）", 
+          value: true,
+          description: "如：✨ feat(auth): 添加用户登录功能"
+        },
+        { 
+          name: "否", 
+          value: false,
+          description: "如：feat(auth): 添加用户登录功能"
+        },
+        { 
+          name: "跟随全局设置", 
+          value: undefined,
+          description: `当前全局设置：${useEmoji ? '启用' : '禁用'} emoji`
+        },
+      ],
+      theme,
+    });
+
     config.aiCommit = {
       enabled: true,
       provider: aiProvider as "github" | "openai" | "claude" | "ollama",
       apiKey: apiKey || undefined,
       language: language as "zh-CN" | "en-US",
       detailedDescription,
+      useEmoji: aiUseEmoji,
     };
 
     // 根据提供商设置默认模型
