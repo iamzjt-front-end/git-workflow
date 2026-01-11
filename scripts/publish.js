@@ -96,14 +96,62 @@ async function main() {
   const npmUser = exec("npm whoami", true);
   if (!npmUser) {
     spinner3.fail(`${colors.blue("[3/11]")} 检查 npm 登录状态`);
-    console.log(colors.red("✖ 未登录 npm，请先执行: npm login"));
-    process.exit(1);
+    console.log(colors.yellow("⚠️ 未登录 npm，需要先登录"));
+    console.log(colors.dim("正在为你打开 npm 登录..."));
+    console.log("");
+    
+    try {
+      // 使用 spawn 而不是 exec，以便用户可以交互
+      const { spawn } = require("child_process");
+      const loginProcess = spawn("npm", ["login"], {
+        stdio: "inherit", // 继承父进程的 stdio，允许用户交互
+        shell: true
+      });
+      
+      // 等待登录完成
+      await new Promise((resolve, reject) => {
+        loginProcess.on("close", (code) => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(new Error(`npm login 失败，退出码: ${code}`));
+          }
+        });
+        
+        loginProcess.on("error", (error) => {
+          reject(error);
+        });
+      });
+      
+      console.log("");
+      console.log(colors.green("✅ npm 登录成功！"));
+      console.log(colors.dim("继续发布流程..."));
+      console.log("");
+      
+      // 重新检查登录状态
+      const newNpmUser = exec("npm whoami", true);
+      if (!newNpmUser) {
+        console.log(colors.red("✖ 登录验证失败，请手动执行: npm login"));
+        process.exit(1);
+      }
+      
+      spinner3.succeed(
+        `${colors.blue("[3/11]")} 检查 npm 登录状态 ${colors.dim(
+          `(${newNpmUser.trim()})`
+        )}`
+      );
+    } catch (error) {
+      console.log(colors.red("✖ npm 登录失败:"), error.message);
+      console.log(colors.dim("请手动执行: npm login"));
+      process.exit(1);
+    }
+  } else {
+    spinner3.succeed(
+      `${colors.blue("[3/11]")} 检查 npm 登录状态 ${colors.dim(
+        `(${npmUser.trim()})`
+      )}`
+    );
   }
-  spinner3.succeed(
-    `${colors.blue("[3/11]")} 检查 npm 登录状态 ${colors.dim(
-      `(${npmUser.trim()})`
-    )}`
-  );
 
   // 获取当前分支
   const currentBranch = exec("git branch --show-current", true).trim();

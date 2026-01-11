@@ -123,8 +123,26 @@ fi
 echo -ne "${BLUE}[3/${TOTAL_STEPS}]${NC} 检查 npm 登录状态... "
 if ! npm whoami &> /dev/null; then
   echo -e "${RED}❌${NC}"
-  print_error "未登录 npm，请先执行: npm login"
-  exit 1
+  echo -e "${YELLOW}⚠️  未登录 npm，需要先登录${NC}"
+  echo -e "${DIM}正在为你打开 npm 登录...${NC}"
+  echo ""
+  
+  # 执行 npm login
+  if npm login; then
+    echo ""
+    echo -e "${GREEN}✅ npm 登录成功！${NC}"
+    echo -e "${DIM}继续发布流程...${NC}"
+    echo ""
+    
+    # 重新检查登录状态
+    if ! npm whoami &> /dev/null; then
+      print_error "登录验证失败，请手动执行: npm login"
+      exit 1
+    fi
+  else
+    print_error "npm 登录失败，请手动执行: npm login"
+    exit 1
+  fi
 fi
 NPM_USER=$(npm whoami)
 echo -e "${GREEN}✅${NC} ${DIM}(${NPM_USER})${NC}"
