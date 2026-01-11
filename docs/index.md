@@ -7,7 +7,7 @@ hero:
   tagline: "让分支管理和版本发布变得轻松愉快"
   image:
     src: /logo.svg
-    alt: Git Workflow
+    alt: Git Workflow Logo
   actions:
     - theme: brand
       text: 快速开始

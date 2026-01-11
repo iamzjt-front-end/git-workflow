@@ -10,6 +10,9 @@ export default defineConfig({
   
   // 主题配置
   themeConfig: {
+    // Logo
+    logo: '/logo.svg',
+    
     // 导航栏
     nav: [
       { text: '首页', link: '/' },
@@ -151,11 +154,14 @@ export default defineConfig({
 
   // 头部配置
   head: [
-    ['link', { rel: 'icon', href: '/git-workflow/favicon.ico' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/git-workflow/favicon.svg' }],
+    ['link', { rel: 'apple-touch-icon', href: '/git-workflow/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#646cff' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:locale', content: 'zh-CN' }],
     ['meta', { name: 'og:site_name', content: 'Git Workflow' }],
-    ['meta', { name: 'og:image', content: '/git-workflow/og-image.png' }]
+    ['meta', { name: 'og:image', content: '/git-workflow/logo.svg' }],
+    ['meta', { name: 'og:title', content: 'Git Workflow - 极简的 Git 工作流 CLI 工具' }],
+    ['meta', { name: 'og:description', content: '让分支管理和版本发布变得轻松愉快' }]
   ]
 })
