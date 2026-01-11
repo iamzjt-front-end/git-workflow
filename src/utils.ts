@@ -4,9 +4,14 @@ export interface Colors {
   red: (s: string) => string;
   green: (s: string) => string;
   yellow: (s: string) => string;
+  blue: (s: string) => string;
   cyan: (s: string) => string;
   dim: (s: string) => string;
   bold: (s: string) => string;
+  purple: (s: string) => string;
+  orange: (s: string) => string;
+  lightPurple: (s: string) => string;
+  white: (s: string) => string;
   reset: string;
 }
 
@@ -14,9 +19,14 @@ export const colors: Colors = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
   green: (s) => `\x1b[32m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
+  blue: (s) => `\x1b[34m${s}\x1b[0m`,
   cyan: (s) => `\x1b[36m${s}\x1b[0m`,
   dim: (s) => `\x1b[2m${s}\x1b[0m`,
   bold: (s) => `\x1b[1m${s}\x1b[0m`,
+  purple: (s) => `\x1b[35m${s}\x1b[0m`,
+  orange: (s) => `\x1b[38;5;208m${s}\x1b[0m`,
+  lightPurple: (s) => `\x1b[38;5;141m${s}\x1b[0m`,
+  white: (s) => `\x1b[37m${s}\x1b[0m`,
   reset: "\x1b[0m",
 };
 

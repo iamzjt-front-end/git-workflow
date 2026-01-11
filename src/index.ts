@@ -20,9 +20,9 @@ import { release } from "./commands/release.js";
 import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
 import { commit } from "./commands/commit.js";
-import { showHelp } from "./commands/help.js";
 import { checkForUpdates } from "./update-notifier.js";
 import { update } from "./commands/update.js";
+import { log, quickLog } from "./commands/log.js";
 
 // ========== 全局错误处理 ==========
 
@@ -151,7 +151,11 @@ async function mainMenu(): Promise<void> {
         value: "stash",
       },
       {
-        name: `[b] ⚙️  初始化配置             ${colors.dim("gw init")}`,
+        name: `[b] 📊 查看日志               ${colors.dim("gw log")}`,
+        value: "log",
+      },
+      {
+        name: `[c] ⚙️  初始化配置             ${colors.dim("gw init")}`,
         value: "init",
       },
       { name: "[0] ❓ 帮助", value: "help" },
@@ -201,11 +205,16 @@ async function mainMenu(): Promise<void> {
       checkGitRepo();
       await stash();
       break;
+    case "log":
+      checkGitRepo();
+      await log();
+      break;
     case "init":
       await init();
       break;
     case "help":
-      console.log(showHelp());
+      // 使用 cac 自动生成的帮助信息
+      cli.outputHelp();
       break;
     case "exit":
       break;
@@ -339,6 +348,22 @@ cli
     return update(version);
   });
 
+cli
+  .command("log", "交互式Git日志查看 (分页模式)")
+  .alias("ls")
+  .alias("l")
+  .option("--limit <number>", "限制显示数量")
+  .action(async (options: any) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    
+    // 构建选项对象 - 默认交互式模式
+    const logOptions: any = { interactive: true };
+    if (options.limit) logOptions.limit = parseInt(options.limit);
+    
+    return log(logOptions);
+  });
+
 cli.command("clean", "清理缓存文件").action(async () => {
   const { clearUpdateCache } = await import("./update-notifier.js");
   clearUpdateCache();
@@ -347,19 +372,18 @@ cli.command("clean", "清理缓存文件").action(async () => {
   console.log("");
 });
 
-cli.help((sections) => {
-  sections.push({
-    body: showHelp(),
-  });
-});
-
-// 不使用 cac 的 version，手动处理 --version
+// 不使用 cac 的 version，手动处理 --version 和 --help
 cli.option("-v, --version", "显示版本号");
+cli.option("-h, --help", "显示帮助信息");
 
-// 在 parse 之前检查 --version
-const args = process.argv.slice(2);
-if (args.includes("-v") || args.includes("--version")) {
+// 在 parse 之前检查 --version 和 --help
+const processArgs = process.argv.slice(2);
+if (processArgs.includes("-v") || processArgs.includes("--version")) {
   console.log(colors.yellow(`v${version}`));
+  process.exit(0);
+}
+if (processArgs.includes("-h") || processArgs.includes("--help")) {
+  cli.outputHelp();
   process.exit(0);
 }
 

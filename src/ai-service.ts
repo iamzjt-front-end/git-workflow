@@ -291,10 +291,16 @@ async function callOllamaAPI(
 
 /**
  * 清理AI生成的commit message
- * 移除重复行和多余的空行
+ * 移除重复行、多余的空行和开头的特殊字符
  */
 function cleanAIResponse(response: string): string {
-  const lines = response.split('\n').map(line => line.trim()).filter(line => line);
+  // 移除开头的特殊字符（如 ...、```、等）
+  let cleaned = response.replace(/^[.\s`~-]+/, '').trim();
+  
+  // 移除结尾的特殊字符
+  cleaned = cleaned.replace(/[.\s`~-]+$/, '').trim();
+  
+  const lines = cleaned.split('\n').map(line => line.trim()).filter(line => line);
   
   // 移除重复的行
   const uniqueLines = [];
