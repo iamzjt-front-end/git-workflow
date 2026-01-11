@@ -138,7 +138,67 @@ print_success "已登录 npm (用户: ${NPM_USER})"
 # 拉取最新代码
 print_step "拉取最新代码..."
 if [[ "$DRY_RUN" == false ]]; then
-  git pull origin "$CURRENT_BRANCH"
+  # 检查是否有远程更新
+  git fetch origin "$CURRENT_BRANCH"
+  
+  # 检查本地和远程是否有分歧
+  LOCAL_COMMIT=$(git rev-parse HEAD)
+  REMOTE_COMMIT=$(git rev-parse "origin/$CURRENT_BRANCH")
+  
+  if [[ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]]; then
+    print_warning "检测到本地和远程分支有分歧"
+    
+    # 检查是否可以快进
+    if git merge-base --is-ancestor HEAD "origin/$CURRENT_BRANCH"; then
+      print_info "远程有新提交，正在快进合并..."
+      git pull origin "$CURRENT_BRANCH" --ff-only
+    elif git merge-base --is-ancestor "origin/$CURRENT_BRANCH" HEAD; then
+      print_info "本地有新提交，需要推送到远程"
+      print_warning "建议先推送本地提交再发布"
+      read -p "是否继续发布? (y/N) " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_info "已取消，请先推送本地提交: git push origin $CURRENT_BRANCH"
+        exit 0
+      fi
+    else
+      print_warning "本地和远程分支有冲突，需要解决分歧"
+      echo ""
+      echo "建议的解决方案："
+      echo "1. 使用 rebase: git pull origin $CURRENT_BRANCH --rebase"
+      echo "2. 使用 merge:  git pull origin $CURRENT_BRANCH --no-rebase"
+      echo ""
+      read -p "选择解决方案 (1=rebase, 2=merge, q=退出): " -n 1 -r
+      echo
+      
+      case $REPLY in
+        1)
+          print_info "使用 rebase 策略合并..."
+          if git pull origin "$CURRENT_BRANCH" --rebase; then
+            print_success "Rebase 成功"
+          else
+            print_error "Rebase 失败，请手动解决冲突后重新运行发布脚本"
+            exit 1
+          fi
+          ;;
+        2)
+          print_info "使用 merge 策略合并..."
+          if git pull origin "$CURRENT_BRANCH" --no-rebase; then
+            print_success "Merge 成功"
+          else
+            print_error "Merge 失败，请手动解决冲突后重新运行发布脚本"
+            exit 1
+          fi
+          ;;
+        *)
+          print_info "已取消，请手动解决分支分歧后重新运行"
+          exit 0
+          ;;
+      esac
+    fi
+  else
+    print_info "本地和远程分支已同步"
+  fi
 fi
 print_success "代码已更新"
 

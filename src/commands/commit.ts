@@ -285,6 +285,7 @@ export async function commit(): Promise<void> {
     // 显示提交信息
     const commitHash = execOutput("git rev-parse --short HEAD");
     console.log(colors.dim(`commit: ${commitHash}`));
+    console.log("");
   } catch (error) {
     spinner.fail("提交失败");
     console.log("");
@@ -299,6 +300,9 @@ export async function commit(): Promise<void> {
     console.log(colors.yellow("你可以手动执行以下命令:"));
     console.log(colors.cyan(`  git commit -m "${message}"`));
     console.log("");
+    
+    // 重新抛出错误，让调用者知道提交失败了
+    throw error;
   }
 }
 
