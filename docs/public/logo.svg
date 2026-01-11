@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102 100" width="128" height="128">
-  <!-- 基于 zjex.svg 红色边框内的交叉图案设计 -->
-  <g transform="translate(1, 0)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" width="96" height="96">
+  <!-- 简洁版本 - 用于导航栏 -->
+  <g transform="translate(60, 50) scale(0.9) translate(-51, -50)">
     <!-- 蓝色条纹 -->
     <path d="M69.3 59.41l-9.89 9.89L51 77.73 30.46 98.26A6 6 0 0 1 22 89.83L42.56 69.3 51 60.88l9.9-9.9z" fill="#0059cc"/>
     <path d="M102 24.28a6 6 0 0 1-1.75 4.21L77.72 51l-8.42-8.44 22.5-22.5a6 6 0 0 1 10.2 4.22z" fill="#0059cc"/>

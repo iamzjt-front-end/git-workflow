@@ -6,7 +6,7 @@ hero:
   text: "极简的 Git 工作流 CLI 工具"
   tagline: "让分支管理和版本发布变得轻松愉快"
   image:
-    src: /logo.svg
+    src: /hero-logo.svg
     alt: Git Workflow Logo
   actions:
     - theme: brand

@@ -1,14 +1,10 @@
 # @zjex/git-workflow
 
-<br>
-
 <p align="center">
   <a href="https://iamzjt-front-end.github.io/git-workflow/">
-    <img src="./zjex-logo.svg" alt="zjex logo" width="80" />
+    <img src="./zjex-logo.svg" alt="zjex logo" width="120" />
   </a>
 </p>
-
-<br>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/v/@zjex/git-workflow?style=flat&colorA=18181B&colorB=F0DB4F" alt="npm version"></a>

@@ -290,6 +290,27 @@ async function callOllamaAPI(
 }
 
 /**
+ * 清理AI生成的commit message
+ * 移除重复行和多余的空行
+ */
+function cleanAIResponse(response: string): string {
+  const lines = response.split('\n').map(line => line.trim()).filter(line => line);
+  
+  // 移除重复的行
+  const uniqueLines = [];
+  const seen = new Set();
+  
+  for (const line of lines) {
+    if (!seen.has(line)) {
+      seen.add(line);
+      uniqueLines.push(line);
+    }
+  }
+  
+  return uniqueLines.join('\n');
+}
+
+/**
  * 生成 AI commit message
  */
 export async function generateAICommitMessage(
@@ -333,18 +354,26 @@ export async function generateAICommitMessage(
   }
 
   // 调用 API
+  let response: string;
   switch (provider) {
     case "github":
-      return await callGitHubAPI(prompt, apiKey, model, maxTokens);
+      response = await callGitHubAPI(prompt, apiKey, model, maxTokens);
+      break;
     case "openai":
-      return await callOpenAIAPI(prompt, apiKey, model, maxTokens);
+      response = await callOpenAIAPI(prompt, apiKey, model, maxTokens);
+      break;
     case "claude":
-      return await callClaudeAPI(prompt, apiKey, model, maxTokens);
+      response = await callClaudeAPI(prompt, apiKey, model, maxTokens);
+      break;
     case "ollama":
-      return await callOllamaAPI(prompt, model, maxTokens);
+      response = await callOllamaAPI(prompt, model, maxTokens);
+      break;
     default:
       throw new Error(`不支持的 AI 提供商: ${provider}`);
   }
+
+  // 清理AI响应，移除重复内容
+  return cleanAIResponse(response);
 }
 
 /**

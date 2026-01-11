@@ -1,0 +1,39 @@
+/* Hero Logo 自适应大小 */
+.VPHero .VPImage {
+  max-width: 320px !important;
+  max-height: 320px !important;
+  margin: 0 auto !important;
+}
+
+.VPHero .VPImage img {
+  max-width: 320px !important;
+  max-height: 320px !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+/* 响应式设计 - 移动端适配 */
+@media (max-width: 768px) {
+  .VPHero .VPImage {
+    max-width: 200px !important;
+    max-height: 200px !important;
+  }
+
+  .VPHero .VPImage img {
+    max-width: 200px !important;
+    max-height: 200px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .VPHero .VPImage {
+    max-width: 160px !important;
+    max-height: 160px !important;
+  }
+
+  .VPHero .VPImage img {
+    max-width: 160px !important;
+    max-height: 160px !important;
+  }
+}
