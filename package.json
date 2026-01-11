@@ -17,6 +17,7 @@
 		"test:watch": "vitest",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest --coverage",
+		"test:update-readme": "node scripts/update-test-count.js",
 		"changelog": "changelogen -o CHANGELOG.md",
 		"version": "node scripts/version.js",
 		"release": "./scripts/release.sh",

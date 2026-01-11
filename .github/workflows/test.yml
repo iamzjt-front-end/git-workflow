@@ -33,3 +33,16 @@ jobs:
       - name: Build
         run: npm run build
         if: matrix.node-version == '20'
+
+      - name: Update test count in README
+        run: npm run test:update-readme
+        if: matrix.node-version == '20' && github.ref == 'refs/heads/main'
+
+      - name: Commit updated README
+        if: matrix.node-version == '20' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --staged --quiet || git commit -m "docs: 自动更新测试数量徽章 [skip ci]"
+          git push
