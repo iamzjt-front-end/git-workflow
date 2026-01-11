@@ -6,7 +6,7 @@
   <a href="https://github.com/iamzjt-front-end/git-workflow"><img src="https://img.shields.io/github/stars/iamzjt-front-end/git-workflow?style=flat&colorA=18181B&colorB=F59E0B" alt="github stars"></a>
   <a href="https://github.com/iamzjt-front-end/git-workflow/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/@zjex/git-workflow?style=flat&colorA=18181B&colorB=10B981" alt="license"></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D18-339933?style=flat&logo=node.js&logoColor=white&colorA=18181B" alt="node version"></a>
-  <a href="https://github.com/iamzjt-front-end/git-workflow/actions"><img src="https://img.shields.io/badge/tests-225%20passed-success?style=flat&colorA=18181B" alt="tests"></a>
+  <a href="https://github.com/iamzjt-front-end/git-workflow/actions"><img src="https://img.shields.io/badge/tests-230%20passed-success?style=flat&colorA=18181B" alt="tests"></a>
   <a href="https://github.com/iamzjt-front-end/git-workflow/issues"><img src="https://img.shields.io/github/issues/iamzjt-front-end/git-workflow?style=flat&colorA=18181B&colorB=EC4899" alt="issues"></a>
 </p>
 
