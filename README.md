@@ -1,5 +1,7 @@
 # @zjex/git-workflow
 
+<!-- 测试 skip ci 功能 -->
+
 <p align="center">
   <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/v/@zjex/git-workflow?style=flat&colorA=18181B&colorB=F0DB4F" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/@zjex/git-workflow"><img src="https://img.shields.io/npm/dt/@zjex/git-workflow?style=flat&colorA=18181B&colorB=3178C6" alt="npm downloads"></a>
