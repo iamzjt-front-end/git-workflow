@@ -270,7 +270,7 @@ async function performUpdate(packageName: string): Promise<void> {
           borderStyle: "round",
           borderColor: "green",
           align: "left",
-          width: 50,
+          width: 40,
         }
       )
     );

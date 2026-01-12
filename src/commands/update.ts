@@ -156,7 +156,7 @@ export async function update(currentVersion: string): Promise<void> {
           borderStyle: "round",
           borderColor: "green",
           align: "left",
-          width: 50,
+          width: 40,
         }
       )
     );
