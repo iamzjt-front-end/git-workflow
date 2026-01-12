@@ -8,8 +8,8 @@ import ora from "ora";
 import semver from "semver";
 import { colors } from "./utils.js";
 
-const CHECK_INTERVAL = 1000 * 60 * 60 * 4; // 4 小时检查一次
 const DISMISS_INTERVAL = 1000 * 60 * 60 * 24; // 24 小时后再次提示
+const CHECK_INTERVAL = 1000 * 60 * 60 * 1; // 已是最新版本时，1 小时检查一次
 const CACHE_FILE = ".gw-update-check";
 
 interface UpdateCache {
@@ -20,7 +20,8 @@ interface UpdateCache {
 }
 
 /**
- * 检查是否有新版本（异步静默检查）
+ * 检查是否有新版本
+ * 策略：后台异步检查，下次运行时提示
  * @param currentVersion 当前版本
  * @param packageName 包名
  * @param interactive 是否交互式（true: 显示完整提示并可选择更新，false: 只显示简单提示）
@@ -34,19 +35,17 @@ export async function checkForUpdates(
     const cache = readCache();
     const now = Date.now();
 
-    // 1. 先检查缓存中是否有新版本需要提示
-    if (cache?.latestVersion && cache.checkedVersion === currentVersion) {
-      // 如果用户在 24 小时内关闭过提示，跳过
-      if (cache.lastDismiss && now - cache.lastDismiss < DISMISS_INTERVAL) {
-        // 继续后台检查（不阻塞）
-        backgroundCheck(currentVersion, packageName);
-        return;
-      }
+    // 1. 先用缓存的结果提示用户（如果有新版本）
+    if (
+      cache?.latestVersion &&
+      semver.gt(cache.latestVersion, currentVersion)
+    ) {
+      // 检查用户是否在 24 小时内关闭过提示
+      const isDismissed =
+        cache.lastDismiss && now - cache.lastDismiss < DISMISS_INTERVAL;
 
-      // 使用 semver 比较版本
-      if (semver.gt(cache.latestVersion, currentVersion)) {
+      if (!isDismissed) {
         if (interactive) {
-          // 交互式模式：显示完整提示，可选择更新
           const action = await showUpdateMessage(
             currentVersion,
             cache.latestVersion,
@@ -59,13 +58,12 @@ export async function checkForUpdates(
             writeCache({ ...cache, lastDismiss: now });
           }
         } else {
-          // 非交互式模式：只显示简单提示
           showSimpleNotification(currentVersion, cache.latestVersion);
         }
       }
     }
 
-    // 2. 后台异步检查更新（不阻塞当前命令）
+    // 2. 后台异步检查更新（每次都检查，不阻塞）
     backgroundCheck(currentVersion, packageName);
   } catch (error) {
     // 如果是用户按 Ctrl+C，重新抛出让全局处理
@@ -78,25 +76,33 @@ export async function checkForUpdates(
 
 /**
  * 后台异步检查更新（不阻塞）
+ * - 有新版本时：每次都检查
+ * - 已是最新版本时：1 小时检查一次
  */
 function backgroundCheck(currentVersion: string, packageName: string): void {
   const cache = readCache();
   const now = Date.now();
 
-  // 如果距离上次检查不到 4 小时，跳过
-  if (cache?.lastCheck && now - cache.lastCheck < CHECK_INTERVAL) {
+  // 如果已是最新版本，且距离上次检查不到 1 小时，跳过
+  const isUpToDate =
+    cache?.latestVersion && !semver.gt(cache.latestVersion, currentVersion);
+  const recentlyChecked =
+    cache?.lastCheck && now - cache.lastCheck < CHECK_INTERVAL;
+
+  if (isUpToDate && recentlyChecked) {
     return;
   }
 
-  // 使用 Promise 异步执行，不阻塞当前命令
-  Promise.resolve().then(async () => {
+  // 使用 setImmediate 确保不阻塞主流程
+  setImmediate(async () => {
     try {
       const latestVersion = await getLatestVersion(packageName);
 
       if (latestVersion) {
+        const cache = readCache() || {};
         writeCache({
           ...cache,
-          lastCheck: now,
+          lastCheck: Date.now(),
           latestVersion,
           checkedVersion: currentVersion,
         });

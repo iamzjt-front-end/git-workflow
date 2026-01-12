@@ -153,7 +153,7 @@ describe("Update Notifier 模块测试", () => {
       consoleSpy.mockRestore();
     });
 
-    it("4小时内不应该重复检查", async () => {
+    it("已是最新版本且1小时内不应该重复检查", async () => {
       const mockCache = {
         lastCheck: Date.now(),
         latestVersion: "1.0.0",
@@ -167,14 +167,14 @@ describe("Update Notifier 模块测试", () => {
       await checkForUpdates("1.0.0");
       await vi.runAllTimersAsync();
 
-      // writeFileSync 不应该被调用（因为在4小时内）
+      // writeFileSync 不应该被调用（因为已是最新版本且在1小时内）
       expect(writeFileSync).not.toHaveBeenCalled();
     });
 
-    it("超过4小时应该重新检查", async () => {
-      const fourHoursAgo = Date.now() - 5 * 60 * 60 * 1000; // 5小时前
+    it("已是最新版本但超过1小时应该重新检查", async () => {
+      const oneHourAgo = Date.now() - 2 * 60 * 60 * 1000; // 2小时前
       const mockCache = {
-        lastCheck: fourHoursAgo,
+        lastCheck: oneHourAgo,
         latestVersion: "1.0.0",
         checkedVersion: "1.0.0",
       };
@@ -187,6 +187,28 @@ describe("Update Notifier 模块测试", () => {
       await vi.runAllTimersAsync();
 
       expect(writeFileSync).toHaveBeenCalled();
+    });
+
+    it("有新版本时每次都应该后台检查", async () => {
+      const mockCache = {
+        lastCheck: Date.now(), // 刚刚检查过
+        latestVersion: "1.0.1", // 有新版本
+        checkedVersion: "1.0.0",
+      };
+
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockCache));
+      vi.mocked(execSync).mockReturnValue("1.0.2" as any);
+
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      await checkForUpdates("1.0.0");
+      await vi.runAllTimersAsync();
+
+      // 即使刚检查过，有新版本时也应该继续检查
+      expect(writeFileSync).toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
     });
 
     it("缓存文件损坏时应该静默处理", async () => {
