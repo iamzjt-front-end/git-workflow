@@ -20,7 +20,7 @@ export default defineConfig({
     "cac",
   ],
   banner: {
-    js: "#!/usr/bin/env -S node --no-warnings=ExperimentalWarning",
+    js: "#!/usr/bin/env -S node --disable-warning=ExperimentalWarning",
   },
   define: {
     __VERSION__: JSON.stringify(pkg.version),

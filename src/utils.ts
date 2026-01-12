@@ -12,6 +12,7 @@ export interface Colors {
   orange: (s: string) => string;
   lightPurple: (s: string) => string;
   white: (s: string) => string;
+  brightYellow: (s: string) => string;
   reset: string;
 }
 
@@ -27,6 +28,7 @@ export const colors: Colors = {
   orange: (s) => `\x1b[38;5;208m${s}\x1b[0m`,
   lightPurple: (s) => `\x1b[38;5;141m${s}\x1b[0m`,
   white: (s) => `\x1b[37m${s}\x1b[0m`,
+  brightYellow: (s) => `\x1b[93m${s}\x1b[0m`, // 亮黄色
   reset: "\x1b[0m",
 };
 

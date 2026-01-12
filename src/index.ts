@@ -356,11 +356,11 @@ cli
   .action(async (options: any) => {
     await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
-    
+
     // 构建选项对象 - 默认交互式模式
     const logOptions: any = { interactive: true };
     if (options.limit) logOptions.limit = parseInt(options.limit);
-    
+
     return log(logOptions);
   });
 
