@@ -32,14 +32,16 @@ export async function listTags(prefix?: string): Promise<void> {
     return;
   }
 
-  // 4. 如果指定了前缀，直接显示单列（最多 20 个）
+  // 5. 如果指定了前缀，直接显示单列（最多 5 个）
   if (prefix) {
-    console.log(colors.green(`以 '${prefix}' 开头的 tags:`));
-    const displayTags = tags.length > 20 ? tags.slice(-20) : tags;
-    displayTags.forEach((tag) => console.log(`  ${tag}`));
-    if (tags.length > 20) {
-      console.log(colors.yellow(`\n共 ${tags.length} 个，仅显示最新 20 个`));
+    console.log(
+      colors.green(`以 '${prefix}' 开头的 tags (共 ${tags.length} 个):`)
+    );
+    if (tags.length > 5) {
+      console.log(colors.dim("  ..."));
     }
+    const displayTags = tags.slice(-5);
+    displayTags.forEach((tag) => console.log(`  ${tag}`));
     return;
   }
 
@@ -55,14 +57,14 @@ export async function listTags(prefix?: string): Promise<void> {
     grouped.get(prefix)!.push(tag);
   });
 
-  // 6. 如果只有一个前缀，使用单列显示（最多 20 个）
+  // 7. 如果只有一个前缀，使用单列显示（最多 5 个）
   if (grouped.size === 1) {
-    console.log(colors.green("所有 tags:"));
-    const displayTags = tags.length > 20 ? tags.slice(-20) : tags;
-    displayTags.forEach((tag) => console.log(`  ${tag}`));
-    if (tags.length > 20) {
-      console.log(colors.yellow(`\n共 ${tags.length} 个，仅显示最新 20 个`));
+    console.log(colors.green(`所有 tags (共 ${tags.length} 个):`));
+    if (tags.length > 5) {
+      console.log(colors.dim("  ..."));
     }
+    const displayTags = tags.slice(-5);
+    displayTags.forEach((tag) => console.log(`  ${tag}`));
     return;
   }
 

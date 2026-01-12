@@ -265,7 +265,17 @@ export async function commit(): Promise<void> {
 
   try {
     // 提交前再次检查是否有暂存的文件
-    const finalStatus = parseGitStatus();
+    let finalStatus = parseGitStatus();
+
+    // 如果暂存区为空，但有未暂存的更改，且开启了自动暂存，则重新暂存
+    if (finalStatus.staged.length === 0 && finalStatus.unstaged.length > 0) {
+      const autoStage = config.autoStage ?? true;
+      if (autoStage) {
+        execSync("git add -A", { stdio: "pipe" });
+        finalStatus = parseGitStatus();
+      }
+    }
+
     if (finalStatus.staged.length === 0) {
       spinner.fail("没有暂存的文件可以提交");
       console.log("");
