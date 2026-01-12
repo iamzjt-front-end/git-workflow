@@ -277,9 +277,11 @@ export async function commit(): Promise<void> {
       return;
     }
 
-    // 使用 -m 参数，需要转义引号
-    const escapedMessage = message.replace(/"/g, '\\"');
-    execSync(`git commit -m "${escapedMessage}"`, { stdio: "pipe" });
+    // 处理多行消息：使用 git commit -F - 通过 stdin 传递
+    // 这样可以正确处理包含换行符的 commit message
+    execSync(`git commit -F -`, {
+      input: message,
+    });
     spinner.succeed("提交成功");
 
     // 显示提交信息
@@ -300,7 +302,7 @@ export async function commit(): Promise<void> {
     console.log(colors.yellow("你可以手动执行以下命令:"));
     console.log(colors.cyan(`  git commit -m "${message}"`));
     console.log("");
-    
+
     // 重新抛出错误，让调用者知道提交失败了
     throw error;
   }

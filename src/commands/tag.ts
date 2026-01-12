@@ -16,11 +16,15 @@ export async function listTags(prefix?: string): Promise<void> {
 
   // 2. 获取 tags 列表（按版本号升序排序，最新的在最后）
   const pattern = prefix ? `${prefix}*` : "";
-  const tags = execOutput(`git tag -l ${pattern} --sort=v:refname`)
+  const allTags = execOutput(`git tag -l ${pattern} --sort=v:refname`)
     .split("\n")
     .filter(Boolean);
 
-  // 3. 如果没有 tags，提示并返回
+  // 3. 过滤无效 tag（如 vnull、vundefined 等误操作产生的 tag）
+  // 有效 tag 必须包含数字（版本号）
+  const tags = allTags.filter((tag) => /\d/.test(tag));
+
+  // 4. 如果没有 tags，提示并返回
   if (tags.length === 0) {
     console.log(
       colors.yellow(prefix ? `没有 '${prefix}' 开头的 tag` : "没有 tag")
@@ -39,11 +43,12 @@ export async function listTags(prefix?: string): Promise<void> {
     return;
   }
 
-  // 5. 按前缀分组（提取 tag 名称中数字前的部分作为前缀）
+  // 6. 按前缀分组（提取 tag 名称中数字前的部分作为前缀）
+  // 由于已过滤无效 tag，所有 tag 都包含数字
   const grouped = new Map<string, string[]>();
   tags.forEach((tag) => {
-    // 提取前缀：去掉数字及之后的部分，如 "v0.1.0" -> "v"
-    const prefix = tag.replace(/[0-9].*/, "") || "(无前缀)";
+    // 提取数字之前的字母部分作为前缀（如 "v0.1.0" -> "v"）
+    const prefix = tag.replace(/\d.*/, "") || "(无前缀)";
     if (!grouped.has(prefix)) {
       grouped.set(prefix, []);
     }
@@ -131,11 +136,11 @@ interface TagChoice {
   value: string;
 }
 
-// 获取指定前缀的最新 tag（不依赖 shell 管道）
+// 获取指定前缀的最新有效 tag（必须包含数字）
 function getLatestTag(prefix: string): string {
   const tags = execOutput(`git tag -l "${prefix}*" --sort=-v:refname`)
     .split("\n")
-    .filter(Boolean);
+    .filter((tag) => tag && /\d/.test(tag)); // 过滤无效 tag
   return tags[0] || "";
 }
 
@@ -156,7 +161,10 @@ export async function createTag(inputPrefix?: string): Promise<void> {
   }
 
   if (!prefix) {
-    const allTags = execOutput("git tag -l").split("\n").filter(Boolean);
+    // 过滤无效 tag（如 vnull、vundefined 等误操作产生的 tag）
+    const allTags = execOutput("git tag -l")
+      .split("\n")
+      .filter((tag) => tag && /\d/.test(tag));
 
     // 仓库没有任何 tag 的情况
     if (allTags.length === 0) {
@@ -209,9 +217,9 @@ export async function createTag(inputPrefix?: string): Promise<void> {
       return;
     }
 
-    // 从现有 tag 中提取前缀
+    // 从现有 tag 中提取前缀（数字之前的字母部分）
     const prefixes = [
-      ...new Set(allTags.map((t) => t.replace(/[0-9].*/, "")).filter(Boolean)),
+      ...new Set(allTags.map((t) => t.replace(/\d.*/, "")).filter(Boolean)),
     ];
 
     if (prefixes.length === 0) {
