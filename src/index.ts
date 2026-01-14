@@ -364,11 +364,75 @@ cli
     return log(logOptions);
   });
 
-cli.command("clean", "清理缓存文件").action(async () => {
+cli.command("clean", "清理缓存和临时文件").action(async () => {
   const { clearUpdateCache } = await import("./update-notifier.js");
+  const { existsSync, unlinkSync, readdirSync } = await import("fs");
+  const { homedir, tmpdir } = await import("os");
+  const { join } = await import("path");
+  const { select } = await import("@inquirer/prompts");
+
+  let cleanedCount = 0;
+  let deletedGlobalConfig = false;
+
+  // 检查全局配置文件是否存在
+  const globalConfig = join(homedir(), ".gwrc.json");
+  const hasGlobalConfig = existsSync(globalConfig);
+
+  // 如果有全局配置文件，询问是否删除
+  if (hasGlobalConfig) {
+    const shouldDeleteConfig = await select({
+      message: "检测到全局配置文件，是否删除？",
+      choices: [
+        { name: "否，保留配置文件", value: false },
+        { name: "是，删除配置文件", value: true },
+      ],
+      theme,
+    });
+
+    if (shouldDeleteConfig) {
+      try {
+        unlinkSync(globalConfig);
+        cleanedCount++;
+        deletedGlobalConfig = true;
+      } catch {
+        // 静默失败
+      }
+    }
+  }
+
+  // 1. 清理更新缓存
   clearUpdateCache();
+  cleanedCount++;
+
+  // 2. 清理临时 commit 消息文件
+  try {
+    const tmpDir = tmpdir();
+    const files = readdirSync(tmpDir);
+    const gwTmpFiles = files.filter((f) => f.startsWith(".gw-commit-msg-"));
+
+    for (const file of gwTmpFiles) {
+      try {
+        unlinkSync(join(tmpDir, file));
+        cleanedCount++;
+      } catch {
+        // 静默失败
+      }
+    }
+  } catch {
+    // 静默失败
+  }
+
   console.log("");
-  console.log(colors.green("✔ 缓存已清理"));
+  console.log(colors.green(`✔ 已清理 ${cleanedCount} 个文件`));
+
+  if (deletedGlobalConfig) {
+    console.log("");
+    console.log(colors.yellow("⚠️  全局配置文件已删除"));
+    console.log(
+      colors.dim(`   如需重新配置，请运行: ${colors.cyan("gw init")}`)
+    );
+  }
+
   console.log("");
 });
 
