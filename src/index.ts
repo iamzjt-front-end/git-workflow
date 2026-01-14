@@ -15,7 +15,13 @@ import { select } from "@inquirer/prompts";
 import { ExitPromptError } from "@inquirer/core";
 import { checkGitRepo, theme, colors } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
-import { listTags, createTag, deleteTag, updateTag } from "./commands/tag.js";
+import {
+  listTags,
+  createTag,
+  deleteTag,
+  updateTag,
+  cleanInvalidTags,
+} from "./commands/tag.js";
 import { release } from "./commands/release.js";
 import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
@@ -119,7 +125,7 @@ async function mainMenu(): Promise<void> {
         value: "hotfix",
       },
       {
-        name: `[3] 🗑️  删除分支               ${colors.dim("gw d")}`,
+        name: `[3] 🗑️  删除分支               ${colors.dim("gw brd")}`,
         value: "delete",
       },
       {
@@ -143,15 +149,15 @@ async function mainMenu(): Promise<void> {
         value: "tags",
       },
       {
-        name: `[9] 📦 发布版本               ${colors.dim("gw r")}`,
+        name: `[9] � 发布版本               ${colors.dim("gw r")}`,
         value: "release",
       },
       {
-        name: `[a] 💾 管理 stash             ${colors.dim("gw s")}`,
+        name: `[a] � 管理 stash             ${colors.dim("gw s")}`,
         value: "stash",
       },
       {
-        name: `[b] 📊 查看日志               ${colors.dim("gw log")}`,
+        name: `[b] � 查看日志               ${colors.dim("gw log")}`,
         value: "log",
       },
       {
@@ -263,9 +269,8 @@ cli
   });
 
 cli
-  .command("delete [branch]", "删除本地/远程分支")
-  .alias("del")
-  .alias("d")
+  .command("br:del [branch]", "删除本地/远程分支")
+  .alias("brd")
   .action(async (branch?: string) => {
     await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
@@ -291,7 +296,7 @@ cli
   });
 
 cli
-  .command("tag:delete", "删除 tag")
+  .command("tag:del", "删除 tag")
   .alias("td")
   .action(async () => {
     await checkForUpdates(version, "@zjex/git-workflow");
@@ -306,6 +311,15 @@ cli
     await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return updateTag();
+  });
+
+cli
+  .command("tag:clean", "清理无效 tag")
+  .alias("tc")
+  .action(async () => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    return cleanInvalidTags();
   });
 
 cli
@@ -364,77 +378,80 @@ cli
     return log(logOptions);
   });
 
-cli.command("clean", "清理缓存和临时文件").action(async () => {
-  const { clearUpdateCache } = await import("./update-notifier.js");
-  const { existsSync, unlinkSync, readdirSync } = await import("fs");
-  const { homedir, tmpdir } = await import("os");
-  const { join } = await import("path");
-  const { select } = await import("@inquirer/prompts");
+cli
+  .command("clean", "清理缓存和临时文件")
+  .alias("cc")
+  .action(async () => {
+    const { clearUpdateCache } = await import("./update-notifier.js");
+    const { existsSync, unlinkSync, readdirSync } = await import("fs");
+    const { homedir, tmpdir } = await import("os");
+    const { join } = await import("path");
+    const { select } = await import("@inquirer/prompts");
 
-  let cleanedCount = 0;
-  let deletedGlobalConfig = false;
+    let cleanedCount = 0;
+    let deletedGlobalConfig = false;
 
-  // 检查全局配置文件是否存在
-  const globalConfig = join(homedir(), ".gwrc.json");
-  const hasGlobalConfig = existsSync(globalConfig);
+    // 检查全局配置文件是否存在
+    const globalConfig = join(homedir(), ".gwrc.json");
+    const hasGlobalConfig = existsSync(globalConfig);
 
-  // 如果有全局配置文件，询问是否删除
-  if (hasGlobalConfig) {
-    const shouldDeleteConfig = await select({
-      message: "检测到全局配置文件，是否删除？",
-      choices: [
-        { name: "否，保留配置文件", value: false },
-        { name: "是，删除配置文件", value: true },
-      ],
-      theme,
-    });
+    // 如果有全局配置文件，询问是否删除
+    if (hasGlobalConfig) {
+      const shouldDeleteConfig = await select({
+        message: "检测到全局配置文件，是否删除？",
+        choices: [
+          { name: "否，保留配置文件", value: false },
+          { name: "是，删除配置文件", value: true },
+        ],
+        theme,
+      });
 
-    if (shouldDeleteConfig) {
-      try {
-        unlinkSync(globalConfig);
-        cleanedCount++;
-        deletedGlobalConfig = true;
-      } catch {
-        // 静默失败
+      if (shouldDeleteConfig) {
+        try {
+          unlinkSync(globalConfig);
+          cleanedCount++;
+          deletedGlobalConfig = true;
+        } catch {
+          // 静默失败
+        }
       }
     }
-  }
 
-  // 1. 清理更新缓存
-  clearUpdateCache();
-  cleanedCount++;
+    // 1. 清理更新缓存
+    clearUpdateCache();
+    cleanedCount++;
 
-  // 2. 清理临时 commit 消息文件
-  try {
-    const tmpDir = tmpdir();
-    const files = readdirSync(tmpDir);
-    const gwTmpFiles = files.filter((f) => f.startsWith(".gw-commit-msg-"));
+    // 2. 清理临时 commit 消息文件
+    try {
+      const tmpDir = tmpdir();
+      const files = readdirSync(tmpDir);
+      const gwTmpFiles = files.filter((f) => f.startsWith(".gw-commit-msg-"));
 
-    for (const file of gwTmpFiles) {
-      try {
-        unlinkSync(join(tmpDir, file));
-        cleanedCount++;
-      } catch {
-        // 静默失败
+      for (const file of gwTmpFiles) {
+        try {
+          unlinkSync(join(tmpDir, file));
+          cleanedCount++;
+        } catch {
+          // 静默失败
+        }
       }
+    } catch {
+      // 静默失败
     }
-  } catch {
-    // 静默失败
-  }
 
-  console.log("");
-  console.log(colors.green(`✔ 已清理 ${cleanedCount} 个文件`));
-
-  if (deletedGlobalConfig) {
     console.log("");
-    console.log(colors.yellow("⚠️  全局配置文件已删除"));
-    console.log(
-      colors.dim(`   如需重新配置，请运行: ${colors.cyan("gw init")}`)
-    );
-  }
+    console.log(colors.green(`✔ 已清理 ${cleanedCount} 个文件`));
 
-  console.log("");
-});
+    if (deletedGlobalConfig) {
+      console.log("");
+      console.log(colors.yellow("⚠️  全局配置文件已删除"));
+      console.log(
+        colors.dim(`   如需重新配置，请运行: ${colors.cyan("gw init")}`)
+      );
+    }
+
+    console.log("");
+  });
 
 // 不使用 cac 的 version，手动处理 --version 和 --help
 cli.option("-v, --version", "显示版本号");

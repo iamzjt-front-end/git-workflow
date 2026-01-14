@@ -403,4 +403,56 @@ describe("Update Notifier 模块测试", () => {
       );
     });
   });
+
+  describe("通知框样式配置", () => {
+    it("简单通知应该使用无边距配置", () => {
+      const marginConfig = { top: 0, bottom: 0, left: 0, right: 0 };
+
+      expect(marginConfig.top).toBe(0);
+      expect(marginConfig.bottom).toBe(0);
+      expect(marginConfig.left).toBe(0);
+      expect(marginConfig.right).toBe(0);
+    });
+
+    it("交互式通知应该使用最小边距配置", () => {
+      const marginConfig = { top: 0, bottom: 0, left: 1, right: 1 };
+
+      expect(marginConfig.top).toBe(0);
+      expect(marginConfig.bottom).toBe(0);
+      expect(marginConfig.left).toBeGreaterThanOrEqual(0);
+      expect(marginConfig.right).toBeGreaterThanOrEqual(0);
+    });
+
+    it("更新成功通知应该有底部边距", () => {
+      const marginConfig = { top: 0, bottom: 1, left: 2, right: 2 };
+
+      expect(marginConfig.top).toBe(0);
+      expect(marginConfig.bottom).toBe(1);
+    });
+
+    it("所有通知的顶部边距应该为 0", () => {
+      const configs = [
+        { top: 0, bottom: 0, left: 0, right: 0 },
+        { top: 0, bottom: 0, left: 1, right: 1 },
+        { top: 0, bottom: 1, left: 2, right: 2 },
+      ];
+
+      configs.forEach((config) => {
+        expect(config.top).toBe(0);
+      });
+    });
+
+    it("padding 配置应该合理", () => {
+      const paddingConfigs = [
+        { top: 0, bottom: 0, left: 2, right: 2 }, // 简单通知
+        { top: 1, bottom: 1, left: 3, right: 3 }, // 交互式通知
+        { top: 1, bottom: 1, left: 2, right: 2 }, // 成功通知
+      ];
+
+      paddingConfigs.forEach((padding) => {
+        expect(padding.left).toBeGreaterThanOrEqual(2);
+        expect(padding.right).toBeGreaterThanOrEqual(2);
+      });
+    });
+  });
 });

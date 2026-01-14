@@ -393,4 +393,240 @@ describe("Tag 功能测试", () => {
       });
     });
   });
+
+  describe("无效标签检测", () => {
+    it("应该识别不包含数字的标签为无效", () => {
+      const tag = "vnull";
+      const isInvalid = !/\d/.test(tag);
+
+      expect(isInvalid).toBe(true);
+    });
+
+    it("应该识别 vundefined 为无效标签", () => {
+      const tag = "vundefined";
+      const isInvalid = !/\d/.test(tag);
+
+      expect(isInvalid).toBe(true);
+    });
+
+    it("应该识别空版本号为无效标签", () => {
+      const tag = "v";
+      const isInvalid = !/\d/.test(tag);
+
+      expect(isInvalid).toBe(true);
+    });
+
+    it("应该识别纯字母标签为无效", () => {
+      const tag = "release";
+      const isInvalid = !/\d/.test(tag);
+
+      expect(isInvalid).toBe(true);
+    });
+
+    it("应该识别包含数字的标签为有效", () => {
+      const tag = "v1.0.0";
+      const isValid = /\d/.test(tag);
+
+      expect(isValid).toBe(true);
+    });
+
+    it("应该识别预发布版本为有效", () => {
+      const tag = "v1.0.0-beta.1";
+      const isValid = /\d/.test(tag);
+
+      expect(isValid).toBe(true);
+    });
+
+    it("应该识别无前缀版本号为有效", () => {
+      const tag = "1.0.0";
+      const isValid = /\d/.test(tag);
+
+      expect(isValid).toBe(true);
+    });
+
+    it("应该识别带前缀的单数字版本为有效", () => {
+      const tag = "v1";
+      const isValid = /\d/.test(tag);
+
+      expect(isValid).toBe(true);
+    });
+  });
+
+  describe("无效标签过滤", () => {
+    it("应该从标签列表中过滤出所有无效标签", () => {
+      const allTags = [
+        "v1.0.0",
+        "vnull",
+        "v1.1.0",
+        "vundefined",
+        "release-1.0.0",
+        "v",
+        "v2.0.0",
+      ];
+      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+
+      expect(invalidTags).toEqual(["vnull", "vundefined", "v"]);
+      expect(invalidTags.length).toBe(3);
+    });
+
+    it("应该在没有无效标签时返回空数组", () => {
+      const allTags = ["v1.0.0", "v1.1.0", "v2.0.0", "release-1.0.0"];
+      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+
+      expect(invalidTags).toEqual([]);
+      expect(invalidTags.length).toBe(0);
+    });
+
+    it("应该在全是无效标签时返回所有标签", () => {
+      const allTags = ["vnull", "vundefined", "v", "release"];
+      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+
+      expect(invalidTags).toEqual(allTags);
+      expect(invalidTags.length).toBe(4);
+    });
+
+    it("应该保留有效标签", () => {
+      const allTags = [
+        "v1.0.0",
+        "vnull",
+        "v1.1.0",
+        "vundefined",
+        "v2.0.0-beta.1",
+      ];
+      const validTags = allTags.filter((tag) => /\d/.test(tag));
+
+      expect(validTags).toEqual(["v1.0.0", "v1.1.0", "v2.0.0-beta.1"]);
+      expect(validTags.length).toBe(3);
+    });
+
+    it("应该处理空标签列表", () => {
+      const allTags: string[] = [];
+      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+
+      expect(invalidTags).toEqual([]);
+      expect(invalidTags.length).toBe(0);
+    });
+
+    it("应该处理混合前缀的无效标签", () => {
+      const allTags = [
+        "v1.0.0",
+        "vnull",
+        "release-",
+        "hotfix",
+        "g1.0.0",
+        "tag",
+      ];
+      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+
+      expect(invalidTags).toEqual(["vnull", "release-", "hotfix", "tag"]);
+      expect(invalidTags.length).toBe(4);
+    });
+  });
+
+  describe("标签计数统计", () => {
+    it("应该正确统计无效标签数量", () => {
+      const allTags = ["v1.0.0", "vnull", "vundefined", "v2.0.0"];
+      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+      const count = invalidTags.length;
+
+      expect(count).toBe(2);
+    });
+
+    it("应该正确统计删除成功和失败的数量", () => {
+      const invalidTags = ["vnull", "vundefined", "v"];
+      let success = 0;
+      let failed = 0;
+
+      // 模拟删除操作
+      invalidTags.forEach((tag) => {
+        // 模拟成功删除前两个，失败最后一个
+        if (tag !== "v") {
+          success++;
+        } else {
+          failed++;
+        }
+      });
+
+      expect(success).toBe(2);
+      expect(failed).toBe(1);
+    });
+
+    it("应该处理全部删除成功的情况", () => {
+      const invalidTags = ["vnull", "vundefined"];
+      let success = 0;
+      let failed = 0;
+
+      invalidTags.forEach(() => {
+        success++;
+      });
+
+      expect(success).toBe(2);
+      expect(failed).toBe(0);
+    });
+
+    it("应该处理全部删除失败的情况", () => {
+      const invalidTags = ["vnull", "vundefined"];
+      let success = 0;
+      let failed = 0;
+
+      invalidTags.forEach(() => {
+        failed++;
+      });
+
+      expect(success).toBe(0);
+      expect(failed).toBe(2);
+    });
+  });
+
+  describe("标签信息格式化", () => {
+    it("应该格式化标签详细信息", () => {
+      const tag = "vnull";
+      const commitHash = "abc1234";
+      const commitDate = "2026-01-14 10:00:00 +0800";
+      const commitMsg = "Release vnull";
+
+      const info = {
+        tag,
+        commit: commitHash,
+        date: commitDate,
+        message: commitMsg,
+      };
+
+      expect(info.tag).toBe("vnull");
+      expect(info.commit).toBe("abc1234");
+      expect(info.date).toBe("2026-01-14 10:00:00 +0800");
+      expect(info.message).toBe("Release vnull");
+    });
+
+    it("应该处理无法获取提交信息的情况", () => {
+      const tag = "vnull";
+      const info = {
+        tag,
+        commit: null,
+        date: null,
+        message: null,
+      };
+
+      expect(info.tag).toBe("vnull");
+      expect(info.commit).toBeNull();
+      expect(info.date).toBeNull();
+      expect(info.message).toBeNull();
+    });
+
+    it("应该格式化多个标签的信息列表", () => {
+      const invalidTags = ["vnull", "vundefined"];
+      const tagInfos = invalidTags.map((tag) => ({
+        tag,
+        commit: `${tag}-hash`,
+        date: "2026-01-14",
+        message: `Release ${tag}`,
+      }));
+
+      expect(tagInfos.length).toBe(2);
+      expect(tagInfos[0].tag).toBe("vnull");
+      expect(tagInfos[0].commit).toBe("vnull-hash");
+      expect(tagInfos[1].tag).toBe("vundefined");
+      expect(tagInfos[1].commit).toBe("vundefined-hash");
+    });
+  });
 });

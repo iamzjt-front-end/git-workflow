@@ -624,3 +624,123 @@ export async function updateTag(): Promise<void> {
     }
   }
 }
+
+/**
+ * 清理无效标签（不包含数字的标签）
+ */
+export async function cleanInvalidTags(): Promise<void> {
+  const fetchSpinner = ora("正在获取 tags...").start();
+  exec("git fetch --tags", true);
+  fetchSpinner.stop();
+
+  divider();
+
+  // 获取所有标签
+  const allTags = execOutput("git tag -l").split("\n").filter(Boolean);
+
+  // 过滤出无效标签（不包含数字）
+  const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+
+  if (invalidTags.length === 0) {
+    console.log(colors.green("✅ 没有找到无效标签"));
+    return;
+  }
+
+  console.log(colors.yellow(`❌ 找到 ${invalidTags.length} 个无效标签：`));
+  console.log("");
+
+  // 显示每个无效标签的详细信息
+  for (const tag of invalidTags) {
+    try {
+      const commitHash = execOutput(`git rev-list -n 1 "${tag}"`).trim();
+      const commitDate = execOutput(`git log -1 --format=%ai "${tag}"`).trim();
+      const commitMsg = execOutput(`git log -1 --format=%s "${tag}"`).trim();
+
+      console.log(colors.red(`  标签: ${tag}`));
+      console.log(colors.dim(`    Commit: ${commitHash}`));
+      console.log(colors.dim(`    日期: ${commitDate}`));
+      console.log(colors.dim(`    消息: ${commitMsg}`));
+      console.log("");
+    } catch {
+      console.log(colors.red(`  标签: ${tag}`));
+      console.log(colors.dim(`    (无法获取提交信息)`));
+      console.log("");
+    }
+  }
+
+  divider();
+
+  const shouldClean = await select({
+    message: "是否删除这些无效标签？",
+    choices: [
+      { name: "是，删除所有无效标签", value: true },
+      { name: "否，取消操作", value: false },
+    ],
+    theme,
+  });
+
+  if (!shouldClean) {
+    console.log(colors.yellow("已取消"));
+    return;
+  }
+
+  divider();
+
+  // 删除本地标签
+  const localSpinner = ora("正在删除本地无效标签...").start();
+  let localSuccess = 0;
+  let localFailed = 0;
+
+  for (const tag of invalidTags) {
+    try {
+      execSync(`git tag -d "${tag}"`, { stdio: "pipe" });
+      localSuccess++;
+    } catch {
+      localFailed++;
+    }
+  }
+
+  if (localFailed === 0) {
+    localSpinner.succeed(`本地标签已删除: ${localSuccess} 个`);
+  } else {
+    localSpinner.warn(
+      `本地标签删除: 成功 ${localSuccess} 个，失败 ${localFailed} 个`
+    );
+  }
+
+  // 询问是否删除远程标签
+  const deleteRemote = await select({
+    message: "是否同时删除远程的无效标签？",
+    choices: [
+      { name: "是", value: true },
+      { name: "否", value: false },
+    ],
+    theme,
+  });
+
+  if (deleteRemote) {
+    const remoteSpinner = ora("正在删除远程无效标签...").start();
+    let remoteSuccess = 0;
+    let remoteFailed = 0;
+
+    for (const tag of invalidTags) {
+      try {
+        execSync(`git push origin --delete "${tag}"`, { stdio: "pipe" });
+        remoteSuccess++;
+      } catch {
+        remoteFailed++;
+      }
+    }
+
+    if (remoteFailed === 0) {
+      remoteSpinner.succeed(`远程标签已删除: ${remoteSuccess} 个`);
+    } else {
+      remoteSpinner.warn(
+        `远程标签删除: 成功 ${remoteSuccess} 个，失败 ${remoteFailed} 个`
+      );
+    }
+  }
+
+  console.log("");
+  console.log(colors.green("✨ 清理完成！"));
+}

@@ -181,7 +181,7 @@ async function showUpdateMessage(
   console.log(
     boxen(message, {
       padding: { top: 1, bottom: 1, left: 3, right: 3 },
-      margin: 1,
+      margin: { top: 0, bottom: 0, left: 1, right: 1 },
       borderStyle: "round",
       borderColor: "yellow",
       align: "center",
