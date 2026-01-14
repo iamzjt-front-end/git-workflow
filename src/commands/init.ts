@@ -118,6 +118,29 @@ export async function init(): Promise<void> {
 
   divider();
 
+  // 描述必填配置
+  const featureRequireDescription = await select({
+    message: "Feature 分支是否要求必填描述?",
+    choices: [
+      { name: "否", value: false },
+      { name: "是", value: true },
+    ],
+    theme,
+  });
+  config.featureRequireDescription = featureRequireDescription;
+
+  const hotfixRequireDescription = await select({
+    message: "Hotfix 分支是否要求必填描述?",
+    choices: [
+      { name: "否", value: false },
+      { name: "是", value: true },
+    ],
+    theme,
+  });
+  config.hotfixRequireDescription = hotfixRequireDescription;
+
+  divider();
+
   // Tag 配置
   const defaultTagPrefix = await input({
     message: "默认 Tag 前缀 (留空则每次选择):",
@@ -269,15 +292,16 @@ export async function init(): Promise<void> {
     const detailedDescription = await select({
       message: "是否生成详细的修改点描述?",
       choices: [
-        { 
-          name: "是（包含修改点列表，推荐）", 
+        {
+          name: "是（包含修改点列表，推荐）",
           value: true,
-          description: "如：feat(auth): 添加用户登录功能\n\n- 实现用户名密码登录接口\n- 添加登录状态验证中间件"
+          description:
+            "如：feat(auth): 添加用户登录功能\n\n- 实现用户名密码登录接口\n- 添加登录状态验证中间件",
         },
-        { 
-          name: "否（仅生成标题）", 
+        {
+          name: "否（仅生成标题）",
           value: false,
-          description: "如：feat(auth): 添加用户登录功能"
+          description: "如：feat(auth): 添加用户登录功能",
         },
       ],
       theme,
@@ -286,20 +310,20 @@ export async function init(): Promise<void> {
     const aiUseEmoji = await select({
       message: "AI 生成的 commit message 是否包含 emoji?",
       choices: [
-        { 
-          name: "是（推荐）", 
+        {
+          name: "是（推荐）",
           value: true,
-          description: "如：✨ feat(auth): 添加用户登录功能"
+          description: "如：✨ feat(auth): 添加用户登录功能",
         },
-        { 
-          name: "否", 
+        {
+          name: "否",
           value: false,
-          description: "如：feat(auth): 添加用户登录功能"
+          description: "如：feat(auth): 添加用户登录功能",
         },
-        { 
-          name: "跟随全局设置", 
+        {
+          name: "跟随全局设置",
           value: undefined,
-          description: `当前全局设置：${useEmoji ? '启用' : '禁用'} emoji`
+          description: `当前全局设置：${useEmoji ? "启用" : "禁用"} emoji`,
         },
       ],
       theme,

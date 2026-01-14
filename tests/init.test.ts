@@ -43,8 +43,6 @@ describe("Init 模块测试", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
-    
-    // Default mocks
     mockHomedir.mockReturnValue("/home/user");
     mockJoin.mockReturnValue("/home/user/.gwrc.json");
   });
@@ -56,28 +54,25 @@ describe("Init 模块测试", () => {
   describe("配置范围选择", () => {
     it("应该支持全局配置", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("global") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("global")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       expect(mockJoin).toHaveBeenCalledWith("/home/user", ".gwrc.json");
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         "/home/user/.gwrc.json",
@@ -87,28 +82,25 @@ describe("Init 模块测试", () => {
 
     it("应该支持项目配置", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         ".gwrc.json",
         expect.stringContaining('"featurePrefix": "feature"')
@@ -119,44 +111,37 @@ describe("Init 模块测试", () => {
   describe("配置文件覆盖", () => {
     it("应该处理配置文件已存在的情况", async () => {
       mockExistsSync.mockReturnValue(true);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("global") // 配置范围
-        .mockResolvedValueOnce(true) // 覆盖文件
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("global")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       expect(mockWriteFileSync).toHaveBeenCalled();
     });
 
     it("应该处理用户取消覆盖", async () => {
       mockExistsSync.mockReturnValue(true);
-      
       const { select } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("global") // 配置范围
-        .mockResolvedValueOnce(false); // 不覆盖文件
-      
+        .mockResolvedValueOnce("global")
+        .mockResolvedValueOnce(false);
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       expect(console.log).toHaveBeenCalledWith("已取消");
       expect(mockWriteFileSync).not.toHaveBeenCalled();
     });
@@ -165,31 +150,27 @@ describe("Init 模块测试", () => {
   describe("基础配置", () => {
     it("应该正确配置分支前缀", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("develop") // baseBranch
-        .mockResolvedValueOnce("feat") // featurePrefix
-        .mockResolvedValueOnce("fix") // hotfixPrefix
-        .mockResolvedValueOnce("Jira ID") // featureIdLabel
-        .mockResolvedValueOnce("Bug ID") // hotfixIdLabel
-        .mockResolvedValueOnce("v"); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("develop")
+        .mockResolvedValueOnce("feat")
+        .mockResolvedValueOnce("fix")
+        .mockResolvedValueOnce("Jira ID")
+        .mockResolvedValueOnce("Bug ID")
+        .mockResolvedValueOnce("v");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.baseBranch).toBe("develop");
       expect(config.featurePrefix).toBe("feat");
       expect(config.hotfixPrefix).toBe("fix");
@@ -200,61 +181,53 @@ describe("Init 模块测试", () => {
 
     it("应该正确配置 ID 要求", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(true) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.requireId).toBe(true);
     });
 
     it("应该正确配置自动推送选项", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("yes") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("yes")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.autoPush).toBe(true);
     });
   });
@@ -262,34 +235,32 @@ describe("Init 模块测试", () => {
   describe("AI 配置", () => {
     it("应该正确配置 GitHub Models", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(true) // enableAI
-        .mockResolvedValueOnce("github") // AI provider
-        .mockResolvedValueOnce("zh-CN"); // language
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce("github")
+        .mockResolvedValueOnce("zh-CN")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce("") // defaultTagPrefix
-        .mockResolvedValueOnce("ghp_test_token"); // GitHub token
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("ghp_test_token");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.aiCommit.enabled).toBe(true);
       expect(config.aiCommit.provider).toBe("github");
       expect(config.aiCommit.apiKey).toBe("ghp_test_token");
@@ -299,34 +270,32 @@ describe("Init 模块测试", () => {
 
     it("应该正确配置 OpenAI", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(true) // enableAI
-        .mockResolvedValueOnce("openai") // AI provider
-        .mockResolvedValueOnce("en-US"); // language
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce("openai")
+        .mockResolvedValueOnce("en-US")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce("") // defaultTagPrefix
-        .mockResolvedValueOnce("sk-test-key"); // OpenAI API key
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("sk-test-key");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.aiCommit.enabled).toBe(true);
       expect(config.aiCommit.provider).toBe("openai");
       expect(config.aiCommit.apiKey).toBe("sk-test-key");
@@ -336,33 +305,31 @@ describe("Init 模块测试", () => {
 
     it("应该正确配置 Ollama", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(true) // enableAI
-        .mockResolvedValueOnce("ollama") // AI provider
-        .mockResolvedValueOnce("zh-CN"); // language
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce("ollama")
+        .mockResolvedValueOnce("zh-CN")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.aiCommit.enabled).toBe(true);
       expect(config.aiCommit.provider).toBe("ollama");
       expect(config.aiCommit.apiKey).toBeUndefined();
@@ -372,31 +339,27 @@ describe("Init 模块测试", () => {
 
     it("应该正确配置禁用 AI", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.aiCommit.enabled).toBe(false);
     });
   });
@@ -404,41 +367,36 @@ describe("Init 模块测试", () => {
   describe("配置验证", () => {
     it("应该验证 GitHub Token 不为空", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(true) // enableAI
-        .mockResolvedValueOnce("github") // AI provider
-        .mockResolvedValueOnce("zh-CN"); // language
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce("github")
+        .mockResolvedValueOnce("zh-CN")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce("") // defaultTagPrefix
-        .mockResolvedValueOnce("ghp_valid_token"); // GitHub token
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("ghp_valid_token");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
-      // 验证 input 被调用时包含验证函数
       const inputCalls = vi.mocked(input).mock.calls;
-      const tokenInputCall = inputCalls.find(call => 
+      const tokenInputCall = inputCalls.find((call) =>
         call[0].message?.includes("GitHub Token")
       );
-      
       expect(tokenInputCall).toBeDefined();
       expect(tokenInputCall![0].validate).toBeDefined();
-      
-      // 测试验证函数
       const validate = tokenInputCall![0].validate!;
       expect(validate("")).toBe("GitHub Token 不能为空");
       expect(validate("valid-token")).toBe(true);
@@ -446,41 +404,36 @@ describe("Init 模块测试", () => {
 
     it("应该验证 OpenAI API Key 不为空", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(true) // enableAI
-        .mockResolvedValueOnce("openai") // AI provider
-        .mockResolvedValueOnce("en-US"); // language
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce("openai")
+        .mockResolvedValueOnce("en-US")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce("") // defaultTagPrefix
-        .mockResolvedValueOnce("sk-valid-key"); // OpenAI API key
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("sk-valid-key");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
-      // 验证 input 被调用时包含验证函数
       const inputCalls = vi.mocked(input).mock.calls;
-      const keyInputCall = inputCalls.find(call => 
+      const keyInputCall = inputCalls.find((call) =>
         call[0].message?.includes("OpenAI API Key")
       );
-      
       expect(keyInputCall).toBeDefined();
       expect(keyInputCall![0].validate).toBeDefined();
-      
-      // 测试验证函数
       const validate = keyInputCall![0].validate!;
       expect(validate("")).toBe("API Key 不能为空");
       expect(validate("valid-key")).toBe(true);
@@ -490,31 +443,27 @@ describe("Init 模块测试", () => {
   describe("配置输出", () => {
     it("应该包含默认的 commit emojis", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("project") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("project")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
-      
       expect(config.commitEmojis).toBeDefined();
       expect(config.commitEmojis.feat).toBe("✨");
       expect(config.commitEmojis.fix).toBe("🐛");
@@ -523,28 +472,25 @@ describe("Init 模块测试", () => {
 
     it("应该显示成功消息", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("global") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("global")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining("✓ 配置已保存到 全局配置文件")
       );
@@ -552,28 +498,25 @@ describe("Init 模块测试", () => {
 
     it("应该显示全局配置的提示信息", async () => {
       mockExistsSync.mockReturnValue(false);
-      
       const { select, input } = await import("@inquirer/prompts");
       vi.mocked(select)
-        .mockResolvedValueOnce("global") // 配置范围
-        .mockResolvedValueOnce(false) // requireId
-        .mockResolvedValueOnce("ask") // autoPush
-        .mockResolvedValueOnce(true) // autoStage
-        .mockResolvedValueOnce(true) // useEmoji
-        .mockResolvedValueOnce(false); // enableAI
-      
+        .mockResolvedValueOnce("global")
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce("ask")
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       vi.mocked(input)
-        .mockResolvedValueOnce("") // baseBranch
-        .mockResolvedValueOnce("feature") // featurePrefix
-        .mockResolvedValueOnce("hotfix") // hotfixPrefix
-        .mockResolvedValueOnce("Story ID") // featureIdLabel
-        .mockResolvedValueOnce("Issue ID") // hotfixIdLabel
-        .mockResolvedValueOnce(""); // defaultTagPrefix
-      
+        .mockResolvedValueOnce("")
+        .mockResolvedValueOnce("feature")
+        .mockResolvedValueOnce("hotfix")
+        .mockResolvedValueOnce("Story ID")
+        .mockResolvedValueOnce("Issue ID")
+        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
-      
       await init();
-      
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining("全局配置对所有项目生效")
       );

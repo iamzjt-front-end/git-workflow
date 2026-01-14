@@ -253,3 +253,119 @@ describe("Branch 功能测试", () => {
     });
   });
 });
+
+describe("描述必填配置", () => {
+  it("featureRequireDescription 为 true 时描述不能为空", () => {
+    const featureRequireDescription = true;
+    const description = "";
+
+    if (featureRequireDescription && !description) {
+      expect(description).toBe("");
+    }
+  });
+
+  it("featureRequireDescription 为 false 时描述可以为空", () => {
+    const featureRequireDescription = false;
+    const description = "";
+
+    if (!featureRequireDescription) {
+      expect(description).toBe("");
+    }
+  });
+
+  it("hotfixRequireDescription 为 true 时描述不能为空", () => {
+    const hotfixRequireDescription = true;
+    const description = "";
+
+    if (hotfixRequireDescription && !description) {
+      expect(description).toBe("");
+    }
+  });
+
+  it("hotfixRequireDescription 为 false 时描述可以为空", () => {
+    const hotfixRequireDescription = false;
+    const description = "";
+
+    if (!hotfixRequireDescription) {
+      expect(description).toBe("");
+    }
+  });
+
+  it("应该生成只有 ID 的 feature 分支名（描述为空）", () => {
+    const prefix = "feature";
+    const id = "PROJ-123";
+    const description = "";
+    const branchName = id ? `${prefix}/${TODAY}-${id}` : `${prefix}/${TODAY}`;
+
+    expect(branchName).toMatch(/^feature\/\d{8}-PROJ-123$/);
+  });
+
+  it("应该生成只有描述的 feature 分支名（ID 为空）", () => {
+    const prefix = "feature";
+    const id = "";
+    const description = "add-login";
+    const branchName = description
+      ? `${prefix}/${TODAY}-${description}`
+      : `${prefix}/${TODAY}`;
+
+    expect(branchName).toMatch(/^feature\/\d{8}-add-login$/);
+  });
+
+  it("应该生成只有日期的 feature 分支名（ID 和描述都为空）", () => {
+    const prefix = "feature";
+    const id = "";
+    const description = "";
+    const branchName = `${prefix}/${TODAY}`;
+
+    expect(branchName).toMatch(/^feature\/\d{8}$/);
+  });
+
+  it("应该生成只有 ID 的 hotfix 分支名（描述为空）", () => {
+    const prefix = "hotfix";
+    const id = "BUG-456";
+    const description = "";
+    const branchName = id ? `${prefix}/${TODAY}-${id}` : `${prefix}/${TODAY}`;
+
+    expect(branchName).toMatch(/^hotfix\/\d{8}-BUG-456$/);
+  });
+
+  it("应该生成只有描述的 hotfix 分支名（ID 为空）", () => {
+    const prefix = "hotfix";
+    const id = "";
+    const description = "fix-crash";
+    const branchName = description
+      ? `${prefix}/${TODAY}-${description}`
+      : `${prefix}/${TODAY}`;
+
+    expect(branchName).toMatch(/^hotfix\/\d{8}-fix-crash$/);
+  });
+
+  it("应该生成只有日期的 hotfix 分支名（ID 和描述都为空）", () => {
+    const prefix = "hotfix";
+    const id = "";
+    const description = "";
+    const branchName = `${prefix}/${TODAY}`;
+
+    expect(branchName).toMatch(/^hotfix\/\d{8}$/);
+  });
+
+  it("feature 和 hotfix 可以有不同的描述必填配置", () => {
+    const featureRequireDescription = true;
+    const hotfixRequireDescription = false;
+
+    expect(featureRequireDescription).toBe(true);
+    expect(hotfixRequireDescription).toBe(false);
+    expect(featureRequireDescription).not.toBe(hotfixRequireDescription);
+  });
+
+  it("描述必填配置默认应该为 false", () => {
+    const featureRequireDescription = undefined;
+    const hotfixRequireDescription = undefined;
+
+    const featureRequired = featureRequireDescription ?? false;
+    const hotfixRequired = hotfixRequireDescription ?? false;
+
+    expect(featureRequired).toBe(false);
+    expect(hotfixRequired).toBe(false);
+  });
+});

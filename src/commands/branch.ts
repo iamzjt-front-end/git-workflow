@@ -32,15 +32,32 @@ export async function getBranchName(type: BranchType): Promise<string | null> {
     return null;
   }
 
-  const description = await input({ message: "请输入描述:", theme });
-  if (!description) {
+  // 描述是否必填，默认非必填
+  const requireDescription =
+    type === "feature"
+      ? config.featureRequireDescription ?? false
+      : config.hotfixRequireDescription ?? false;
+  const descMessage = requireDescription
+    ? "请输入描述:"
+    : "请输入描述 (可跳过):";
+
+  const description = await input({ message: descMessage, theme });
+
+  if (requireDescription && !description) {
     console.log(colors.red("描述不能为空"));
     return null;
   }
 
-  return id
-    ? `${branchPrefix}/${TODAY}-${id}-${description}`
-    : `${branchPrefix}/${TODAY}-${description}`;
+  // 构建分支名
+  if (id && description) {
+    return `${branchPrefix}/${TODAY}-${id}-${description}`;
+  } else if (id) {
+    return `${branchPrefix}/${TODAY}-${id}`;
+  } else if (description) {
+    return `${branchPrefix}/${TODAY}-${description}`;
+  } else {
+    return `${branchPrefix}/${TODAY}`;
+  }
 }
 
 export async function createBranch(

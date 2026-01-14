@@ -12,6 +12,10 @@ export interface GwConfig {
   hotfixPrefix: string;
   // 是否要求必填 ID，默认 false
   requireId: boolean;
+  // feature 分支是否要求必填描述，默认 false
+  featureRequireDescription?: boolean;
+  // hotfix 分支是否要求必填描述，默认 false
+  hotfixRequireDescription?: boolean;
   // ID 标签名称
   featureIdLabel: string;
   hotfixIdLabel: string;
