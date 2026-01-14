@@ -151,11 +151,10 @@ function showSimpleNotification(current: string, latest: string): void {
     "gw update"
   )} ${colors.dim("更新")}`;
 
-  console.log("");
   console.log(
     boxen(message, {
       padding: { top: 0, bottom: 0, left: 2, right: 2 },
-      margin: { top: 0, bottom: 1, left: 0, right: 0 },
+      margin: { top: 0, bottom: 0, left: 0, right: 0 },
       borderStyle: "round",
       borderColor: "yellow",
       align: "center",
