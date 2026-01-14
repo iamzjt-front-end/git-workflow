@@ -1,4 +1,7 @@
 import { execSync } from "child_process";
+import { writeFileSync, unlinkSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 import { select, input, checkbox } from "@inquirer/prompts";
 import ora from "ora";
 import { colors, theme, execOutput, divider } from "../utils.js";
@@ -102,58 +105,52 @@ function formatFileStatus(status: string): string {
  */
 export async function commit(): Promise<void> {
   const config = getConfig();
+  const autoStage = config.autoStage ?? true;
+
+  // ========== 步骤 1: 自动暂存（如果启用）==========
+  if (autoStage) {
+    execSync("git add -A", { stdio: "pipe" });
+  }
+
+  // 获取当前状态
   let { staged, unstaged } = parseGitStatus();
 
-  // ========== 步骤 1: 处理未暂存的文件 ==========
-  if (unstaged.length > 0) {
-    const autoStage = config.autoStage ?? true;
-
-    if (autoStage) {
-      // 自动暂存所有文件
-      execSync("git add -A", { stdio: "pipe" });
-      console.log(colors.green("✔ 已自动暂存所有更改"));
-      divider();
-      // 重新获取状态
-      const newStatus = parseGitStatus();
-      staged = newStatus.staged;
-      unstaged = newStatus.unstaged;
-    } else if (staged.length === 0) {
-      // 没有暂存的文件，且不自动暂存，让用户选择
-      console.log(colors.yellow("没有暂存的更改"));
-      divider();
-      console.log("未暂存的文件:");
-      for (const { status, file } of unstaged) {
-        console.log(`  ${formatFileStatus(status)} ${file}`);
-      }
-      divider();
-
-      // 让用户选择要暂存的文件
-      const filesToStage = await checkbox({
-        message: "选择要暂存的文件:",
-        choices: unstaged.map(({ status, file }) => ({
-          name: `${formatFileStatus(status)} ${file}`,
-          value: file,
-          checked: true,
-        })),
-        theme,
-      });
-
-      if (filesToStage.length === 0) {
-        console.log(colors.yellow("没有选择任何文件，已取消"));
-        return;
-      }
-
-      // 暂存选中的文件
-      for (const file of filesToStage) {
-        execSync(`git add "${file}"`, { stdio: "pipe" });
-      }
-      console.log(colors.green(`✔ 已暂存 ${filesToStage.length} 个文件`));
-      divider();
-
-      // 重新获取状态
-      const newStatus = parseGitStatus();
-      staged = newStatus.staged;
+  // ========== 步骤 2: 如果没有暂存文件，让用户选择 ==========
+  if (staged.length === 0 && unstaged.length > 0 && !autoStage) {
+    console.log(colors.yellow("没有暂存的更改"));
+    divider();
+    console.log("未暂存的文件:");
+    for (const { status, file } of unstaged) {
+      console.log(`  ${formatFileStatus(status)} ${file}`);
     }
+    divider();
+
+    // 让用户选择要暂存的文件
+    const filesToStage = await checkbox({
+      message: "选择要暂存的文件:",
+      choices: unstaged.map(({ status, file }) => ({
+        name: `${formatFileStatus(status)} ${file}`,
+        value: file,
+        checked: true,
+      })),
+      theme,
+    });
+
+    if (filesToStage.length === 0) {
+      console.log(colors.yellow("没有选择任何文件，已取消"));
+      return;
+    }
+
+    // 暂存选中的文件
+    for (const file of filesToStage) {
+      execSync(`git add "${file}"`, { stdio: "pipe" });
+    }
+    console.log(colors.green(`✔ 已暂存 ${filesToStage.length} 个文件`));
+    divider();
+
+    // 重新获取状态
+    const newStatus = parseGitStatus();
+    staged = newStatus.staged;
   }
 
   // ========== 步骤 2: 检查是否有文件可提交 ==========
@@ -264,18 +261,13 @@ export async function commit(): Promise<void> {
   const spinner = ora("正在提交...").start();
 
   try {
-    // 提交前再次检查是否有暂存的文件
-    let finalStatus = parseGitStatus();
-
-    // 如果暂存区为空，但有未暂存的更改，且开启了自动暂存，则重新暂存
-    if (finalStatus.staged.length === 0 && finalStatus.unstaged.length > 0) {
-      const autoStage = config.autoStage ?? true;
-      if (autoStage) {
-        execSync("git add -A", { stdio: "pipe" });
-        finalStatus = parseGitStatus();
-      }
+    // 提交前再次暂存所有更改（确保不会遗漏）
+    if (autoStage) {
+      execSync("git add -A", { stdio: "pipe" });
     }
 
+    // 检查是否有暂存的文件
+    const finalStatus = parseGitStatus();
     if (finalStatus.staged.length === 0) {
       spinner.fail("没有暂存的文件可以提交");
       console.log("");
@@ -287,11 +279,21 @@ export async function commit(): Promise<void> {
       return;
     }
 
-    // 处理多行消息：使用 git commit -F - 通过 stdin 传递
-    // 这样可以正确处理包含换行符的 commit message
-    execSync(`git commit -F -`, {
-      input: message,
-    });
+    // 处理多行消息：使用临时文件传递 commit message
+    const tmpFile = join(tmpdir(), `.gw-commit-msg-${Date.now()}`);
+    try {
+      writeFileSync(tmpFile, message, "utf-8");
+      execSync(`git commit -F "${tmpFile}"`, {
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } finally {
+      // 清理临时文件
+      try {
+        unlinkSync(tmpFile);
+      } catch {
+        // 忽略删除失败
+      }
+    }
     spinner.succeed("提交成功");
 
     // 显示提交信息
