@@ -1,6 +1,7 @@
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import { select, input } from "@inquirer/prompts";
 import ora from "ora";
+import boxen from "boxen";
 import {
   colors,
   theme,
@@ -222,17 +223,185 @@ function applyStash(index: number, pop: boolean): void {
 
 async function showDiff(index: number): Promise<void> {
   try {
-    execSync(`git stash show -p --color=always stash@{${index}}`, {
-      stdio: "inherit",
-    });
-    console.log();
+    // 获取差异内容（不使用颜色，我们自己格式化）
+    const diffOutput = execOutput(
+      `git stash show -p --no-color stash@{${index}}`
+    );
+
+    if (!diffOutput) {
+      console.log(colors.yellow("没有差异内容"));
+      await input({
+        message: colors.dim("按 Enter 返回菜单..."),
+        theme,
+      });
+      return;
+    }
+
+    // 获取统计信息
+    const statsOutput = execOutput(`git stash show --stat stash@{${index}}`);
+
+    // 解析差异内容，按文件分组
+    const files = parseDiffByFile(diffOutput);
+
+    // 构建完整输出
+    let fullOutput = "";
+
+    // 添加统计信息
+    if (statsOutput) {
+      const statsBox = boxen(statsOutput, {
+        padding: { top: 0, bottom: 0, left: 1, right: 1 },
+        margin: { top: 0, bottom: 1, left: 0, right: 0 },
+        borderStyle: "double",
+        borderColor: "yellow",
+        title: `📊 Stash #${index} 统计`,
+        titleAlignment: "center",
+      });
+      fullOutput += statsBox + "\n";
+    }
+
+    // 为每个文件创建边框
+    for (const file of files) {
+      const fileContent = formatFileDiff(file);
+      const fileBox = boxen(fileContent, {
+        padding: { top: 0, bottom: 0, left: 1, right: 1 },
+        margin: { top: 0, bottom: 1, left: 0, right: 0 },
+        borderStyle: "round",
+        borderColor: "cyan",
+        title: `📄 ${file.path}`,
+        titleAlignment: "left",
+      });
+      fullOutput += fileBox + "\n";
+    }
+
+    // 使用 less 分页器显示，等待用户退出
+    await startPager(fullOutput);
+  } catch (error) {
+    console.log(colors.red("无法显示差异"));
     await input({
       message: colors.dim("按 Enter 返回菜单..."),
       theme,
     });
-  } catch {
-    console.log(colors.red("无法显示差异"));
   }
+}
+
+/**
+ * 解析差异内容，按文件分组
+ */
+interface FileDiff {
+  path: string;
+  lines: string[];
+}
+
+function parseDiffByFile(diffOutput: string): FileDiff[] {
+  const files: FileDiff[] = [];
+  const lines = diffOutput.split("\n");
+  let currentFile: FileDiff | null = null;
+
+  for (const line of lines) {
+    // 检测文件头
+    if (line.startsWith("diff --git")) {
+      // 保存上一个文件
+      if (currentFile && currentFile.lines.length > 0) {
+        files.push(currentFile);
+      }
+
+      // 提取文件路径
+      const match = line.match(/diff --git a\/(.*?) b\/(.*?)$/);
+      const path = match ? match[2] : "unknown";
+
+      currentFile = { path, lines: [] };
+    } else if (currentFile) {
+      // 跳过 index 和 --- +++ 行
+      if (
+        line.startsWith("index ") ||
+        line.startsWith("--- ") ||
+        line.startsWith("+++ ")
+      ) {
+        continue;
+      }
+
+      currentFile.lines.push(line);
+    }
+  }
+
+  // 保存最后一个文件
+  if (currentFile && currentFile.lines.length > 0) {
+    files.push(currentFile);
+  }
+
+  return files;
+}
+
+/**
+ * 格式化文件差异内容
+ */
+function formatFileDiff(file: FileDiff): string {
+  const formattedLines: string[] = [];
+
+  for (const line of file.lines) {
+    if (line.startsWith("@@")) {
+      // 位置信息 - 使用蓝色
+      formattedLines.push(colors.blue(line));
+    } else if (line.startsWith("+")) {
+      // 新增行 - 使用绿色
+      formattedLines.push(colors.green(line));
+    } else if (line.startsWith("-")) {
+      // 删除行 - 使用红色
+      formattedLines.push(colors.red(line));
+    } else {
+      // 上下文行 - 使用灰色
+      formattedLines.push(colors.dim(line));
+    }
+  }
+
+  return formattedLines.join("\n");
+}
+
+/**
+ * 启动分页器显示内容
+ */
+function startPager(content: string): Promise<void> {
+  return new Promise((resolve) => {
+    const pager = process.env.PAGER || "less";
+
+    try {
+      // -R: 支持ANSI颜色代码
+      // -S: 不换行长行
+      // -F: 如果内容少于一屏则直接退出
+      // -X: 不清屏
+      // -i: 忽略大小写搜索
+      const pagerProcess = spawn(pager, ["-R", "-S", "-F", "-X", "-i"], {
+        stdio: ["pipe", "inherit", "inherit"],
+        env: { ...process.env, LESS: "-R -S -F -X -i" },
+      });
+
+      // 处理 stdin 的 EPIPE 错误（当 less 提前退出时）
+      pagerProcess.stdin.on("error", (err: NodeJS.ErrnoException) => {
+        if (err.code !== "EPIPE") {
+          console.error(err);
+        }
+      });
+
+      // 将内容写入分页器
+      pagerProcess.stdin.write(content);
+      pagerProcess.stdin.end();
+
+      // 等待分页器退出后返回菜单
+      pagerProcess.on("exit", () => {
+        resolve();
+      });
+
+      // 处理错误
+      pagerProcess.on("error", () => {
+        console.log(content);
+        resolve();
+      });
+    } catch (error) {
+      // 如果出错，直接输出内容
+      console.log(content);
+      resolve();
+    }
+  });
 }
 
 async function createBranchFromStash(index: number): Promise<void> {

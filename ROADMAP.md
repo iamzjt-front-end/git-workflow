@@ -24,7 +24,7 @@
 - [ ] `gw review --staged` - 审查暂存区的更改
   - 提交前快速检查代码质量
   - 发现潜在问题，避免低质量提交
-- [ ] `gw review HEAD~3..HEAD` - 审查指定范围的提交
+- [ ] `gw review xxx` - 审查指定 commit hash 的提交
 
   - 支持 Git 提交范围语法
   - 批量审查多个提交的变更
