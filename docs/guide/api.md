@@ -603,5 +603,5 @@ async function callCustomAI(diff: string, config: AIConfig): Promise<string> {
 
 - [开发指南](./development.md)
 - [测试指南](./testing.md)
-- [代码文档](../../CODE_DOCUMENTATION.md)
+- [代码文档](https://github.com/iamzjt-front-end/git-workflow/blob/main/CODE_DOCUMENTATION.md)
 - [TypeScript 文档](https://www.typescriptlang.org/docs/)

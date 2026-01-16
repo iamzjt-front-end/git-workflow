@@ -435,8 +435,8 @@ it.skip("暂时跳过这个测试", () => {
 ## 相关资源
 
 - [Vitest 文档](https://vitest.dev/)
-- [测试覆盖率报告](../../TEST_COVERAGE_SUMMARY.md)
-- [测试说明](../../TESTING.md)
+- [测试覆盖率报告](https://github.com/iamzjt-front-end/git-workflow/blob/main/TEST_COVERAGE_SUMMARY.md)
+- [测试说明](https://github.com/iamzjt-front-end/git-workflow/blob/main/TESTING.md)
 
 ## 贡献测试
 

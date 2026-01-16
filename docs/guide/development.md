@@ -289,7 +289,7 @@ npm publish
 
 ## 获取帮助
 
-- 查看 [CODE_DOCUMENTATION.md](../../CODE_DOCUMENTATION.md) 了解代码架构
-- 查看 [TESTING.md](../../TESTING.md) 了解测试策略
+- 查看 [CODE_DOCUMENTATION.md](https://github.com/iamzjt-front-end/git-workflow/blob/main/CODE_DOCUMENTATION.md) 了解代码架构
+- 查看 [TESTING.md](https://github.com/iamzjt-front-end/git-workflow/blob/main/TESTING.md) 了解测试策略
 - 提交 [Issue](https://github.com/iamzjt-front-end/git-workflow/issues) 报告问题
 - 加入讨论 [Discussions](https://github.com/iamzjt-front-end/git-workflow/discussions)

@@ -90,16 +90,6 @@ export default defineConfig({
           ],
         },
       ],
-      "/api/": [
-        {
-          text: "API 参考",
-          items: [
-            { text: "CLI API", link: "/api/cli" },
-            { text: "配置 API", link: "/api/config" },
-            { text: "工具函数", link: "/api/utils" },
-          ],
-        },
-      ],
     },
 
     // 社交链接

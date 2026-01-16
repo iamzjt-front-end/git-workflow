@@ -438,4 +438,4 @@ async function fetchData(): Promise<Data> {
 
 ## 许可证
 
-通过贡献代码，你同意你的贡献将在 [MIT License](../../LICENSE) 下发布。
+通过贡献代码，你同意你的贡献将在 [MIT License](https://github.com/iamzjt-front-end/git-workflow/blob/main/LICENSE) 下发布。
