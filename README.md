@@ -49,26 +49,31 @@
 ## ✨ 核心特性
 
 ### 🤖 AI 智能提交
+
 - 使用 AI 自动分析代码变更生成 commit message（2-3 秒完成）
 - 支持 GitHub Models（免费）、OpenAI、Claude、Ollama 等多种提供商
 - 遵循 Conventional Commits + Gitmoji 规范
 
 ### 🎯 规范分支管理
+
 - 自动生成带日期的规范分支名（`feature/20260109-PROJ-123-add-login`）
 - 智能检测基础分支（main/master），支持自定义
 - 一键删除本地+远程分支，按最近使用排序
 
 ### 🏷️ 智能版本管理
+
 - 自动识别当前版本，交互式选择下一版本
 - 支持 semver + 预发布版本（alpha/beta/rc）
 - 自动检测 tag 前缀，支持多种命名规范
 
 ### 💾 可视化 Stash 管理
+
 - 清晰的交互式界面，告别难读的 `git stash list`
 - 支持预览、应用、创建分支等操作
 - 智能处理未跟踪文件
 
 ### ⚙️ 灵活配置
+
 - 支持全局配置（一次配置，所有项目生效）
 - 支持项目级配置（团队统一规范）
 - 零配置开箱即用，交互式菜单引导操作
@@ -194,7 +199,7 @@ gw t
 - 🌿 **[分支管理](https://iamzjt-front-end.github.io/git-workflow/guide/branch-management)** - 分支命名规范和管理技巧
 - 🏷️ **[Tag 管理](https://iamzjt-front-end.github.io/git-workflow/guide/tag-management)** - 版本标签管理和语义化版本
 - 💾 **[Stash 管理](https://iamzjt-front-end.github.io/git-workflow/guide/stash-management)** - 可视化 stash 操作指南
-- 👥 **[团队协作](https://iamzjt-front-end.github.io/git-workflow/guide/team-collaboration)** - 团队配置和最佳实践
+- � **[团队协作](https://iamzjt-front-end.github.io/git-workflow/guide/team-collaboration)** - 团队配置和最佳实践
 
 ## 🛠️ 开发与贡献
 
@@ -202,7 +207,7 @@ gw t
 
 - 🔧 **[开发指南](https://iamzjt-front-end.github.io/git-workflow/guide/development)** - 本地开发环境搭建
 - 🧪 **[测试指南](https://iamzjt-front-end.github.io/git-workflow/guide/testing)** - 测试框架和覆盖率
-- 📋 **[API 文档](https://iamzjt-front-end.github.io/git-workflow/api/)** - 内部 API 参考
+- 📋 **[API 文档](https://iamzjt-front-end.github.io/git-workflow/guide/api)** - 内部 API 参考
 - 🤝 **[贡献指南](https://iamzjt-front-end.github.io/git-workflow/guide/contributing)** - 如何参与贡献
 
 ### 快速开发
