@@ -1,5 +1,20 @@
 ﻿# Changelog
 
+## [v0.4.3](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.2...v0.4.3) (2026-01-19)
+
+### ✨ Features
+
+- 添加修改提交信息和时间的命令及文档 ([a7fb0a0](https://github.com/iamzjt-front-end/git-workflow/commit/a7fb0a0))
+
+### 📖 Documentation
+
+- 📝 docs: 自动更新测试数量徽章 [skip ci] ([00d758c](https://github.com/iamzjt-front-end/git-workflow/commit/00d758c))
+
+### 🔧 Chore
+
+- 🔖 chore(release): 发布 v0.4.3 ([35e4985](https://github.com/iamzjt-front-end/git-workflow/commit/35e4985))
+
+
 ## [v0.4.2](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.1...v0.4.2) (2026-01-19)
 
 ### 📖 Documentation
