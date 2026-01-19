@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## [v0.4.4](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.3...v0.4.4) (2026-01-19)
+
+### ✨ Features
+
+- 优化分支创建和删除功能的用户体验 ([88dec43](https://github.com/iamzjt-front-end/git-workflow/commit/88dec43))
+
+### 🔧 Chore
+
+- 🔖 chore(release): 发布 v0.4.4 ([d673bfb](https://github.com/iamzjt-front-end/git-workflow/commit/d673bfb))
+
+
 ## [v0.4.3](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.2...v0.4.3) (2026-01-19)
 
 ### ✨ Features
