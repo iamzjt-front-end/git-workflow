@@ -96,8 +96,25 @@ describe("amend-date command", () => {
   describe("日期解析", () => {
     const parseDate = (input: string): Date | null => {
       const trimmed = input.trim();
-      const dateMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
+      // 尝试匹配完整格式: YYYY-MM-DD HH:mm:ss
+      const fullMatch = trimmed.match(
+        /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/,
+      );
+      if (fullMatch) {
+        const [, year, month, day, hours, minutes, seconds] = fullMatch;
+        return new Date(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day),
+          parseInt(hours),
+          parseInt(minutes),
+          parseInt(seconds),
+        );
+      }
+
+      // 尝试匹配简化格式: YYYY-MM-DD (默认 00:00:00)
+      const dateMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
       if (dateMatch) {
         const [, year, month, day] = dateMatch;
         return new Date(
@@ -131,6 +148,33 @@ describe("amend-date command", () => {
       expect(date?.getDate()).toBe(5);
     });
 
+    it("should parse full datetime format", () => {
+      const date = parseDate("2026-01-19 14:30:45");
+      expect(date).toBeTruthy();
+      expect(date?.getFullYear()).toBe(2026);
+      expect(date?.getMonth()).toBe(0);
+      expect(date?.getDate()).toBe(19);
+      expect(date?.getHours()).toBe(14);
+      expect(date?.getMinutes()).toBe(30);
+      expect(date?.getSeconds()).toBe(45);
+    });
+
+    it("should parse midnight time", () => {
+      const date = parseDate("2026-01-19 00:00:00");
+      expect(date).toBeTruthy();
+      expect(date?.getHours()).toBe(0);
+      expect(date?.getMinutes()).toBe(0);
+      expect(date?.getSeconds()).toBe(0);
+    });
+
+    it("should parse end of day time", () => {
+      const date = parseDate("2026-01-19 23:59:59");
+      expect(date).toBeTruthy();
+      expect(date?.getHours()).toBe(23);
+      expect(date?.getMinutes()).toBe(59);
+      expect(date?.getSeconds()).toBe(59);
+    });
+
     it("should return null for invalid format", () => {
       expect(parseDate("invalid")).toBeNull();
       expect(parseDate("2026-1-19")).toBeNull(); // 缺少前导零
@@ -138,9 +182,10 @@ describe("amend-date command", () => {
       expect(parseDate("19-01-2026")).toBeNull(); // 错误的顺序
     });
 
-    it("should return null for date with time", () => {
-      expect(parseDate("2026-01-19 14:30:00")).toBeNull();
-      expect(parseDate("2026-01-19 14:30")).toBeNull();
+    it("should return null for incomplete datetime", () => {
+      expect(parseDate("2026-01-19 14:30")).toBeNull(); // 缺少秒
+      expect(parseDate("2026-01-19 14")).toBeNull(); // 只有小时
+      expect(parseDate("2026-01-19 14:30:45:00")).toBeNull(); // 多余部分
     });
 
     it("should handle edge cases", () => {
@@ -148,6 +193,16 @@ describe("amend-date command", () => {
       expect(parseDate("   ")).toBeNull();
       expect(parseDate("2026-13-01")).not.toBeNull(); // 月份超出范围，但格式正确
       expect(parseDate("2026-00-01")).not.toBeNull(); // 月份为0，但格式正确
+    });
+
+    it("should handle whitespace", () => {
+      const date1 = parseDate("  2026-01-19  ");
+      expect(date1).toBeTruthy();
+      expect(date1?.getFullYear()).toBe(2026);
+
+      const date2 = parseDate("  2026-01-19 14:30:45  ");
+      expect(date2).toBeTruthy();
+      expect(date2?.getHours()).toBe(14);
     });
   });
 

@@ -19,14 +19,33 @@ function formatGitDate(date: Date): string {
 
 /**
  * 解析用户输入的日期
- * 支持格式：YYYY-MM-DD (默认 00:00:00)
+ * 支持格式：
+ * - YYYY-MM-DD (默认 00:00:00)
+ * - YYYY-MM-DD HH:mm:ss
  * @param input 用户输入
  * @returns Date 对象或 null
  */
 function parseDate(input: string): Date | null {
   const trimmed = input.trim();
-  const dateMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
+  // 尝试匹配完整格式: YYYY-MM-DD HH:mm:ss
+  const fullMatch = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/,
+  );
+  if (fullMatch) {
+    const [, year, month, day, hours, minutes, seconds] = fullMatch;
+    return new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hours),
+      parseInt(minutes),
+      parseInt(seconds),
+    );
+  }
+
+  // 尝试匹配简化格式: YYYY-MM-DD (默认 00:00:00)
+  const dateMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (dateMatch) {
     const [, year, month, day] = dateMatch;
     return new Date(
@@ -120,7 +139,6 @@ export async function amendDate(commitHash?: string): Promise<void> {
         value: c,
         description: c.date,
       })),
-      pageSize: 15,
       theme,
     });
   }
@@ -133,7 +151,9 @@ export async function amendDate(commitHash?: string): Promise<void> {
   divider();
 
   // ========== 步骤 2: 输入新日期 ==========
-  console.log(colors.dim("输入日期格式: YYYY-MM-DD (如: 2026-01-19)"));
+  console.log(colors.dim("支持格式:"));
+  console.log(colors.dim("  YYYY-MM-DD (如: 2026-01-19，默认 00:00:00)"));
+  console.log(colors.dim("  YYYY-MM-DD HH:mm:ss (如: 2026-01-19 14:30:00)"));
   console.log("");
 
   const dateInput = await input({
@@ -141,7 +161,7 @@ export async function amendDate(commitHash?: string): Promise<void> {
     validate: (value) => {
       const parsed = parseDate(value);
       if (!parsed) {
-        return "日期格式不正确，请使用 YYYY-MM-DD 格式";
+        return "日期格式不正确，请使用 YYYY-MM-DD 或 YYYY-MM-DD HH:mm:ss 格式";
       }
       return true;
     },

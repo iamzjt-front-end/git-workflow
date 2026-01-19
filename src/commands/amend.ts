@@ -79,7 +79,6 @@ export async function amend(commitHash?: string): Promise<void> {
         value: c,
         description: c.message,
       })),
-      pageSize: 15,
       theme,
     });
   }
