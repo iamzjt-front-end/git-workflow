@@ -21,13 +21,6 @@
 </p>
 
 <p align="center">
-  <a href="#⚡️-快速开始">快速开始</a> •
-  <a href="#✨-核心特性">核心特性</a> •
-  <a href="#📚-完整文档">完整文档</a> •
-  <a href="#🤝-贡献">贡献</a>
-</p>
-
-<p align="center">
   <strong>📚 <a href="https://iamzjt-front-end.github.io/git-workflow/">完整文档</a> | 🚀 <a href="https://iamzjt-front-end.github.io/git-workflow/guide/getting-started">快速开始</a> | 📖 <a href="https://iamzjt-front-end.github.io/git-workflow/commands/">命令参考</a> | ⚙️ <a href="https://iamzjt-front-end.github.io/git-workflow/config/">配置指南</a></strong>
 </p>
 
