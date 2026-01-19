@@ -1,5 +1,5 @@
-import { execSync } from "child_process";
-import ora from "ora";
+import { execSync, spawn } from "child_process";
+import ora, { Ora } from "ora";
 import boxen from "boxen";
 import semver from "semver";
 import { existsSync, unlinkSync } from "fs";
@@ -90,8 +90,8 @@ export async function update(currentVersion: string): Promise<void> {
             borderStyle: "round",
             borderColor: "green",
             align: "left",
-          }
-        )
+          },
+        ),
       );
       return;
     }
@@ -105,7 +105,7 @@ export async function update(currentVersion: string): Promise<void> {
           colors.yellow(colors.bold("🎉 发现新版本！")),
           "",
           `${colors.dim(currentVersion)}  →  ${colors.green(
-            colors.bold(latestVersion)
+            colors.bold(latestVersion),
           )}`,
         ].join("\n"),
         {
@@ -115,62 +115,95 @@ export async function update(currentVersion: string): Promise<void> {
           borderColor: "yellow",
           align: "center",
           width: 40,
-        }
-      )
+        },
+      ),
     );
 
     // 开始更新
-    const updateSpinner = ora("正在更新...").start();
+    console.log("");
+    console.log(colors.cyan("📦 开始安装新版本..."));
+    console.log("");
 
     // 根据包管理器选择更新命令
     const updateCommand = usingVolta
       ? `volta install ${packageName}@latest`
       : `npm install -g ${packageName}@latest`;
 
-    execSync(updateCommand, {
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
+    // 使用 spawn 异步执行，这样可以显示实时输出
+    const [command, ...args] = updateCommand.split(" ");
+
+    const updateProcess = spawn(command, args, {
+      stdio: "inherit", // 继承父进程的 stdio，显示实时输出
     });
 
-    updateSpinner.succeed(colors.green("更新成功！"));
+    updateProcess.on("close", (code) => {
+      console.log("");
 
-    // 清理缓存文件
-    clearUpdateCache();
+      if (code === 0) {
+        console.log(colors.green("✔ 更新成功！"));
 
-    console.log("");
-    console.log(
-      boxen(
-        [
-          colors.green(colors.bold("✨ 更新完成！")),
-          "",
-          `新版本: ${colors.green(colors.bold(latestVersion))}`,
-          "",
-          colors.dim("请执行以下命令验证:"),
-          colors.cyan("  hash -r && gw --version"),
-          "",
-          colors.dim("或重新打开终端"),
-        ].join("\n"),
-        {
-          padding: { top: 1, bottom: 1, left: 2, right: 2 },
-          margin: { top: 0, bottom: 1, left: 2, right: 2 },
-          borderStyle: "round",
-          borderColor: "green",
-          align: "left",
-          width: 40,
-        }
-      )
-    );
+        // 清理缓存文件
+        clearUpdateCache();
+
+        console.log("");
+        console.log(
+          boxen(
+            [
+              colors.green(colors.bold("✨ 更新完成！")),
+              "",
+              `新版本: ${colors.green(colors.bold(latestVersion))}`,
+              "",
+              colors.dim("请执行以下命令验证:"),
+              colors.cyan("  hash -r && gw --version"),
+              "",
+              colors.dim("或重新打开终端"),
+            ].join("\n"),
+            {
+              padding: { top: 1, bottom: 1, left: 2, right: 2 },
+              margin: { top: 0, bottom: 1, left: 2, right: 2 },
+              borderStyle: "round",
+              borderColor: "green",
+              align: "left",
+              width: 40,
+            },
+          ),
+        );
+
+        // 更新成功后退出
+        process.exit(0);
+      } else {
+        console.log(colors.red("✖ 更新失败"));
+        console.log("");
+        console.log(colors.dim("  你可以手动运行以下命令更新:"));
+        console.log(colors.cyan(`  ${updateCommand}`));
+        console.log("");
+        process.exit(1);
+      }
+    });
+
+    updateProcess.on("error", (error) => {
+      console.log("");
+      console.log(colors.red("✖ 更新失败"));
+      console.log("");
+      console.log(colors.dim("  你可以手动运行以下命令更新:"));
+      console.log(colors.cyan(`  ${updateCommand}`));
+      console.log("");
+      console.log(colors.dim(`  错误信息: ${error.message}`));
+      console.log("");
+      process.exit(1);
+    });
 
     // 更新成功后退出
     process.exit(0);
   } catch (error) {
-    spinner.fail(colors.red("更新失败"));
+    spinner.fail(colors.red("获取版本信息失败"));
     console.log("");
-    console.log(colors.dim("  你可以手动运行以下命令更新:"));
-    const updateCommand = usingVolta
-      ? `volta install ${packageName}@latest`
-      : `npm install -g ${packageName}@latest`;
-    console.log(colors.cyan(`  ${updateCommand}`));
+    console.log(colors.dim("  请检查网络连接后重试"));
+    console.log("");
+
+    if (error instanceof Error) {
+      console.log(colors.dim(`  错误信息: ${error.message}`));
+    }
     console.log("");
     process.exit(1);
   }

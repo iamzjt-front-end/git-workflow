@@ -1,7 +1,14 @@
-import { execSync } from "child_process";
 import { select, input } from "@inquirer/prompts";
 import ora from "ora";
-import { colors, theme, exec, execOutput, divider } from "../utils.js";
+import {
+  colors,
+  theme,
+  exec,
+  execOutput,
+  execAsync,
+  execWithSpinner,
+  divider,
+} from "../utils.js";
 import { getConfig } from "../config.js";
 
 /**
@@ -27,7 +34,7 @@ export async function listTags(prefix?: string): Promise<void> {
   // 4. 如果没有 tags，提示并返回
   if (tags.length === 0) {
     console.log(
-      colors.yellow(prefix ? `没有 '${prefix}' 开头的 tag` : "没有 tag")
+      colors.yellow(prefix ? `没有 '${prefix}' 开头的 tag` : "没有 tag"),
     );
     return;
   }
@@ -35,7 +42,7 @@ export async function listTags(prefix?: string): Promise<void> {
   // 5. 如果指定了前缀，直接显示单列（最多 5 个）
   if (prefix) {
     console.log(
-      colors.green(`以 '${prefix}' 开头的 tags (共 ${tags.length} 个):`)
+      colors.green(`以 '${prefix}' 开头的 tags (共 ${tags.length} 个):`),
     );
     if (tags.length > 5) {
       console.log(colors.dim("  ..."));
@@ -84,7 +91,7 @@ export async function listTags(prefix?: string): Promise<void> {
 
   // 9. 计算每列的宽度（取所有 tag 中最长的，至少 20 字符）
   const maxTagLength = Math.max(
-    ...columns.flatMap((col) => col.tags.map((t) => t.length))
+    ...columns.flatMap((col) => col.tags.map((t) => t.length)),
   );
   const columnWidth = Math.max(maxTagLength + 4, 20);
 
@@ -99,8 +106,9 @@ export async function listTags(prefix?: string): Promise<void> {
   // 11. 打印分隔线
   console.log(
     colors.dim(
-      "  " + "─".repeat(columnWidth * columns.length + (columns.length - 1) * 2)
-    )
+      "  " +
+        "─".repeat(columnWidth * columns.length + (columns.length - 1) * 2),
+    ),
   );
 
   // 12. 打印省略号（如果某列有超过 5 个 tag）
@@ -248,7 +256,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
       const choices: TagChoice[] = prefixWithDate.map(
         ({ prefix: p, latest }) => {
           return { name: `${p} (最新: ${latest})`, value: p };
-        }
+        },
       );
       choices.push({ name: "输入新前缀...", value: "__new__" });
 
@@ -273,7 +281,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
   if (!latestTag) {
     const newTag = `${prefix}1.0.0`;
     console.log(
-      colors.yellow(`未找到 '${prefix}' 开头的 tag，将创建 ${newTag}`)
+      colors.yellow(`未找到 '${prefix}' 开头的 tag，将创建 ${newTag}`),
     );
     const ok = await select({
       message: `确认创建 ${newTag}?`,
@@ -297,7 +305,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
 
   // 解析版本号，支持预发布版本如 1.0.0-beta.1
   const preReleaseMatch = version.match(
-    /^(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)$/
+    /^(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)$/,
   );
   const match3 = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
   const match2 = version.match(/^(\d+)\.(\d+)$/);
@@ -404,33 +412,34 @@ export async function createTag(inputPrefix?: string): Promise<void> {
     return;
   }
 
-  doCreateTag(nextTag);
+  await doCreateTag(nextTag);
 }
 
-function doCreateTag(tagName: string): void {
+async function doCreateTag(tagName: string): Promise<void> {
   divider();
 
   const spinner = ora(`正在创建 tag: ${tagName}`).start();
+  const success = await execWithSpinner(
+    `git tag -a "${tagName}" -m "Release ${tagName}"`,
+    spinner,
+    `Tag 创建成功: ${tagName}`,
+    "tag 创建失败",
+  );
 
-  try {
-    execSync(`git tag -a "${tagName}" -m "Release ${tagName}"`, {
-      stdio: "pipe",
-    });
-    spinner.succeed(`Tag 创建成功: ${tagName}`);
-  } catch {
-    spinner.fail("tag 创建失败");
+  if (!success) {
     return;
   }
 
   const pushSpinner = ora("正在推送到远程...").start();
+  const pushSuccess = await execWithSpinner(
+    `git push origin "${tagName}"`,
+    pushSpinner,
+    `Tag 已推送: ${tagName}`,
+    "远程推送失败",
+  );
 
-  try {
-    execSync(`git push origin "${tagName}"`, { stdio: "pipe" });
-    pushSpinner.succeed(`Tag 已推送: ${tagName}`);
-  } catch {
-    pushSpinner.warn(
-      `远程推送失败，可稍后手动执行: git push origin ${tagName}`
-    );
+  if (!pushSuccess) {
+    console.log(colors.dim(`  可稍后手动执行: git push origin ${tagName}`));
   }
 }
 
@@ -484,12 +493,14 @@ export async function deleteTag(): Promise<void> {
   divider();
 
   const spinner = ora(`正在删除本地 tag: ${tagToDelete}`).start();
+  const localSuccess = await execWithSpinner(
+    `git tag -d "${tagToDelete}"`,
+    spinner,
+    `本地 tag 已删除: ${tagToDelete}`,
+    "本地 tag 删除失败",
+  );
 
-  try {
-    execSync(`git tag -d "${tagToDelete}"`, { stdio: "pipe" });
-    spinner.succeed(`本地 tag 已删除: ${tagToDelete}`);
-  } catch {
-    spinner.fail("本地 tag 删除失败");
+  if (!localSuccess) {
     return;
   }
 
@@ -504,12 +515,15 @@ export async function deleteTag(): Promise<void> {
 
   if (deleteRemote) {
     const pushSpinner = ora("正在删除远程 tag...").start();
-    try {
-      execSync(`git push origin --delete "${tagToDelete}"`, { stdio: "pipe" });
-      pushSpinner.succeed(`远程 tag 已删除: ${tagToDelete}`);
-    } catch {
+    const remoteSuccess = await execWithSpinner(
+      `git push origin --delete "${tagToDelete}"`,
+      pushSpinner,
+      `远程 tag 已删除: ${tagToDelete}`,
+    );
+
+    if (!remoteSuccess) {
       pushSpinner.warn(
-        `远程删除失败，可稍后手动执行: git push origin --delete ${tagToDelete}`
+        `远程删除失败，可稍后手动执行: git push origin --delete ${tagToDelete}`,
       );
     }
   }
@@ -574,31 +588,39 @@ export async function updateTag(): Promise<void> {
 
   const spinner = ora(`正在重命名 tag: ${oldTag} → ${newTag}`).start();
 
-  try {
-    // 获取旧 tag 的 commit 和消息
-    const commit = execOutput(`git rev-list -n 1 "${oldTag}"`).trim();
-    const message = execOutput(
-      `git tag -l --format='%(contents)' "${oldTag}"`
-    ).trim();
+  // 获取旧 tag 的 commit 和消息
+  const commit = execOutput(`git rev-list -n 1 "${oldTag}"`).trim();
+  const message = execOutput(
+    `git tag -l --format='%(contents)' "${oldTag}"`,
+  ).trim();
 
-    // 创建新 tag（指向同一个 commit）
-    if (message) {
-      execSync(`git tag -a "${newTag}" "${commit}" -m "${message}"`, {
-        stdio: "pipe",
-      });
-    } else {
-      execSync(`git tag "${newTag}" "${commit}"`, { stdio: "pipe" });
-    }
+  // 创建新 tag（指向同一个 commit）
+  let createSuccess: boolean;
+  if (message) {
+    createSuccess = await execWithSpinner(
+      `git tag -a "${newTag}" "${commit}" -m "${message}"`,
+      spinner,
+    );
+  } else {
+    createSuccess = await execWithSpinner(
+      `git tag "${newTag}" "${commit}"`,
+      spinner,
+    );
+  }
 
-    // 删除旧 tag
-    execSync(`git tag -d "${oldTag}"`, { stdio: "pipe" });
-
-    spinner.succeed(`Tag 已重命名: ${oldTag} → ${newTag}`);
-  } catch (error) {
+  if (!createSuccess) {
     spinner.fail("tag 重命名失败");
-    console.log(colors.red(String(error)));
     return;
   }
+
+  // 删除旧 tag
+  const deleteSuccess = await execAsync(`git tag -d "${oldTag}"`, spinner);
+  if (!deleteSuccess) {
+    spinner.fail("删除旧 tag 失败");
+    return;
+  }
+
+  spinner.succeed(`Tag 已重命名: ${oldTag} → ${newTag}`);
 
   const pushRemote = await select({
     message: "是否同步到远程?",
@@ -611,17 +633,32 @@ export async function updateTag(): Promise<void> {
 
   if (pushRemote) {
     const pushSpinner = ora("正在同步到远程...").start();
-    try {
-      // 推送新 tag
-      execSync(`git push origin "${newTag}"`, { stdio: "pipe" });
-      // 删除远程旧 tag
-      execSync(`git push origin --delete "${oldTag}"`, { stdio: "pipe" });
-      pushSpinner.succeed(`远程 tag 已同步: ${oldTag} → ${newTag}`);
-    } catch {
+
+    // 推送新 tag
+    const pushNewSuccess = await execAsync(
+      `git push origin "${newTag}"`,
+      pushSpinner,
+    );
+    if (!pushNewSuccess) {
       pushSpinner.warn(
-        `远程同步失败，可稍后手动执行:\n  git push origin ${newTag}\n  git push origin --delete ${oldTag}`
+        `远程同步失败，可稍后手动执行:\n  git push origin ${newTag}\n  git push origin --delete ${oldTag}`,
       );
+      return;
     }
+
+    // 删除远程旧 tag
+    const deleteOldSuccess = await execAsync(
+      `git push origin --delete "${oldTag}"`,
+      pushSpinner,
+    );
+    if (!deleteOldSuccess) {
+      pushSpinner.warn(
+        `远程旧 tag 删除失败，可稍后手动执行: git push origin --delete ${oldTag}`,
+      );
+      return;
+    }
+
+    pushSpinner.succeed(`远程 tag 已同步: ${oldTag} → ${newTag}`);
   }
 }
 
@@ -692,10 +729,10 @@ export async function cleanInvalidTags(): Promise<void> {
   let localFailed = 0;
 
   for (const tag of invalidTags) {
-    try {
-      execSync(`git tag -d "${tag}"`, { stdio: "pipe" });
+    const success = await execAsync(`git tag -d "${tag}"`, localSpinner);
+    if (success) {
       localSuccess++;
-    } catch {
+    } else {
       localFailed++;
     }
   }
@@ -704,7 +741,7 @@ export async function cleanInvalidTags(): Promise<void> {
     localSpinner.succeed(`本地标签已删除: ${localSuccess} 个`);
   } else {
     localSpinner.warn(
-      `本地标签删除: 成功 ${localSuccess} 个，失败 ${localFailed} 个`
+      `本地标签删除: 成功 ${localSuccess} 个，失败 ${localFailed} 个`,
     );
   }
 
@@ -724,10 +761,13 @@ export async function cleanInvalidTags(): Promise<void> {
     let remoteFailed = 0;
 
     for (const tag of invalidTags) {
-      try {
-        execSync(`git push origin --delete "${tag}"`, { stdio: "pipe" });
+      const success = await execAsync(
+        `git push origin --delete "${tag}"`,
+        remoteSpinner,
+      );
+      if (success) {
         remoteSuccess++;
-      } catch {
+      } else {
         remoteFailed++;
       }
     }
@@ -736,7 +776,7 @@ export async function cleanInvalidTags(): Promise<void> {
       remoteSpinner.succeed(`远程标签已删除: ${remoteSuccess} 个`);
     } else {
       remoteSpinner.warn(
-        `远程标签删除: 成功 ${remoteSuccess} 个，失败 ${remoteFailed} 个`
+        `远程标签删除: 成功 ${remoteSuccess} 个，失败 ${remoteFailed} 个`,
       );
     }
   }

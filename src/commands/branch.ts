@@ -7,6 +7,7 @@ import {
   theme,
   exec,
   execOutput,
+  execWithSpinner,
   getMainBranch,
   divider,
   type BranchType,
@@ -35,8 +36,8 @@ export async function getBranchName(type: BranchType): Promise<string | null> {
   // 描述是否必填，默认非必填
   const requireDescription =
     type === "feature"
-      ? config.featureRequireDescription ?? false
-      : config.hotfixRequireDescription ?? false;
+      ? (config.featureRequireDescription ?? false)
+      : (config.hotfixRequireDescription ?? false);
   const descMessage = requireDescription
     ? "请输入描述:"
     : "请输入描述 (可跳过):";
@@ -62,7 +63,7 @@ export async function getBranchName(type: BranchType): Promise<string | null> {
 
 export async function createBranch(
   type: BranchType,
-  baseBranchArg?: string | null
+  baseBranchArg?: string | null,
 ): Promise<void> {
   const config = getConfig();
 
@@ -142,12 +143,16 @@ export async function createBranch(
 
     if (shouldPush) {
       const pushSpinner = ora("正在推送到远程...").start();
-      try {
-        execSync(`git push -u origin "${branchName}"`, { stdio: "pipe" });
-        pushSpinner.succeed(`已推送到远程: origin/${branchName}`);
-      } catch {
-        pushSpinner.warn(
-          "远程推送失败，可稍后手动执行: git push -u origin " + branchName
+      const success = await execWithSpinner(
+        `git push -u origin "${branchName}"`,
+        pushSpinner,
+        `已推送到远程: origin/${branchName}`,
+        "远程推送失败",
+      );
+
+      if (!success) {
+        console.log(
+          colors.dim(`  可稍后手动执行: git push -u origin ${branchName}`),
         );
       }
     }
@@ -175,20 +180,23 @@ export async function deleteBranch(branchArg?: string): Promise<void> {
   if (!branch) {
     // 获取本地分支
     const localBranches = execOutput(
-      "git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)'"
+      "git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)'",
     )
       .split("\n")
       .filter((b) => b && b !== currentBranch);
 
     // 获取远程分支（排除 HEAD 和已有本地分支的）
     const remoteBranches = execOutput(
-      "git for-each-ref --sort=-committerdate refs/remotes/origin/ --format='%(refname:short)'"
+      "git for-each-ref --sort=-committerdate refs/remotes/origin/ --format='%(refname:short)'",
     )
       .split("\n")
       .map((b) => b.replace("origin/", ""))
       .filter(
         (b) =>
-          b && b !== "HEAD" && b !== currentBranch && !localBranches.includes(b)
+          b &&
+          b !== "HEAD" &&
+          b !== currentBranch &&
+          !localBranches.includes(b),
       );
 
     if (localBranches.length === 0 && remoteBranches.length === 0) {
@@ -252,14 +260,12 @@ export async function deleteBranch(branchArg?: string): Promise<void> {
       }
 
       const spinner = ora(`正在删除远程分支: origin/${remoteBranch}`).start();
-      try {
-        execSync(`git push origin --delete "${remoteBranch}"`, {
-          stdio: "pipe",
-        });
-        spinner.succeed(`远程分支已删除: origin/${remoteBranch}`);
-      } catch {
-        spinner.fail("远程分支删除失败");
-      }
+      await execWithSpinner(
+        `git push origin --delete "${remoteBranch}"`,
+        spinner,
+        `远程分支已删除: origin/${remoteBranch}`,
+        "远程分支删除失败",
+      );
       return;
     }
   }
@@ -275,7 +281,7 @@ export async function deleteBranch(branchArg?: string): Promise<void> {
   if (!localExists) {
     if (hasRemote) {
       console.log(
-        colors.yellow(`本地分支不存在，但远程分支存在: origin/${branch}`)
+        colors.yellow(`本地分支不存在，但远程分支存在: origin/${branch}`),
       );
       const deleteRemote = await select({
         message: `确认删除远程分支 origin/${branch}?`,
@@ -288,12 +294,12 @@ export async function deleteBranch(branchArg?: string): Promise<void> {
 
       if (deleteRemote) {
         const spinner = ora(`正在删除远程分支: origin/${branch}`).start();
-        try {
-          execSync(`git push origin --delete "${branch}"`, { stdio: "pipe" });
-          spinner.succeed(`远程分支已删除: origin/${branch}`);
-        } catch {
-          spinner.fail("远程分支删除失败");
-        }
+        await execWithSpinner(
+          `git push origin --delete "${branch}"`,
+          spinner,
+          `远程分支已删除: origin/${branch}`,
+          "远程分支删除失败",
+        );
       }
     } else {
       console.log(colors.red(`分支不存在: ${branch}`));
@@ -319,21 +325,24 @@ export async function deleteBranch(branchArg?: string): Promise<void> {
   }
 
   const localSpinner = ora(`正在删除本地分支: ${branch}`).start();
-  try {
-    execSync(`git branch -D "${branch}"`, { stdio: "pipe" });
-    localSpinner.succeed(`本地分支已删除: ${branch}`);
-  } catch {
-    localSpinner.fail("本地分支删除失败");
+  const localSuccess = await execWithSpinner(
+    `git branch -D "${branch}"`,
+    localSpinner,
+    `本地分支已删除: ${branch}`,
+    "本地分支删除失败",
+  );
+
+  if (!localSuccess) {
     return;
   }
 
   if (hasRemote) {
     const remoteSpinner = ora(`正在删除远程分支: origin/${branch}`).start();
-    try {
-      execSync(`git push origin --delete "${branch}"`, { stdio: "pipe" });
-      remoteSpinner.succeed(`远程分支已删除: origin/${branch}`);
-    } catch {
-      remoteSpinner.fail("远程分支删除失败");
-    }
+    await execWithSpinner(
+      `git push origin --delete "${branch}"`,
+      remoteSpinner,
+      `远程分支已删除: origin/${branch}`,
+      "远程分支删除失败",
+    );
   }
 }

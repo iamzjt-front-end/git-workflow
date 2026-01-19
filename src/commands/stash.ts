@@ -1,4 +1,4 @@
-import { execSync, spawn } from "child_process";
+import { spawn } from "child_process";
 import { select, input } from "@inquirer/prompts";
 import ora from "ora";
 import boxen from "boxen";
@@ -7,6 +7,8 @@ import {
   theme,
   divider,
   execOutput,
+  execAsync,
+  execWithSpinner,
   type BranchType,
 } from "../utils.js";
 import { getBranchName } from "./branch.js";
@@ -40,7 +42,7 @@ function parseStashList(): StashEntry[] {
       message = message || "(no message)";
 
       const filesRaw = execOutput(
-        `git stash show stash@{${index}} --name-only 2>/dev/null`
+        `git stash show stash@{${index}} --name-only 2>/dev/null`,
       );
       const files = filesRaw ? filesRaw.split("\n").filter(Boolean) : [];
 
@@ -145,10 +147,10 @@ async function showStashActions(entry: StashEntry): Promise<void> {
 
   switch (action) {
     case "apply":
-      applyStash(entry.index, false);
+      await applyStash(entry.index, false);
       break;
     case "pop":
-      applyStash(entry.index, true);
+      await applyStash(entry.index, true);
       break;
     case "branch":
       await createBranchFromStash(entry.index);
@@ -193,27 +195,34 @@ async function createStash(): Promise<void> {
   });
 
   const spinner = ora("创建 stash...").start();
-  try {
-    let cmd = "git stash push";
-    if (includeUntracked) cmd += " -u";
-    if (message) cmd += ` -m "${message.replace(/"/g, '\\"')}"`;
-    execSync(cmd, { stdio: "pipe" });
-    spinner.succeed("Stash 创建成功");
+  let cmd = "git stash push";
+  if (includeUntracked) cmd += " -u";
+  if (message) cmd += ` -m "${message.replace(/"/g, '\\"')}"`;
+
+  const success = await execWithSpinner(
+    cmd,
+    spinner,
+    "Stash 创建成功",
+    "Stash 创建失败",
+  );
+
+  if (success) {
     await stash();
-  } catch {
-    spinner.fail("Stash 创建失败");
   }
 }
 
-function applyStash(index: number, pop: boolean): void {
+async function applyStash(index: number, pop: boolean): Promise<void> {
   const action = pop ? "pop" : "apply";
   const spinner = ora(`${pop ? "弹出" : "应用"} stash...`).start();
 
-  try {
-    execSync(`git stash ${action} stash@{${index}}`, { stdio: "pipe" });
-    spinner.succeed(`Stash ${pop ? "已弹出" : "已应用"}`);
-  } catch {
-    spinner.fail("操作失败，可能存在冲突");
+  const success = await execWithSpinner(
+    `git stash ${action} stash@{${index}}`,
+    spinner,
+    `Stash ${pop ? "已弹出" : "已应用"}`,
+    "操作失败，可能存在冲突",
+  );
+
+  if (!success) {
     const status = execOutput("git status --porcelain");
     if (status.includes("UU") || status.includes("AA")) {
       console.log(colors.yellow("\n存在冲突，请手动解决后提交"));
@@ -225,7 +234,7 @@ async function showDiff(index: number): Promise<void> {
   try {
     // 获取差异内容（不使用颜色，我们自己格式化）
     const diffOutput = execOutput(
-      `git stash show -p --no-color stash@{${index}}`
+      `git stash show -p --no-color stash@{${index}}`,
     );
 
     if (!diffOutput) {
@@ -424,14 +433,12 @@ async function createBranchFromStash(index: number): Promise<void> {
   if (!branchName) return;
 
   const spinner = ora(`创建分支 ${branchName}...`).start();
-  try {
-    execSync(`git stash branch "${branchName}" stash@{${index}}`, {
-      stdio: "pipe",
-    });
-    spinner.succeed(`分支已创建: ${branchName} (stash 已自动弹出)`);
-  } catch {
-    spinner.fail("创建分支失败");
-  }
+  await execWithSpinner(
+    `git stash branch "${branchName}" stash@{${index}}`,
+    spinner,
+    `分支已创建: ${branchName} (stash 已自动弹出)`,
+    "创建分支失败",
+  );
 }
 
 async function dropStash(index: number): Promise<void> {
@@ -450,10 +457,10 @@ async function dropStash(index: number): Promise<void> {
   }
 
   const spinner = ora("删除 stash...").start();
-  try {
-    execSync(`git stash drop stash@{${index}}`, { stdio: "pipe" });
-    spinner.succeed("Stash 已删除");
-  } catch {
-    spinner.fail("删除失败");
-  }
+  await execWithSpinner(
+    `git stash drop stash@{${index}}`,
+    spinner,
+    "Stash 已删除",
+    "删除失败",
+  );
 }

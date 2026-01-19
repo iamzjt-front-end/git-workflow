@@ -1,4 +1,5 @@
-import { execSync, type ExecSyncOptions } from "child_process";
+import { execSync, spawn, type ExecSyncOptions } from "child_process";
+import type { Ora } from "ora";
 
 export interface Colors {
   red: (s: string) => string;
@@ -97,4 +98,61 @@ export type BranchType = "feature" | "hotfix";
 
 export function divider(): void {
   console.log(colors.dim("─".repeat(40)));
+}
+
+/**
+ * 使用 spawn 异步执行命令，避免阻塞 spinner
+ * @param command 命令字符串
+ * @param spinner 可选的 ora spinner 实例
+ * @returns Promise<boolean> 成功返回 true，失败返回 false
+ */
+export function execAsync(command: string, spinner?: Ora): Promise<boolean> {
+  return new Promise((resolve) => {
+    const [cmd, ...args] = command.split(" ");
+
+    const process = spawn(cmd, args, {
+      stdio: spinner ? "pipe" : "inherit",
+    });
+
+    process.on("close", (code) => {
+      resolve(code === 0);
+    });
+
+    process.on("error", () => {
+      resolve(false);
+    });
+  });
+}
+
+/**
+ * 执行命令并在 spinner 中显示进度
+ * @param command 命令字符串
+ * @param spinner ora spinner 实例
+ * @param successMessage 成功消息
+ * @param errorMessage 错误消息
+ * @returns Promise<boolean> 成功返回 true，失败返回 false
+ */
+export async function execWithSpinner(
+  command: string,
+  spinner: Ora,
+  successMessage?: string,
+  errorMessage?: string,
+): Promise<boolean> {
+  const success = await execAsync(command, spinner);
+
+  if (success) {
+    if (successMessage) {
+      spinner.succeed(successMessage);
+    } else {
+      spinner.succeed();
+    }
+  } else {
+    if (errorMessage) {
+      spinner.fail(errorMessage);
+    } else {
+      spinner.fail();
+    }
+  }
+
+  return success;
 }
