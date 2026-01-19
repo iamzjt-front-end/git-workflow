@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## [v0.4.2](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.1...v0.4.2) (2026-01-19)
+
+### 📖 Documentation
+
+- 移除冗余的快速链接部分 ([330b323](https://github.com/iamzjt-front-end/git-workflow/commit/330b323))
+
+### 🔧 Chore
+
+- 🔖 chore(release): 发布 v0.4.2 ([5d59590](https://github.com/iamzjt-front-end/git-workflow/commit/5d59590))
+
+
 ## [v0.4.1](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.0...v0.4.1) (2026-01-16)
 
 ### ✨ Features
