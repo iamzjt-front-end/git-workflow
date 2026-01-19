@@ -29,6 +29,8 @@ import { commit } from "./commands/commit.js";
 import { checkForUpdates } from "./update-notifier.js";
 import { update } from "./commands/update.js";
 import { log, quickLog } from "./commands/log.js";
+import { amendDate } from "./commands/amend-date.js";
+import { amend } from "./commands/amend.js";
 
 // ========== 全局错误处理 ==========
 
@@ -109,7 +111,7 @@ async function mainMenu(): Promise<void> {
   ███╔╝  ██   ██║██╔══╝   ██╔██╗ 
  ███████╗╚█████╔╝███████╗██╔╝ ██╗
  ╚══════╝ ╚════╝ ╚══════╝╚═╝  ╚═╝
-`)
+`),
   );
   console.log(colors.dim(`  git-workflow v${colors.yellow(version)}\n`));
 
@@ -157,11 +159,19 @@ async function mainMenu(): Promise<void> {
         value: "stash",
       },
       {
-        name: `[b] � 查看日志               ${colors.dim("gw log")}`,
+        name: `[b] 📜 查看日志               ${colors.dim("gw log")}`,
         value: "log",
       },
       {
-        name: `[c] ⚙️  初始化配置             ${colors.dim("gw init")}`,
+        name: `[c] 🕐 修改提交时间           ${colors.dim("gw ad")}`,
+        value: "amend-date",
+      },
+      {
+        name: `[d] ✏️  修改提交信息           ${colors.dim("gw amend")}`,
+        value: "amend",
+      },
+      {
+        name: `[e] ⚙️  初始化配置             ${colors.dim("gw init")}`,
         value: "init",
       },
       { name: "[0] ❓ 帮助", value: "help" },
@@ -214,6 +224,14 @@ async function mainMenu(): Promise<void> {
     case "log":
       checkGitRepo();
       await log();
+      break;
+    case "amend-date":
+      checkGitRepo();
+      await amendDate();
+      break;
+    case "amend":
+      checkGitRepo();
+      await amend();
       break;
     case "init":
       await init();
@@ -379,6 +397,23 @@ cli
   });
 
 cli
+  .command("amend:date [hash]", "修改指定 commit 的提交时间")
+  .alias("ad")
+  .action(async (hash?: string) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    return amendDate(hash);
+  });
+
+cli
+  .command("amend [hash]", "修改指定 commit 的提交信息")
+  .action(async (hash?: string) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    return amend(hash);
+  });
+
+cli
   .command("clean", "清理缓存和临时文件")
   .alias("cc")
   .action(async () => {
@@ -446,7 +481,7 @@ cli
       console.log("");
       console.log(colors.yellow("⚠️  全局配置文件已删除"));
       console.log(
-        colors.dim(`   如需重新配置，请运行: ${colors.cyan("gw init")}`)
+        colors.dim(`   如需重新配置，请运行: ${colors.cyan("gw init")}`),
       );
     }
 

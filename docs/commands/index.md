@@ -6,16 +6,18 @@ Git Workflow 提供了一套简洁而强大的命令，涵盖了 Git 工作流�
 
 ### 核心命令
 
-| 命令     | 别名              | 功能                | 示例                  |
-| -------- | ----------------- | ------------------- | --------------------- |
-| `gw`     | -                 | 显示交互式菜单      | `gw`                  |
-| `gw f`   | `feat`, `feature` | 创建 feature 分支   | `gw f --base develop` |
-| `gw h`   | `fix`, `hotfix`   | 创建 hotfix 分支    | `gw h`                |
-| `gw c`   | `cm`, `commit`    | 提交代码（AI 模式） | `gw c`                |
-| `gw log` | `ls`, `l`         | 查看提交历史        | `gw log`              |
-| `gw t`   | `tag`             | 创建 tag            | `gw t v`              |
-| `gw brd` | `br:del`          | 删除分支            | `gw brd feature/old`  |
-| `gw s`   | `st`, `stash`     | 管理 stash          | `gw s`                |
+| 命令       | 别名              | 功能                | 示例                  |
+| ---------- | ----------------- | ------------------- | --------------------- |
+| `gw`       | -                 | 显示交互式菜单      | `gw`                  |
+| `gw f`     | `feat`, `feature` | 创建 feature 分支   | `gw f --base develop` |
+| `gw h`     | `fix`, `hotfix`   | 创建 hotfix 分支    | `gw h`                |
+| `gw c`     | `cm`, `commit`    | 提交代码（AI 模式） | `gw c`                |
+| `gw log`   | `ls`, `l`         | 查看提交历史        | `gw log`              |
+| `gw amend` | -                 | 修改提交信息        | `gw amend a1b2c3d`    |
+| `gw ad`    | `amend:date`      | 修改提交时间        | `gw ad`               |
+| `gw t`     | `tag`             | 创建 tag            | `gw t v`              |
+| `gw brd`   | `br:del`          | 删除分支            | `gw brd feature/old`  |
+| `gw s`     | `st`, `stash`     | 管理 stash          | `gw s`                |
 
 ### 辅助命令
 
@@ -186,6 +188,8 @@ DEBUG=gw:* gw c
 
 - [**gw c**](/commands/commit) - 交互式提交（支持 AI 生成）
 - [**gw log**](/commands/log) - 查看 Git 提交历史（GitHub 风格）
+- [**gw amend**](/commands/amend) - 修改指定 commit 的提交信息
+- [**gw ad**](/commands/amend-date) - 修改指定 commit 的提交时间
 
 ### 版本管理
 

@@ -68,6 +68,8 @@ export default defineConfig({
             { text: "分支命令", link: "/commands/branch" },
             { text: "提交命令", link: "/commands/commit" },
             { text: "日志命令", link: "/commands/log" },
+            { text: "修改提交信息", link: "/commands/amend" },
+            { text: "修改提交时间", link: "/commands/amend-date" },
             { text: "Tag 命令", link: "/commands/tag" },
             { text: "Stash 命令", link: "/commands/stash" },
             { text: "版本命令", link: "/commands/release" },
