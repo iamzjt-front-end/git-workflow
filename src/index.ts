@@ -13,7 +13,7 @@
 import { cac } from "cac";
 import { select } from "@inquirer/prompts";
 import { ExitPromptError } from "@inquirer/core";
-import { checkGitRepo, theme, colors } from "./utils.js";
+import { checkGitRepo, theme, colors, setDebugMode } from "./utils.js";
 import { createBranch, deleteBranch } from "./commands/branch.js";
 import {
   listTags,
@@ -488,12 +488,20 @@ cli
     console.log("");
   });
 
-// 不使用 cac 的 version，手动处理 --version 和 --help
+// 不使用 cac 的 version，手动处理 --version、--help 和 --debug
 cli.option("-v, --version", "显示版本号");
 cli.option("-h, --help", "显示帮助信息");
+cli.option("-d, --debug", "启用调试模式，显示详细的命令和错误信息");
 
-// 在 parse 之前检查 --version 和 --help
+// 在 parse 之前检查 --version、--help 和 --debug
 const processArgs = process.argv.slice(2);
+
+// 检查是否启用 debug 模式
+if (processArgs.includes("-d") || processArgs.includes("--debug")) {
+  setDebugMode(true);
+  console.log(colors.yellow("🐛 Debug 模式已启用\n"));
+}
+
 if (processArgs.includes("-v") || processArgs.includes("--version")) {
   console.log(colors.yellow(`v${version}`));
   process.exit(0);

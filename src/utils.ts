@@ -1,6 +1,25 @@
 import { execSync, spawn, type ExecSyncOptions } from "child_process";
 import type { Ora } from "ora";
 
+/**
+ * 全局 debug 模式标志
+ */
+let debugMode = false;
+
+/**
+ * 设置 debug 模式（由主入口调用）
+ */
+export function setDebugMode(enabled: boolean): void {
+  debugMode = enabled;
+}
+
+/**
+ * 获取当前 debug 模式状态
+ */
+export function isDebugMode(): boolean {
+  return debugMode;
+}
+
 export interface Colors {
   red: (s: string) => string;
   green: (s: string) => string;
@@ -104,22 +123,68 @@ export function divider(): void {
  * 使用 spawn 异步执行命令，避免阻塞 spinner
  * @param command 命令字符串
  * @param spinner 可选的 ora spinner 实例
- * @returns Promise<boolean> 成功返回 true，失败返回 false
+ * @returns Promise<{success: boolean, error?: string}> 返回执行结果和错误信息
  */
-export function execAsync(command: string, spinner?: Ora): Promise<boolean> {
+export function execAsync(
+  command: string,
+  spinner?: Ora,
+): Promise<{ success: boolean; error?: string }> {
   return new Promise((resolve) => {
-    const [cmd, ...args] = command.split(" ");
+    // Debug 模式：显示执行的命令
+    if (debugMode) {
+      console.log(colors.dim(`\n[DEBUG] 执行命令: ${colors.cyan(command)}`));
+    }
 
-    const process = spawn(cmd, args, {
+    // 使用 shell 模式执行命令，这样可以正确处理引号
+    const process = spawn(command, {
       stdio: spinner ? "pipe" : "inherit",
+      shell: true,
     });
+
+    let errorOutput = "";
+    let stdoutOutput = "";
+
+    // 捕获标准输出（debug 模式）
+    if (debugMode && process.stdout) {
+      process.stdout.on("data", (data) => {
+        stdoutOutput += data.toString();
+      });
+    }
+
+    // 捕获错误输出
+    if (process.stderr) {
+      process.stderr.on("data", (data) => {
+        errorOutput += data.toString();
+      });
+    }
 
     process.on("close", (code) => {
-      resolve(code === 0);
+      // Debug 模式：显示退出码和输出
+      if (debugMode) {
+        console.log(colors.dim(`[DEBUG] 退出码: ${code}`));
+        if (stdoutOutput) {
+          console.log(colors.dim(`[DEBUG] 标准输出:\n${stdoutOutput}`));
+        }
+        if (errorOutput) {
+          console.log(colors.dim(`[DEBUG] 错误输出:\n${errorOutput}`));
+        }
+      }
+
+      if (code === 0) {
+        resolve({ success: true });
+      } else {
+        resolve({ success: false, error: errorOutput.trim() });
+      }
     });
 
-    process.on("error", () => {
-      resolve(false);
+    process.on("error", (err) => {
+      // Debug 模式：显示进程错误
+      if (debugMode) {
+        console.log(colors.dim(`[DEBUG] 进程错误: ${err.message}`));
+        console.log(colors.dim(`[DEBUG] 错误堆栈:\n${err.stack}`));
+      }
+
+      resolve({ success: false, error: err.message });
     });
   });
 }
@@ -138,9 +203,9 @@ export async function execWithSpinner(
   successMessage?: string,
   errorMessage?: string,
 ): Promise<boolean> {
-  const success = await execAsync(command, spinner);
+  const result = await execAsync(command, spinner);
 
-  if (success) {
+  if (result.success) {
     if (successMessage) {
       spinner.succeed(successMessage);
     } else {
@@ -152,7 +217,23 @@ export async function execWithSpinner(
     } else {
       spinner.fail();
     }
+
+    // 显示具体的错误信息
+    if (result.error) {
+      console.log(colors.dim(`  ${result.error}`));
+    }
+
+    // Debug 模式：显示完整的命令和建议
+    if (debugMode) {
+      console.log(colors.yellow("\n[DEBUG] 故障排查信息:"));
+      console.log(colors.dim(`  命令: ${command}`));
+      console.log(colors.dim(`  工作目录: ${process.cwd()}`));
+      console.log(colors.dim(`  Shell: ${process.env.SHELL || "unknown"}`));
+      console.log(
+        colors.dim(`  建议: 尝试在终端中直接运行上述命令以获取更多信息\n`),
+      );
+    }
   }
 
-  return success;
+  return result.success;
 }
