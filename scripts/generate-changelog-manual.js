@@ -30,7 +30,7 @@ for (let i = 0; i < tags.length; i++) {
   if (!previousTag) break;
 
   changelog += `## [${currentTag}](https://github.com/iamzjt-front-end/git-workflow/compare/${previousTag}...${currentTag}) (${getTagDate(
-    currentTag
+    currentTag,
   )})\n\n`;
 
   // 获取该版本的提交
@@ -39,79 +39,30 @@ for (let i = 0; i < tags.length; i++) {
     {
       encoding: "utf8",
       env: { ...process.env, LANG: "zh_CN.UTF-8", LC_ALL: "zh_CN.UTF-8" },
-    }
+    },
   )
     .trim()
     .split("\n")
     .filter(Boolean);
 
-  // 按类型分组
-  const groups = {
-    "✨ Features": [],
-    "🐛 Bug Fixes": [],
-    "📖 Documentation": [],
-    "🎨 Styles": [],
-    "♻️ Refactors": [],
-    "⚡ Performance": [],
-    "✅ Tests": [],
-    "🔧 Chore": [],
-    "🤖 CI": [],
+  // 格式化消息：处理多行内容（用 - 分隔的子任务）
+  const formatMessage = (msg, commitLink) => {
+    const parts = msg.split(" - ");
+    if (parts.length === 1) {
+      // 没有子任务，直接返回
+      return `${msg} ${commitLink}`;
+    }
+    // 有子任务，主标题后面加 commit hash，子任务换行缩进
+    const mainTitle = parts[0];
+    const subTasks = parts.slice(1);
+    return `${mainTitle} ${commitLink}\n  - ${subTasks.join("\n  - ")}`;
   };
 
+  // 直接输出提交信息，不分组
   commits.forEach((commit) => {
     const [message, hash] = commit.split("|");
     const link = `([${hash}](https://github.com/iamzjt-front-end/git-workflow/commit/${hash}))`;
-
-    if (message.match(/^(feat|✨)/i)) {
-      groups["✨ Features"].push(
-        `- ${message.replace(/^(feat|✨)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(fix|🐛)/i)) {
-      groups["🐛 Bug Fixes"].push(
-        `- ${message.replace(/^(fix|🐛)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(docs|📖|📝)/i)) {
-      groups["📖 Documentation"].push(
-        `- ${message.replace(/^(docs|📖|📝)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(style|🎨)/i)) {
-      groups["🎨 Styles"].push(
-        `- ${message.replace(/^(style|🎨)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(refactor|♻️)/i)) {
-      groups["♻️ Refactors"].push(
-        `- ${message.replace(/^(refactor|♻️)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(perf|⚡)/i)) {
-      groups["⚡ Performance"].push(
-        `- ${message.replace(/^(perf|⚡)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(test|✅)/i)) {
-      groups["✅ Tests"].push(
-        `- ${message.replace(/^(test|✅)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(chore|🔧|🏡)/i)) {
-      groups["🔧 Chore"].push(
-        `- ${message.replace(/^(chore|🔧|🏡)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else if (message.match(/^(ci|🤖)/i)) {
-      groups["🤖 CI"].push(
-        `- ${message.replace(/^(ci|🤖)[:(]\w*\)?:?\s*/i, "")} ${link}`
-      );
-    } else {
-      groups["🔧 Chore"].push(`- ${message} ${link}`);
-    }
-  });
-
-  // 输出各分组
-  Object.entries(groups).forEach(([title, items]) => {
-    if (items.length > 0) {
-      changelog += `### ${title}\n\n`;
-      items.forEach((item) => {
-        changelog += `${item}\n`;
-      });
-      changelog += "\n";
-    }
+    changelog += `- ${formatMessage(message, link)}\n`;
   });
 
   changelog += "\n";
