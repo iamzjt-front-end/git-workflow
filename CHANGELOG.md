@@ -1,5 +1,23 @@
 ﻿# Changelog
 
+## [v1.0.0](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.5...v1.0.0) (2026-01-19)
+
+
+## [v0.4.5](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.4...v0.4.5) (2026-01-19)
+
+### ✨ Features
+
+- 更新日期格式说明，支持完整时间输入 ([25f2b39](https://github.com/iamzjt-front-end/git-workflow/commit/25f2b39))
+
+### 📖 Documentation
+
+- 📝 docs: 自动更新测试数量徽章 [skip ci] ([c49a4bd](https://github.com/iamzjt-front-end/git-workflow/commit/c49a4bd))
+
+### 🔧 Chore
+
+- 🔖 chore(release): 发布 v0.4.5 ([8abd7b4](https://github.com/iamzjt-front-end/git-workflow/commit/8abd7b4))
+
+
 ## [v0.4.4](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.3...v0.4.4) (2026-01-19)
 
 ### ✨ Features
