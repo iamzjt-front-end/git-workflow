@@ -54,6 +54,8 @@ export default defineConfig({
           items: [
             { text: "开发指南", link: "/guide/development" },
             { text: "测试指南", link: "/guide/testing" },
+            { text: "Debug 模式", link: "/guide/debug-mode" },
+            { text: "命令引号处理", link: "/guide/command-quotes-handling" },
             { text: "API 文档", link: "/guide/api" },
             { text: "贡献指南", link: "/guide/contributing" },
           ],

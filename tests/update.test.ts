@@ -7,20 +7,48 @@ import { join } from "path";
 // Mock 所有外部依赖
 vi.mock("child_process", () => ({
   execSync: vi.fn(),
-  spawn: vi.fn(() => ({
-    on: vi.fn(),
-    stdin: {
-      write: vi.fn(),
-      end: vi.fn(),
-      on: vi.fn(),
-    },
-    stdout: {
-      on: vi.fn(),
-    },
-    stderr: {
-      on: vi.fn(),
-    },
-  })),
+  spawn: vi.fn((command: string, args: string[]) => {
+    // 检查是否是 npm view 命令
+    if (command === "npm" && args[0] === "view") {
+      const mockProcess = {
+        stdout: {
+          on: vi.fn((event: string, callback: (data: Buffer) => void) => {
+            if (event === "data") {
+              // 立即同步调用回调，避免异步问题
+              callback(Buffer.from("1.2.4\n"));
+            }
+          }),
+        },
+        on: vi.fn((event: string, callback: (code?: number) => void) => {
+          if (event === "close") {
+            // 使用 queueMicrotask 而不是 setTimeout，确保在当前测试上下文中执行
+            queueMicrotask(() => callback(0));
+          }
+        }),
+      };
+      return mockProcess;
+    }
+
+    // 其他 spawn 调用（如 npm install）
+    return {
+      on: vi.fn((event: string, callback: (code?: number) => void) => {
+        if (event === "close") {
+          queueMicrotask(() => callback(0));
+        }
+      }),
+      stdin: {
+        write: vi.fn(),
+        end: vi.fn(),
+        on: vi.fn(),
+      },
+      stdout: {
+        on: vi.fn(),
+      },
+      stderr: {
+        on: vi.fn(),
+      },
+    };
+  }),
 }));
 
 vi.mock("fs", () => ({
@@ -79,9 +107,10 @@ describe("Update 模块测试", () => {
     vi.clearAllMocks();
     // Mock console methods
     vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(process, "exit").mockImplementation(() => {
-      throw new Error("process.exit called");
-    });
+    // Mock process.exit 但不抛出错误，只是阻止退出
+    vi.spyOn(process, "exit").mockImplementation((() => {
+      // 不做任何事，只是阻止进程退出
+    }) as any);
 
     // Default mocks
     mockHomedir.mockReturnValue("/home/user");
@@ -94,8 +123,6 @@ describe("Update 模块测试", () => {
 
   describe("版本检查", () => {
     it("应该正确获取最新版本", async () => {
-      mockExecSync.mockReturnValueOnce("1.2.4\n");
-
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(true);
 
@@ -103,19 +130,35 @@ describe("Update 模块测试", () => {
 
       await update("1.2.3");
 
-      expect(mockExecSync).toHaveBeenCalledWith(
-        "npm view @zjex/git-workflow version",
+      // 验证调用了 spawn 来获取版本
+      const { spawn } = await import("child_process");
+      expect(spawn).toHaveBeenCalledWith(
+        "npm",
+        ["view", "@zjex/git-workflow", "version"],
         expect.objectContaining({
-          encoding: "utf-8",
-          timeout: 3000,
-          stdio: ["pipe", "pipe", "ignore"],
+          stdio: ["ignore", "pipe", "ignore"],
         }),
       );
     });
 
     it("应该处理网络错误", async () => {
-      mockExecSync.mockImplementation(() => {
-        throw new Error("Network error");
+      // 临时修改 spawn mock 来模拟错误
+      const { spawn } = await import("child_process");
+      vi.mocked(spawn).mockImplementationOnce(() => {
+        const mockProcess: any = {
+          stdout: {
+            on: vi.fn(),
+          },
+          on: vi.fn((event: string, callback: (code?: number) => void) => {
+            if (event === "error") {
+              setTimeout(() => callback(), 0);
+            }
+            if (event === "close") {
+              setTimeout(() => callback(1), 10);
+            }
+          }),
+        };
+        return mockProcess;
       });
 
       const { update } = await import("../src/commands/update.js");
@@ -128,10 +171,7 @@ describe("Update 模块测试", () => {
     });
 
     it("应该正确比较版本号", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw (isUsingVolta)
-        .mockReturnValueOnce("1.2.4\n") // npm view
-        .mockReturnValueOnce("update success"); // npm install
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw (isUsingVolta)
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -151,9 +191,7 @@ describe("Update 模块测试", () => {
 
   describe("Volta 检测", () => {
     it("应该正确检测 Volta 环境", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/home/user/.volta/bin/gw\n") // which gw (isUsingVolta)
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/home/user/.volta/bin/gw\n"); // which gw (isUsingVolta)
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -172,9 +210,7 @@ describe("Update 模块测试", () => {
     });
 
     it("应该正确检测非 Volta 环境", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -193,12 +229,10 @@ describe("Update 模块测试", () => {
     });
 
     it("应该处理 which 命令失败", async () => {
-      mockExecSync
-        .mockImplementationOnce(() => {
-          // which gw (isUsingVolta)
-          throw new Error("Command not found");
-        })
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockImplementationOnce(() => {
+        // which gw (isUsingVolta)
+        throw new Error("Command not found");
+      });
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -219,9 +253,7 @@ describe("Update 模块测试", () => {
 
   describe("更新流程", () => {
     it("应该在已是最新版本时显示提示", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw (isUsingVolta)
-        .mockReturnValueOnce("1.2.3\n"); // npm view (same version)
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw (isUsingVolta)
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(true);
@@ -236,9 +268,7 @@ describe("Update 模块测试", () => {
     });
 
     it("应该成功执行更新", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -258,9 +288,7 @@ describe("Update 模块测试", () => {
     });
 
     it("应该处理更新失败", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -284,9 +312,7 @@ describe("Update 模块测试", () => {
   describe("缓存管理", () => {
     it("应该在更新成功后清理缓存", async () => {
       mockExistsSync.mockReturnValue(true);
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -307,9 +333,7 @@ describe("Update 模块测试", () => {
 
     it("应该处理缓存文件不存在的情况", async () => {
       mockExistsSync.mockReturnValue(false);
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -332,9 +356,7 @@ describe("Update 模块测试", () => {
         throw new Error("Permission denied");
       });
 
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -352,9 +374,7 @@ describe("Update 模块测试", () => {
 
   describe("用户界面", () => {
     it("应该显示检查更新的提示", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.3\n");
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(true);
@@ -367,9 +387,7 @@ describe("Update 模块测试", () => {
     });
 
     it("应该显示版本比较信息", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);
@@ -390,9 +408,7 @@ describe("Update 模块测试", () => {
     });
 
     it("应该显示验证命令提示", async () => {
-      mockExecSync
-        .mockReturnValueOnce("/usr/local/bin/gw\n") // which gw
-        .mockReturnValueOnce("1.2.4\n"); // npm view
+      mockExecSync.mockReturnValueOnce("/usr/local/bin/gw\n"); // which gw
 
       const semver = await import("semver");
       vi.mocked(semver.default.gte).mockReturnValue(false);

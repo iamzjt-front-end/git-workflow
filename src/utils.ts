@@ -166,7 +166,9 @@ export function execAsync(
           console.log(colors.dim(`[DEBUG] 标准输出:\n${stdoutOutput}`));
         }
         if (errorOutput) {
-          console.log(colors.dim(`[DEBUG] 错误输出:\n${errorOutput}`));
+          // 根据退出码决定标签：成功时显示"输出信息"，失败时显示"错误输出"
+          const label = code === 0 ? "输出信息" : "错误输出";
+          console.log(colors.dim(`[DEBUG] ${label}:\n${errorOutput}`));
         }
       }
 

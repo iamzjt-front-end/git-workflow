@@ -27,16 +27,32 @@ function clearUpdateCache(): void {
  * 获取 npm 上的最新版本
  */
 async function getLatestVersion(packageName: string): Promise<string | null> {
-  try {
-    const result = execSync(`npm view ${packageName} version`, {
-      encoding: "utf-8",
-      timeout: 3000,
-      stdio: ["pipe", "pipe", "ignore"],
+  return new Promise((resolve) => {
+    const npmView = spawn("npm", ["view", packageName, "version"], {
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 5000,
     });
-    return result.trim();
-  } catch {
-    return null;
-  }
+
+    let output = "";
+
+    if (npmView.stdout) {
+      npmView.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+    }
+
+    npmView.on("close", (code) => {
+      if (code === 0 && output.trim()) {
+        resolve(output.trim());
+      } else {
+        resolve(null);
+      }
+    });
+
+    npmView.on("error", () => {
+      resolve(null);
+    });
+  });
 }
 
 /**

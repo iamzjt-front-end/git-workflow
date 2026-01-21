@@ -418,6 +418,29 @@ export async function createTag(inputPrefix?: string): Promise<void> {
 async function doCreateTag(tagName: string): Promise<void> {
   divider();
 
+  // 检查是否有提交
+  const hasCommits = execOutput("git rev-parse HEAD 2>/dev/null");
+  if (!hasCommits) {
+    console.log(colors.red("当前仓库没有任何提交"));
+    console.log("");
+    console.log(colors.dim("  提示: 需要先创建至少一个提交才能打 tag:"));
+    console.log(colors.cyan("  git add ."));
+    console.log(colors.cyan('  git commit -m "Initial commit"'));
+    console.log(colors.cyan("  gw tag"));
+    return;
+  }
+
+  // 检查 tag 是否已存在
+  const existingTags = execOutput("git tag -l").split("\n").filter(Boolean);
+  if (existingTags.includes(tagName)) {
+    console.log(colors.red(`Tag ${tagName} 已存在`));
+    console.log("");
+    console.log(colors.dim("  提示: 如需重新创建，请先删除旧 tag:"));
+    console.log(colors.cyan(`  git tag -d ${tagName}`));
+    console.log(colors.cyan(`  git push origin --delete ${tagName}`));
+    return;
+  }
+
   const spinner = ora(`正在创建 tag: ${tagName}`).start();
   const success = await execWithSpinner(
     `git tag -a "${tagName}" -m "Release ${tagName}"`,
@@ -614,9 +637,12 @@ export async function updateTag(): Promise<void> {
   }
 
   // 删除旧 tag
-  const deleteSuccess = await execAsync(`git tag -d "${oldTag}"`, spinner);
-  if (!deleteSuccess) {
+  const deleteResult = await execAsync(`git tag -d "${oldTag}"`, spinner);
+  if (!deleteResult.success) {
     spinner.fail("删除旧 tag 失败");
+    if (deleteResult.error) {
+      console.log(colors.dim(`  ${deleteResult.error}`));
+    }
     return;
   }
 
@@ -635,26 +661,32 @@ export async function updateTag(): Promise<void> {
     const pushSpinner = ora("正在同步到远程...").start();
 
     // 推送新 tag
-    const pushNewSuccess = await execAsync(
+    const pushNewResult = await execAsync(
       `git push origin "${newTag}"`,
       pushSpinner,
     );
-    if (!pushNewSuccess) {
+    if (!pushNewResult.success) {
       pushSpinner.warn(
         `远程同步失败，可稍后手动执行:\n  git push origin ${newTag}\n  git push origin --delete ${oldTag}`,
       );
+      if (pushNewResult.error) {
+        console.log(colors.dim(`  ${pushNewResult.error}`));
+      }
       return;
     }
 
     // 删除远程旧 tag
-    const deleteOldSuccess = await execAsync(
+    const deleteOldResult = await execAsync(
       `git push origin --delete "${oldTag}"`,
       pushSpinner,
     );
-    if (!deleteOldSuccess) {
+    if (!deleteOldResult.success) {
       pushSpinner.warn(
         `远程旧 tag 删除失败，可稍后手动执行: git push origin --delete ${oldTag}`,
       );
+      if (deleteOldResult.error) {
+        console.log(colors.dim(`  ${deleteOldResult.error}`));
+      }
       return;
     }
 
@@ -729,8 +761,8 @@ export async function cleanInvalidTags(): Promise<void> {
   let localFailed = 0;
 
   for (const tag of invalidTags) {
-    const success = await execAsync(`git tag -d "${tag}"`, localSpinner);
-    if (success) {
+    const result = await execAsync(`git tag -d "${tag}"`, localSpinner);
+    if (result.success) {
       localSuccess++;
     } else {
       localFailed++;
@@ -761,11 +793,11 @@ export async function cleanInvalidTags(): Promise<void> {
     let remoteFailed = 0;
 
     for (const tag of invalidTags) {
-      const success = await execAsync(
+      const result = await execAsync(
         `git push origin --delete "${tag}"`,
         remoteSpinner,
       );
-      if (success) {
+      if (result.success) {
         remoteSuccess++;
       } else {
         remoteFailed++;
