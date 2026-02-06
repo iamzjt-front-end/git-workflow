@@ -327,6 +327,20 @@ if check_tag_exists "$NEW_VERSION"; then
   exit 1
 fi
 
+# 生成 changelog（在测试之前，这样可以包含在提交中）
+print_step "生成 CHANGELOG..."
+if [[ "$DRY_RUN" == false ]]; then
+  npm run changelog
+fi
+print_success "CHANGELOG 已更新"
+
+# 更新 README 中的版本号
+print_step "更新 README 版本号..."
+if [[ "$DRY_RUN" == false ]]; then
+  node scripts/update-version-badge.js "$NEW_VERSION"
+fi
+print_success "README 版本号已更新"
+
 # 运行测试（如果有）
 if grep -q '"test"' package.json; then
   print_step "运行测试..."
@@ -357,13 +371,6 @@ if [[ "$DRY_RUN" == false ]]; then
   print_success "构建产物验证通过"
 fi
 
-# 生成 changelog
-print_step "生成 CHANGELOG..."
-if [[ "$DRY_RUN" == false ]]; then
-  npm run changelog
-fi
-print_success "CHANGELOG 已更新"
-
 # 预览 changelog
 if [[ "$DRY_RUN" == false ]]; then
   echo ""
@@ -388,8 +395,8 @@ if [[ "$DRY_RUN" == true ]]; then
   echo ""
   print_success "Dry-run 完成！以下是将要执行的操作："
   echo ""
-  echo "  1. 提交更改: package.json, package-lock.json, CHANGELOG.md"
-  echo "  2. Commit 信息: 🔖 chore(release): v${NEW_VERSION}"
+  echo "  1. 提交更改: package.json, package-lock.json, CHANGELOG.md, README.md"
+  echo "  2. Commit 信息: 🔖 chore(release): 发布 v${NEW_VERSION}"
   echo "  3. 创建 tag: v${NEW_VERSION}"
   echo "  4. 推送到 GitHub: ${CURRENT_BRANCH} + v${NEW_VERSION}"
   echo "  5. 发布到 npm: @zjex/git-workflow@${NEW_VERSION}"
@@ -410,8 +417,8 @@ fi
 
 # 提交更改
 print_step "提交更改..."
-git add package.json package-lock.json CHANGELOG.md
-git commit -m "🔖 chore(release): v${NEW_VERSION}"
+git add package.json package-lock.json CHANGELOG.md README.md
+git commit -m "🔖 chore(release): 发布 v${NEW_VERSION}"
 print_success "更改已提交"
 
 # 创建 tag
