@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [v0.5.1](https://github.com/iamzjt-front-end/git-workflow/compare/v0.5.0...v0.5.1) (2026-02-06)
+
+- 🔖 chore(release): 发布 v0.5.1 ([88c2089](https://github.com/iamzjt-front-end/git-workflow/commit/88c2089))
+- feat(release): 优化发布脚本，自动同步更新 CHANGELOG 和 README 版本号 ([89af235](https://github.com/iamzjt-front-end/git-workflow/commit/89af235))
+
 ## [v0.5.0](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.7...v0.5.0) (2026-02-06)
 
 - 🔖 chore(release): 发布 v0.5.0 ([51c5740](https://github.com/iamzjt-front-end/git-workflow/commit/51c5740))
