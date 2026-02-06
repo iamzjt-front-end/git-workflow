@@ -153,7 +153,7 @@ describe("Update Notifier 模块测试", () => {
       consoleSpy.mockRestore();
     });
 
-    it("已是最新版本且1小时内不应该重复检查", async () => {
+    it("每次运行都应该后台检查最新版本", async () => {
       const mockCache = {
         lastCheck: Date.now(),
         latestVersion: "1.0.0",
@@ -167,14 +167,13 @@ describe("Update Notifier 模块测试", () => {
       await checkForUpdates("1.0.0");
       await vi.runAllTimersAsync();
 
-      // writeFileSync 不应该被调用（因为已是最新版本且在1小时内）
-      expect(writeFileSync).not.toHaveBeenCalled();
+      // 每次运行都应该后台检查
+      expect(writeFileSync).toHaveBeenCalled();
     });
 
-    it("已是最新版本但超过1小时应该重新检查", async () => {
-      const oneHourAgo = Date.now() - 2 * 60 * 60 * 1000; // 2小时前
+    it("后台检查应该更新缓存中的最新版本", async () => {
       const mockCache = {
-        lastCheck: oneHourAgo,
+        lastCheck: Date.now() - 2 * 60 * 60 * 1000,
         latestVersion: "1.0.0",
         checkedVersion: "1.0.0",
       };
@@ -311,7 +310,7 @@ describe("Update Notifier 模块测试", () => {
         { current: "1.0.0", latest: "1.0.1", shouldShow: true },
         { current: "1.0.0", latest: "1.1.0", shouldShow: true },
         { current: "1.0.0", latest: "2.0.0", shouldShow: true },
-        { current: "1.0.1", latest: "1.0.0", shouldShow: false },
+        { current: "1.0.1", latest: "1.0.0", shouldShow: true }, // 回滚场景也应该提示
         { current: "1.0.0", latest: "1.0.0", shouldShow: false },
       ];
 

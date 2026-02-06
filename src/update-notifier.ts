@@ -5,11 +5,9 @@ import { join } from "path";
 import boxen from "boxen";
 import { select } from "@inquirer/prompts";
 import ora from "ora";
-import semver from "semver";
 import { colors } from "./utils.js";
 
 const DISMISS_INTERVAL = 1000 * 60 * 60 * 24; // 24 小时后再次提示
-const CHECK_INTERVAL = 1000 * 60 * 60 * 1; // 已是最新版本时，1 小时检查一次
 const CACHE_FILE = ".gw-update-check";
 
 interface UpdateCache {
@@ -35,10 +33,10 @@ export async function checkForUpdates(
     const cache = readCache();
     const now = Date.now();
 
-    // 1. 先用缓存的结果提示用户（如果有新版本）
+    // 1. 先用缓存的结果提示用户（如果版本不一致）
     if (
       cache?.latestVersion &&
-      semver.gt(cache.latestVersion, currentVersion)
+      cache.latestVersion !== currentVersion
     ) {
       // 检查用户是否在 24 小时内关闭过提示
       const isDismissed =
@@ -76,23 +74,9 @@ export async function checkForUpdates(
 
 /**
  * 后台异步检查更新（不阻塞）
- * - 有新版本时：每次都检查
- * - 已是最新版本时：1 小时检查一次
+ * 每次运行命令时都异步检查一次
  */
 function backgroundCheck(currentVersion: string, packageName: string): void {
-  const cache = readCache();
-  const now = Date.now();
-
-  // 如果已是最新版本，且距离上次检查不到 1 小时，跳过
-  const isUpToDate =
-    cache?.latestVersion && !semver.gt(cache.latestVersion, currentVersion);
-  const recentlyChecked =
-    cache?.lastCheck && now - cache.lastCheck < CHECK_INTERVAL;
-
-  if (isUpToDate && recentlyChecked) {
-    return;
-  }
-
   // 使用 setImmediate 确保不阻塞主流程
   setImmediate(async () => {
     try {
