@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## [v0.5.0](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.7...v0.5.0) (2026-02-06)
+
+- 🔖 chore(release): 发布 v0.5.0 ([51c5740](https://github.com/iamzjt-front-end/git-workflow/commit/51c5740))
+- docs(readme): Add AI code review command example and update command list ([7e4ab78](https://github.com/iamzjt-front-end/git-workflow/commit/7e4ab78))
+- 📝 docs: 自动更新测试数量徽章 [skip ci] ([bba208d](https://github.com/iamzjt-front-end/git-workflow/commit/bba208d))
+- feat(review): Add AI code review command and documentation ([3f7b3b2](https://github.com/iamzjt-front-end/git-workflow/commit/3f7b3b2))
+
 ## [v0.4.7](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.6...v0.4.7) (2026-01-21)
 
 - 🔖 chore(release): 发布 v0.4.7 ([61ae098](https://github.com/iamzjt-front-end/git-workflow/commit/61ae098))
