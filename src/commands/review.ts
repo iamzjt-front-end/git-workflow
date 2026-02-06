@@ -72,6 +72,17 @@ const AI_PROVIDERS: Record<string, AIProvider> = {
 // ========== 辅助函数 ==========
 
 /**
+ * 解析 git log 输出的 commit 信息
+ */
+function parseCommitLine(line: string): CommitInfo | null {
+  const parts = line.split("|");
+  if (parts.length < 5) return null;
+  
+  const [hash, shortHash, subject, author, date] = parts;
+  return { hash, shortHash, subject, author, date };
+}
+
+/**
  * 获取最近的 commits 列表
  */
 function getRecentCommits(limit: number = 20): CommitInfo[] {
@@ -84,10 +95,8 @@ function getRecentCommits(limit: number = 20): CommitInfo[] {
     return output
       .split("\n")
       .filter(Boolean)
-      .map((line) => {
-        const [hash, shortHash, subject, author, date] = line.split("|");
-        return { hash, shortHash, subject, author, date };
-      });
+      .map((line) => parseCommitLine(line))
+      .filter((c): c is CommitInfo => c !== null);
   } catch {
     return [];
   }
@@ -632,10 +641,15 @@ export async function review(
     // 检查是否是范围语法 (abc123..def456)
     if (hashes.length === 1 && hashes[0].includes("..") && !hashes[0].includes("...")) {
       const range = hashes[0];
+      const [startHash, endHash] = range.split("..");
+      
+      // 使用 startHash^..endHash 来包含起始 commit（闭区间 [A, B]）
+      const inclusiveRange = `${startHash}^..${endHash}`;
+      
       // 获取范围内的所有 commits
       try {
         const output = execOutput(
-          `git log ${range} --pretty=format:"%H|%h|%s|%an|%ad" --date=short --reverse`
+          `git log ${inclusiveRange} --pretty=format:"%H|%h|%s|%an|%ad" --date=short --reverse`
         );
         if (!output) {
           console.log(colors.red(`❌ 无效的 commit 范围: ${range}`));
@@ -644,12 +658,10 @@ export async function review(
         commits = output
           .split("\n")
           .filter(Boolean)
-          .map((line) => {
-            const [hash, shortHash, subject, author, date] = line.split("|");
-            return { hash, shortHash, subject, author, date };
-          });
+          .map((line) => parseCommitLine(line))
+          .filter((c): c is CommitInfo => c !== null);
         // 获取范围 diff
-        diff = execOutput(`git diff ${range}`) || "";
+        diff = execOutput(`git diff ${inclusiveRange}`) || "";
       } catch {
         console.log(colors.red(`❌ 无效的 commit 范围: ${range}`));
         process.exit(1);
@@ -664,8 +676,12 @@ export async function review(
           console.log(colors.red(`❌ 找不到 commit: ${hash}`));
           process.exit(1);
         }
-        const [fullHash, shortHash, subject, author, date] = info.split("|");
-        return { hash: fullHash, shortHash, subject, author, date };
+        const commit = parseCommitLine(info);
+        if (!commit) {
+          console.log(colors.red(`❌ 无法解析 commit 信息: ${hash}`));
+          process.exit(1);
+        }
+        return commit;
       });
       diff = getMultipleCommitsDiff(hashes);
     }
