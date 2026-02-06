@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { homedir } from "os";
 import { checkForUpdates, clearUpdateCache } from "../src/update-notifier";
@@ -28,6 +28,11 @@ describe("Update Notifier 模块测试", () => {
     vi.clearAllMocks();
     vi.mocked(homedir).mockReturnValue("/home/user");
     vi.useFakeTimers();
+    
+    // Mock spawn 返回一个带 unref 的对象
+    vi.mocked(spawn).mockReturnValue({
+      unref: vi.fn(),
+    } as any);
   });
 
   afterEach(() => {
@@ -62,16 +67,20 @@ describe("Update Notifier 模块测试", () => {
   });
 
   describe("checkForUpdates 函数", () => {
-    it("没有缓存时应该后台检查", async () => {
+    it("没有缓存时应该启动后台检查", async () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      vi.mocked(execSync).mockReturnValue("1.0.1" as any);
 
       await checkForUpdates("1.0.0");
 
-      // 等待异步操作
-      await vi.runAllTimersAsync();
-
-      expect(writeFileSync).toHaveBeenCalled();
+      // 没有缓存时应该启动子进程检查
+      expect(spawn).toHaveBeenCalledWith(
+        "node",
+        expect.arrayContaining(["-e", expect.any(String)]),
+        expect.objectContaining({
+          detached: true,
+          stdio: "ignore",
+        })
+      );
     });
 
     it("版本相同时不应该显示提示", async () => {
@@ -153,61 +162,20 @@ describe("Update Notifier 模块测试", () => {
       consoleSpy.mockRestore();
     });
 
-    it("每次运行都应该后台检查最新版本", async () => {
-      const mockCache = {
-        lastCheck: Date.now(),
-        latestVersion: "1.0.0",
-        checkedVersion: "1.0.0",
-      };
-
-      vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockCache));
-      vi.mocked(execSync).mockReturnValue("1.0.1" as any);
-
-      await checkForUpdates("1.0.0");
-      await vi.runAllTimersAsync();
-
-      // 每次运行都应该后台检查
-      expect(writeFileSync).toHaveBeenCalled();
-    });
-
-    it("后台检查应该更新缓存中的最新版本", async () => {
-      const mockCache = {
-        lastCheck: Date.now() - 2 * 60 * 60 * 1000,
-        latestVersion: "1.0.0",
-        checkedVersion: "1.0.0",
-      };
-
-      vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockCache));
-      vi.mocked(execSync).mockReturnValue("1.0.1" as any);
-
-      await checkForUpdates("1.0.0");
-      await vi.runAllTimersAsync();
-
-      expect(writeFileSync).toHaveBeenCalled();
-    });
-
-    it("有新版本时每次都应该后台检查", async () => {
+    it("每次运行都应该启动后台检查", async () => {
       const mockCache = {
         lastCheck: Date.now(), // 刚刚检查过
-        latestVersion: "1.0.1", // 有新版本
+        latestVersion: "1.0.0",
         checkedVersion: "1.0.0",
       };
 
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockCache));
-      vi.mocked(execSync).mockReturnValue("1.0.2" as any);
-
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
       await checkForUpdates("1.0.0");
-      await vi.runAllTimersAsync();
 
-      // 即使刚检查过，有新版本时也应该继续检查
-      expect(writeFileSync).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+      // 每次都应该启动子进程检查
+      expect(spawn).toHaveBeenCalled();
     });
 
     it("缓存文件损坏时应该静默处理", async () => {
@@ -310,7 +278,7 @@ describe("Update Notifier 模块测试", () => {
         { current: "1.0.0", latest: "1.0.1", shouldShow: true },
         { current: "1.0.0", latest: "1.1.0", shouldShow: true },
         { current: "1.0.0", latest: "2.0.0", shouldShow: true },
-        { current: "1.0.1", latest: "1.0.0", shouldShow: true }, // 回滚场景也应该提示
+        { current: "1.0.1", latest: "1.0.0", shouldShow: false }, // 本地版本更高，不提示
         { current: "1.0.0", latest: "1.0.0", shouldShow: false },
       ];
 
@@ -343,23 +311,8 @@ describe("Update Notifier 模块测试", () => {
   });
 
   describe("缓存读写", () => {
-    it("应该正确写入缓存", async () => {
-      vi.mocked(existsSync).mockReturnValue(false);
-      vi.mocked(execSync).mockReturnValue("1.0.1" as any);
-
-      await checkForUpdates("1.0.0");
-      await vi.runAllTimersAsync();
-
-      expect(writeFileSync).toHaveBeenCalledWith(
-        "/home/user/.gw-update-check",
-        expect.stringContaining("1.0.1"),
-        "utf-8"
-      );
-    });
-
     it("写入缓存失败时应该静默处理", async () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      vi.mocked(execSync).mockReturnValue("1.0.1" as any);
       vi.mocked(writeFileSync).mockImplementation(() => {
         throw new Error("Write failed");
       });
@@ -380,24 +333,24 @@ describe("Update Notifier 模块测试", () => {
   describe("网络请求", () => {
     it("获取最新版本失败时应该静默处理", async () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      vi.mocked(execSync).mockImplementation(() => {
-        throw new Error("Network error");
+      vi.mocked(spawn).mockImplementation(() => {
+        throw new Error("Spawn error");
       });
 
       await expect(checkForUpdates("1.0.0")).resolves.not.toThrow();
     });
 
-    it("应该使用正确的 npm 命令", async () => {
+    it("后台检查应该使用正确的参数", async () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      vi.mocked(execSync).mockReturnValue("1.0.1" as any);
 
       await checkForUpdates("1.0.0", "@zjex/git-workflow");
-      await vi.runAllTimersAsync();
 
-      expect(execSync).toHaveBeenCalledWith(
-        "npm view @zjex/git-workflow version",
+      expect(spawn).toHaveBeenCalledWith(
+        "node",
+        expect.arrayContaining(["-e", expect.stringContaining("npm view @zjex/git-workflow version")]),
         expect.objectContaining({
-          timeout: 3000,
+          detached: true,
+          stdio: "ignore",
         })
       );
     });

@@ -629,19 +629,46 @@ export async function review(
 
   // 确定要审查的内容
   if (hashes && hashes.length > 0) {
-    // 指定了 commit hash
-    commits = hashes.map((hash) => {
-      const info = execOutput(
-        `git log -1 --pretty=format:"%H|%h|%s|%an|%ad" --date=short ${hash}`
-      );
-      if (!info) {
-        console.log(colors.red(`❌ 找不到 commit: ${hash}`));
+    // 检查是否是范围语法 (abc123..def456)
+    if (hashes.length === 1 && hashes[0].includes("..") && !hashes[0].includes("...")) {
+      const range = hashes[0];
+      // 获取范围内的所有 commits
+      try {
+        const output = execOutput(
+          `git log ${range} --pretty=format:"%H|%h|%s|%an|%ad" --date=short --reverse`
+        );
+        if (!output) {
+          console.log(colors.red(`❌ 无效的 commit 范围: ${range}`));
+          process.exit(1);
+        }
+        commits = output
+          .split("\n")
+          .filter(Boolean)
+          .map((line) => {
+            const [hash, shortHash, subject, author, date] = line.split("|");
+            return { hash, shortHash, subject, author, date };
+          });
+        // 获取范围 diff
+        diff = execOutput(`git diff ${range}`) || "";
+      } catch {
+        console.log(colors.red(`❌ 无效的 commit 范围: ${range}`));
         process.exit(1);
       }
-      const [fullHash, shortHash, subject, author, date] = info.split("|");
-      return { hash: fullHash, shortHash, subject, author, date };
-    });
-    diff = getMultipleCommitsDiff(hashes);
+    } else {
+      // 指定了单个或多个 commit hash
+      commits = hashes.map((hash) => {
+        const info = execOutput(
+          `git log -1 --pretty=format:"%H|%h|%s|%an|%ad" --date=short ${hash}`
+        );
+        if (!info) {
+          console.log(colors.red(`❌ 找不到 commit: ${hash}`));
+          process.exit(1);
+        }
+        const [fullHash, shortHash, subject, author, date] = info.split("|");
+        return { hash: fullHash, shortHash, subject, author, date };
+      });
+      diff = getMultipleCommitsDiff(hashes);
+    }
   } else if (options.last) {
     // 审查最近 N 个 commits
     commits = getRecentCommits(options.last);
@@ -651,7 +678,7 @@ export async function review(
     diff = getStagedDiff();
   } else {
     // 交互式选择
-    const recentCommits = getRecentCommits(20);
+    const recentCommits = getRecentCommits(10);
     const stagedDiff = getStagedDiff();
 
     const choices: any[] = [];

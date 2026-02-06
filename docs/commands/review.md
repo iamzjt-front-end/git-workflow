@@ -14,6 +14,9 @@ gw review abc1234
 # 审查多个 commits
 gw review abc1234 def5678
 
+# 审查 commit 范围（从 abc1234 到 def5678 之间的所有 commits）
+gw review abc1234..def5678
+
 # 审查最近 N 个 commits
 gw review -n 3
 gw review --last 3

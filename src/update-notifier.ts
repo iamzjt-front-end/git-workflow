@@ -1,10 +1,11 @@
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 import boxen from "boxen";
 import { select } from "@inquirer/prompts";
 import ora from "ora";
+import semver from "semver";
 import { colors } from "./utils.js";
 
 const DISMISS_INTERVAL = 1000 * 60 * 60 * 24; // 24 小时后再次提示
@@ -33,10 +34,10 @@ export async function checkForUpdates(
     const cache = readCache();
     const now = Date.now();
 
-    // 1. 先用缓存的结果提示用户（如果版本不一致）
+    // 1. 先用缓存的结果提示用户（如果有更新版本）
     if (
       cache?.latestVersion &&
-      cache.latestVersion !== currentVersion
+      semver.gt(cache.latestVersion, currentVersion)
     ) {
       // 检查用户是否在 24 小时内关闭过提示
       const isDismissed =
@@ -61,8 +62,8 @@ export async function checkForUpdates(
       }
     }
 
-    // 2. 后台异步检查更新（每次都检查，不阻塞）
-    backgroundCheck(currentVersion, packageName);
+    // 2. 后台子进程检查更新（每次都检查，不阻塞）
+    spawnBackgroundCheck(packageName);
   } catch (error) {
     // 如果是用户按 Ctrl+C，重新抛出让全局处理
     if (error?.constructor?.name === "ExitPromptError") {
@@ -73,28 +74,47 @@ export async function checkForUpdates(
 }
 
 /**
- * 后台异步检查更新（不阻塞）
- * 每次运行命令时都异步检查一次
+ * 在子进程中检查更新（不阻塞主进程）
+ * 使用 unref() 确保主进程退出后子进程仍能完成
  */
-function backgroundCheck(currentVersion: string, packageName: string): void {
-  // 使用 setImmediate 确保不阻塞主流程
-  setImmediate(async () => {
-    try {
-      const latestVersion = await getLatestVersion(packageName);
+function spawnBackgroundCheck(packageName: string): void {
+  try {
+    const cacheFile = join(homedir(), CACHE_FILE);
+    
+    // 使用 node -e 执行检查脚本
+    const script = `
+      const { execSync } = require('child_process');
+      const { writeFileSync, readFileSync, existsSync } = require('fs');
+      try {
+        const version = execSync('npm view ${packageName} version', {
+          encoding: 'utf-8',
+          timeout: 10000,
+          stdio: ['pipe', 'pipe', 'ignore']
+        }).trim();
+        if (version) {
+          let cache = {};
+          try {
+            if (existsSync('${cacheFile}')) {
+              cache = JSON.parse(readFileSync('${cacheFile}', 'utf-8'));
+            }
+          } catch {}
+          cache.lastCheck = Date.now();
+          cache.latestVersion = version;
+          writeFileSync('${cacheFile}', JSON.stringify(cache), 'utf-8');
+        }
+      } catch {}
+    `;
 
-      if (latestVersion) {
-        const cache = readCache() || {};
-        writeCache({
-          ...cache,
-          lastCheck: Date.now(),
-          latestVersion,
-          checkedVersion: currentVersion,
-        });
-      }
-    } catch {
-      // 静默失败
-    }
-  });
+    const child = spawn("node", ["-e", script], {
+      detached: true,
+      stdio: "ignore",
+    });
+
+    // unref 让主进程可以独立退出
+    child.unref();
+  } catch {
+    // 静默失败
+  }
 }
 
 /**
@@ -106,22 +126,6 @@ function isUsingVolta(): boolean {
     return whichGw.includes(".volta");
   } catch {
     return false;
-  }
-}
-
-/**
- * 获取 npm 上的最新版本
- */
-async function getLatestVersion(packageName: string): Promise<string | null> {
-  try {
-    const result = execSync(`npm view ${packageName} version`, {
-      encoding: "utf-8",
-      timeout: 3000,
-      stdio: ["pipe", "pipe", "ignore"], // 忽略 stderr
-    });
-    return result.trim();
-  } catch {
-    return null;
   }
 }
 
