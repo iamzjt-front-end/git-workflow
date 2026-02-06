@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [v0.4.7](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.6...v0.4.7) (2026-01-21)
+
+- 🔖 chore(release): 发布 v0.4.7 ([61ae098](https://github.com/iamzjt-front-end/git-workflow/commit/61ae098))
+- feat(docs): 添加 Debug 模式和命令引号处理指南链接 ([1a4535d](https://github.com/iamzjt-front-end/git-workflow/commit/1a4535d))
+- docs(changelog): 更新CHANGELOG生成格式 ([bf95ca7](https://github.com/iamzjt-front-end/git-workflow/commit/bf95ca7))
+
 ## [v0.4.6](https://github.com/iamzjt-front-end/git-workflow/compare/v0.4.5...v0.4.6) (2026-01-20)
 
 - 🔖 chore(release): 发布 v0.4.6 ([317793a](https://github.com/iamzjt-front-end/git-workflow/commit/317793a))
