@@ -12,6 +12,7 @@ Git Workflow 提供了一套简洁而强大的命令，涵盖了 Git 工作流�
 | `gw f`     | `feat`, `feature` | 创建 feature 分支   | `gw f --base develop` |
 | `gw h`     | `fix`, `hotfix`   | 创建 hotfix 分支    | `gw h`                |
 | `gw c`     | `cm`, `commit`    | 提交代码（AI 模式） | `gw c`                |
+| `gw review`| `rw`              | AI 代码审查         | `gw review abc1234`   |
 | `gw log`   | `ls`, `l`         | 查看提交历史        | `gw log`              |
 | `gw amend` | -                 | 修改提交信息        | `gw amend a1b2c3d`    |
 | `gw ad`    | `amend:date`      | 修改提交时间        | `gw ad`               |
@@ -187,6 +188,7 @@ DEBUG=gw:* gw c
 处理代码提交和提交信息：
 
 - [**gw c**](/commands/commit) - 交互式提交（支持 AI 生成）
+- [**gw review**](/commands/review) - AI 代码审查，生成详细审查报告
 - [**gw log**](/commands/log) - 查看 Git 提交历史（GitHub 风格）
 - [**gw amend**](/commands/amend) - 修改指定 commit 的提交信息
 - [**gw ad**](/commands/amend-date) - 修改指定 commit 的提交时间
@@ -281,6 +283,7 @@ gw d
 - [**交互式菜单**](/commands/interactive) - 了解主菜单的所有功能
 - [**分支命令**](/commands/branch) - 掌握分支管理的最佳实践
 - [**提交命令**](/commands/commit) - 深入了解 AI 提交和手动提交
+- [**代码审查**](/commands/review) - AI 智能代码审查
 - [**日志命令**](/commands/log) - GitHub 风格的提交历史查看
 - [**Tag 命令**](/commands/tag) - 学习版本标签的高级用法
 - [**Stash 命令**](/commands/stash) - 高效管理代码暂存
@@ -297,6 +300,7 @@ gw d
 
 - **我想创建分支** → `gw f` (feature) 或 `gw h` (hotfix)
 - **我想提交代码** → `gw c` (commit)
+- **我想审查代码** → `gw review` (AI 代码审查)
 - **我想查看历史** → `gw log` (log)
 - **我想创建版本** → `gw t` (tag) 或 `gw r` (release)
 - **我想删除分支** → `gw brd` (branch delete)

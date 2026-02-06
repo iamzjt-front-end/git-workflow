@@ -47,6 +47,13 @@
 - 支持 GitHub Models（免费）、OpenAI、Claude、Ollama 等多种提供商
 - 遵循 Conventional Commits + Gitmoji 规范
 
+### 🔍 AI 代码审查
+
+- 使用 AI 对代码变更进行智能审查，生成详细的 Markdown 审查报告
+- 支持审查暂存区、指定 commit 或交互式选择多个 commits
+- 问题分级（🔴 严重 / 🟡 警告 / 🔵 建议），提供具体代码改进建议
+- 覆盖代码质量、安全问题、性能问题、最佳实践等多个维度
+
 ### 🎯 规范分支管理
 
 - 自动生成带日期的规范分支名（`feature/20260109-PROJ-123-add-login`）

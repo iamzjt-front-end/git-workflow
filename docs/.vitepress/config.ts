@@ -39,6 +39,7 @@ export default defineConfig({
           text: "核心功能",
           items: [
             { text: "AI 智能提交", link: "/guide/ai-commit" },
+            { text: "AI 代码审查", link: "/guide/ai-review" },
             { text: "分支管理", link: "/guide/branch-management" },
             { text: "Tag 管理", link: "/guide/tag-management" },
             { text: "Stash 管理", link: "/guide/stash-management" },
@@ -69,6 +70,7 @@ export default defineConfig({
             { text: "交互式菜单", link: "/commands/interactive" },
             { text: "分支命令", link: "/commands/branch" },
             { text: "提交命令", link: "/commands/commit" },
+            { text: "AI 代码审查", link: "/commands/review" },
             { text: "日志命令", link: "/commands/log" },
             { text: "修改提交信息", link: "/commands/amend" },
             { text: "修改提交时间", link: "/commands/amend-date" },

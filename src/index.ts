@@ -31,6 +31,7 @@ import { update } from "./commands/update.js";
 import { log, quickLog } from "./commands/log.js";
 import { amendDate } from "./commands/amend-date.js";
 import { amend } from "./commands/amend.js";
+import { review } from "./commands/review.js";
 
 // ========== 全局错误处理 ==========
 
@@ -171,7 +172,11 @@ async function mainMenu(): Promise<void> {
         value: "amend",
       },
       {
-        name: `[e] ⚙️  初始化配置             ${colors.dim("gw init")}`,
+        name: `[e] 🔍 AI 代码审查            ${colors.dim("gw review")}`,
+        value: "review",
+      },
+      {
+        name: `[f] ⚙️  初始化配置             ${colors.dim("gw init")}`,
         value: "init",
       },
       { name: "[0] ❓ 帮助", value: "help" },
@@ -232,6 +237,10 @@ async function mainMenu(): Promise<void> {
     case "amend":
       checkGitRepo();
       await amend();
+      break;
+    case "review":
+      checkGitRepo();
+      await review();
       break;
     case "init":
       await init();
@@ -411,6 +420,25 @@ cli
     await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return amend(hash);
+  });
+
+cli
+  .command("review [...hashes]", "AI 代码审查")
+  .alias("rw")
+  .option("-n, --last <number>", "审查最近 N 个 commits")
+  .option("-s, --staged", "审查暂存区的更改")
+  .option("-o, --output <path>", "指定输出文件路径")
+  .action(async (hashes: string[], options: any) => {
+    await checkForUpdates(version, "@zjex/git-workflow");
+    checkGitRepo();
+    return review(
+      hashes.length > 0 ? hashes : undefined,
+      {
+        last: options.last ? parseInt(options.last) : undefined,
+        staged: options.staged,
+        output: options.output,
+      }
+    );
   });
 
 cli
