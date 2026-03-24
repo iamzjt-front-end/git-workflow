@@ -42,6 +42,7 @@ gw.config.json      # 明确的配置文件名
   "featureIdLabel": "Story ID",
   "hotfixIdLabel": "Issue ID",
   "defaultTagPrefix": "v",
+  "tagLookupStrategy": "latest",
   "autoPush": true,
   "autoStage": true,
   "useEmoji": true
@@ -59,6 +60,7 @@ gw.config.json      # 明确的配置文件名
   "featureIdLabel": "Story ID",
   "hotfixIdLabel": "Issue ID",
   "defaultTagPrefix": "v",
+  "tagLookupStrategy": "latest",
   "autoPush": true,
   "autoStage": true,
   "useEmoji": true,
@@ -231,6 +233,22 @@ gw.config.json      # 明确的配置文件名
 **效果：**
 - 创建 tag 时直接使用 `v` 前缀
 - 跳过前缀选择界面
+
+#### tagLookupStrategy
+
+**类型：** `"all" | "latest"`  
+**默认值：** `"latest"`  
+**说明：** 创建 tag 时如何确定递增基准
+
+```json
+{
+  "tagLookupStrategy": "latest"
+}
+```
+
+**选项说明：**
+- `"latest"` - 默认行为。优先基于本地最新创建的 tag 递增，避免历史误打的高版本 tag 干扰排序；如果当前前缀在本地不存在，会自动回退到一次全量同步
+- `"all"` - 全量拉取 tags，并按版本号排序后取最新值
 
 ### 提交配置
 

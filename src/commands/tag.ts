@@ -10,6 +10,14 @@ import {
   divider,
 } from "../utils.js";
 import { getConfig } from "../config.js";
+import {
+  extractTagPrefix,
+  getLatestTagCommand,
+  isValidVersionTag,
+  normalizeTagLookupStrategy,
+  shouldFetchAllTagsForCreateTag,
+  type TagLookupStrategy,
+} from "../tag-utils.js";
 
 /**
  * 列出 tags（最新的显示在最下面，多个前缀分列展示）
@@ -29,7 +37,7 @@ export async function listTags(prefix?: string): Promise<void> {
 
   // 3. 过滤无效 tag（如 vnull、vundefined 等误操作产生的 tag）
   // 有效 tag 必须包含数字（版本号）
-  const tags = allTags.filter((tag) => /\d/.test(tag));
+  const tags = allTags.filter(isValidVersionTag);
 
   // 4. 如果没有 tags，提示并返回
   if (tags.length === 0) {
@@ -57,7 +65,7 @@ export async function listTags(prefix?: string): Promise<void> {
   const grouped = new Map<string, string[]>();
   tags.forEach((tag) => {
     // 提取数字之前的字母部分作为前缀（如 "v0.1.0" -> "v"）
-    const prefix = tag.replace(/\d.*/, "") || "(无前缀)";
+    const prefix = extractTagPrefix(tag) || "(无前缀)";
     if (!grouped.has(prefix)) {
       grouped.set(prefix, []);
     }
@@ -147,18 +155,21 @@ interface TagChoice {
 }
 
 // 获取指定前缀的最新有效 tag（必须包含数字）
-function getLatestTag(prefix: string): string {
-  const tags = execOutput(`git tag -l "${prefix}*" --sort=-v:refname`)
+function getLatestTag(
+  prefix: string,
+  strategy: TagLookupStrategy = "latest",
+): string {
+  const tags = execOutput(getLatestTagCommand(prefix, strategy))
     .split("\n")
-    .filter((tag) => tag && /\d/.test(tag)); // 过滤无效 tag
+    .filter((tag) => tag && isValidVersionTag(tag)); // 过滤无效 tag
   return tags[0] || "";
 }
 
 export async function createTag(inputPrefix?: string): Promise<void> {
   const config = getConfig();
-  const fetchSpinner = ora("正在获取 tags...").start();
-  exec("git fetch --tags", true);
-  fetchSpinner.stop();
+  const tagLookupStrategy = normalizeTagLookupStrategy(
+    config.tagLookupStrategy,
+  );
 
   divider();
 
@@ -170,11 +181,17 @@ export async function createTag(inputPrefix?: string): Promise<void> {
     console.log(colors.dim(`(使用配置的默认前缀: ${prefix})`));
   }
 
+  if (shouldFetchAllTagsForCreateTag(tagLookupStrategy, prefix)) {
+    const fetchSpinner = ora("正在获取 tags...").start();
+    exec("git fetch --tags", true);
+    fetchSpinner.stop();
+  }
+
   if (!prefix) {
     // 过滤无效 tag（如 vnull、vundefined 等误操作产生的 tag）
     const allTags = execOutput("git tag -l")
       .split("\n")
-      .filter((tag) => tag && /\d/.test(tag));
+      .filter((tag) => tag && isValidVersionTag(tag));
 
     // 仓库没有任何 tag 的情况
     if (allTags.length === 0) {
@@ -228,9 +245,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
     }
 
     // 从现有 tag 中提取前缀（数字之前的字母部分）
-    const prefixes = [
-      ...new Set(allTags.map((t) => t.replace(/\d.*/, "")).filter(Boolean)),
-    ];
+    const prefixes = [...new Set(allTags.map(extractTagPrefix).filter(Boolean))];
 
     if (prefixes.length === 0) {
       // 有 tag 但无法提取前缀（比如纯数字 tag）
@@ -245,7 +260,7 @@ export async function createTag(inputPrefix?: string): Promise<void> {
       }
     } else {
       const prefixWithDate: PrefixInfo[] = prefixes.map((p) => {
-        const latest = getLatestTag(p);
+        const latest = getLatestTag(p, tagLookupStrategy);
         const date = latest
           ? execOutput(`git log -1 --format=%ct "${latest}" 2>/dev/null`)
           : "0";
@@ -276,7 +291,14 @@ export async function createTag(inputPrefix?: string): Promise<void> {
     }
   }
 
-  const latestTag = getLatestTag(prefix);
+  let latestTag = getLatestTag(prefix, tagLookupStrategy);
+
+  if (!latestTag && tagLookupStrategy === "latest") {
+    const fetchSpinner = ora("本地未找到对应 tag，正在全量同步一次...").start();
+    exec("git fetch --tags", true);
+    fetchSpinner.stop();
+    latestTag = getLatestTag(prefix, tagLookupStrategy);
+  }
 
   if (!latestTag) {
     const newTag = `${prefix}1.0.0`;
@@ -297,7 +319,9 @@ export async function createTag(inputPrefix?: string): Promise<void> {
     return;
   }
 
-  console.log(colors.yellow(`当前最新 tag: ${latestTag}`));
+  const strategyText =
+    tagLookupStrategy === "latest" ? "最新创建" : "版本排序";
+  console.log(colors.yellow(`当前基准 tag (${strategyText}): ${latestTag}`));
 
   divider();
 

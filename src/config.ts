@@ -21,6 +21,8 @@ export interface GwConfig {
   hotfixIdLabel: string;
   // 默认 tag 前缀
   defaultTagPrefix?: string;
+  // tag 递增基准策略，all=全量按版本排序，latest=按最新创建的 tag 递增
+  tagLookupStrategy?: "all" | "latest";
   // 创建分支后是否自动推送，默认询问
   autoPush?: boolean;
   // commit 时是否自动暂存所有更改，默认 true
@@ -60,6 +62,7 @@ const defaultConfig: GwConfig = {
   requireId: false,
   featureIdLabel: "Story ID",
   hotfixIdLabel: "Issue ID",
+  tagLookupStrategy: "latest",
   autoStage: true,
   useEmoji: true,
 };

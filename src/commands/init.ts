@@ -148,6 +148,24 @@ export async function init(): Promise<void> {
   });
   if (defaultTagPrefix) config.defaultTagPrefix = defaultTagPrefix;
 
+  const tagLookupStrategy = await select({
+    message: "Tag 递增基准策略:",
+    choices: [
+      {
+        name: "仅基于最新创建的 Tag（默认）",
+        value: "latest",
+        description: "避免历史误打的高版本 tag 干扰后续递增",
+      },
+      {
+        name: "全量排序",
+        value: "all",
+        description: "全量拉取 tags，并按版本号排序后取最新值",
+      },
+    ],
+    theme,
+  });
+  config.tagLookupStrategy = tagLookupStrategy as "all" | "latest";
+
   // 自动推送
   const autoPushChoice = await select({
     message: "创建分支后是否自动推送?",

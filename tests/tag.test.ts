@@ -1,46 +1,89 @@
 import { describe, it, expect } from "vitest";
+import {
+  extractTagPrefix,
+  getLatestTagCommand,
+  isValidVersionTag,
+  normalizeTagLookupStrategy,
+  shouldFetchAllTagsForCreateTag,
+} from "../src/tag-utils";
 
 describe("Tag 功能测试", () => {
+  describe("Tag 策略", () => {
+    it("默认应该使用 latest 策略", () => {
+      expect(normalizeTagLookupStrategy(undefined)).toBe("latest");
+      expect(normalizeTagLookupStrategy("unknown")).toBe("latest");
+    });
+
+    it("应该识别 latest 策略", () => {
+      expect(normalizeTagLookupStrategy("latest")).toBe("latest");
+    });
+
+    it("all 策略应该始终全量拉取 tags", () => {
+      expect(shouldFetchAllTagsForCreateTag("all", "v")).toBe(true);
+      expect(shouldFetchAllTagsForCreateTag("all")).toBe(true);
+    });
+
+    it("latest 策略在已知前缀时不应该全量拉取 tags", () => {
+      expect(shouldFetchAllTagsForCreateTag("latest", "v")).toBe(false);
+    });
+
+    it("latest 策略在未知前缀时应该回退为全量拉取", () => {
+      expect(shouldFetchAllTagsForCreateTag("latest")).toBe(true);
+    });
+
+    it("应该生成全量排序的最新 tag 查询命令", () => {
+      expect(getLatestTagCommand("v", "all")).toBe(
+        'git tag -l "v*" --sort=-v:refname',
+      );
+    });
+
+    it("应该生成按时间获取最新 tag 的查询命令", () => {
+      expect(getLatestTagCommand("v", "latest")).toBe(
+        'git for-each-ref --sort=-creatordate --format="%(refname:short)" "refs/tags/v*"',
+      );
+    });
+  });
+
   describe("前缀提取", () => {
     it("应该正确提取 v 前缀", () => {
       const tag = "v0.1.0";
-      const prefix = tag.replace(/[0-9].*/, "");
+      const prefix = extractTagPrefix(tag);
       expect(prefix).toBe("v");
     });
 
     it("应该正确提取 release- 前缀", () => {
       const tag = "release-1.0.0";
-      const prefix = tag.replace(/[0-9].*/, "");
+      const prefix = extractTagPrefix(tag);
       expect(prefix).toBe("release-");
     });
 
     it("应该正确提取 @ 开头的 scope 前缀", () => {
       const tag = "@scope/package@1.0.0";
-      const prefix = tag.replace(/[0-9].*/, "");
+      const prefix = extractTagPrefix(tag);
       expect(prefix).toBe("@scope/package@");
     });
 
     it("应该正确处理无前缀 tag", () => {
       const tag = "1.0.0";
-      const prefix = tag.replace(/[0-9].*/, "") || "(无前缀)";
+      const prefix = extractTagPrefix(tag) || "(无前缀)";
       expect(prefix).toBe("(无前缀)");
     });
 
     it("应该正确提取 g 前缀", () => {
       const tag = "g0.1.0";
-      const prefix = tag.replace(/[0-9].*/, "");
+      const prefix = extractTagPrefix(tag);
       expect(prefix).toBe("g");
     });
 
     it("应该正确提取带下划线的前缀", () => {
       const tag = "version_1.0.0";
-      const prefix = tag.replace(/[0-9].*/, "");
+      const prefix = extractTagPrefix(tag);
       expect(prefix).toBe("version_");
     });
 
     it("应该正确提取带点的前缀", () => {
       const tag = "v.1.0.0";
-      const prefix = tag.replace(/[0-9].*/, "");
+      const prefix = extractTagPrefix(tag);
       expect(prefix).toBe("v.");
     });
   });
@@ -51,7 +94,7 @@ describe("Tag 功能测试", () => {
       const grouped = new Map<string, string[]>();
 
       tags.forEach((tag) => {
-        const prefix = tag.replace(/[0-9].*/, "") || "(无前缀)";
+        const prefix = extractTagPrefix(tag) || "(无前缀)";
         if (!grouped.has(prefix)) {
           grouped.set(prefix, []);
         }
@@ -75,7 +118,7 @@ describe("Tag 功能测试", () => {
       const grouped = new Map<string, string[]>();
 
       tags.forEach((tag) => {
-        const prefix = tag.replace(/[0-9].*/, "") || "(无前缀)";
+        const prefix = extractTagPrefix(tag) || "(无前缀)";
         if (!grouped.has(prefix)) {
           grouped.set(prefix, []);
         }
@@ -94,7 +137,7 @@ describe("Tag 功能测试", () => {
       const grouped = new Map<string, string[]>();
 
       tags.forEach((tag) => {
-        const prefix = tag.replace(/[0-9].*/, "") || "(无前缀)";
+        const prefix = extractTagPrefix(tag) || "(无前缀)";
         if (!grouped.has(prefix)) {
           grouped.set(prefix, []);
         }
@@ -397,56 +440,56 @@ describe("Tag 功能测试", () => {
   describe("无效标签检测", () => {
     it("应该识别不包含数字的标签为无效", () => {
       const tag = "vnull";
-      const isInvalid = !/\d/.test(tag);
+      const isInvalid = !isValidVersionTag(tag);
 
       expect(isInvalid).toBe(true);
     });
 
     it("应该识别 vundefined 为无效标签", () => {
       const tag = "vundefined";
-      const isInvalid = !/\d/.test(tag);
+      const isInvalid = !isValidVersionTag(tag);
 
       expect(isInvalid).toBe(true);
     });
 
     it("应该识别空版本号为无效标签", () => {
       const tag = "v";
-      const isInvalid = !/\d/.test(tag);
+      const isInvalid = !isValidVersionTag(tag);
 
       expect(isInvalid).toBe(true);
     });
 
     it("应该识别纯字母标签为无效", () => {
       const tag = "release";
-      const isInvalid = !/\d/.test(tag);
+      const isInvalid = !isValidVersionTag(tag);
 
       expect(isInvalid).toBe(true);
     });
 
     it("应该识别包含数字的标签为有效", () => {
       const tag = "v1.0.0";
-      const isValid = /\d/.test(tag);
+      const isValid = isValidVersionTag(tag);
 
       expect(isValid).toBe(true);
     });
 
     it("应该识别预发布版本为有效", () => {
       const tag = "v1.0.0-beta.1";
-      const isValid = /\d/.test(tag);
+      const isValid = isValidVersionTag(tag);
 
       expect(isValid).toBe(true);
     });
 
     it("应该识别无前缀版本号为有效", () => {
       const tag = "1.0.0";
-      const isValid = /\d/.test(tag);
+      const isValid = isValidVersionTag(tag);
 
       expect(isValid).toBe(true);
     });
 
     it("应该识别带前缀的单数字版本为有效", () => {
       const tag = "v1";
-      const isValid = /\d/.test(tag);
+      const isValid = isValidVersionTag(tag);
 
       expect(isValid).toBe(true);
     });
@@ -463,7 +506,7 @@ describe("Tag 功能测试", () => {
         "v",
         "v2.0.0",
       ];
-      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+      const invalidTags = allTags.filter((tag) => !isValidVersionTag(tag));
 
       expect(invalidTags).toEqual(["vnull", "vundefined", "v"]);
       expect(invalidTags.length).toBe(3);
@@ -471,7 +514,7 @@ describe("Tag 功能测试", () => {
 
     it("应该在没有无效标签时返回空数组", () => {
       const allTags = ["v1.0.0", "v1.1.0", "v2.0.0", "release-1.0.0"];
-      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+      const invalidTags = allTags.filter((tag) => !isValidVersionTag(tag));
 
       expect(invalidTags).toEqual([]);
       expect(invalidTags.length).toBe(0);
@@ -479,7 +522,7 @@ describe("Tag 功能测试", () => {
 
     it("应该在全是无效标签时返回所有标签", () => {
       const allTags = ["vnull", "vundefined", "v", "release"];
-      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+      const invalidTags = allTags.filter((tag) => !isValidVersionTag(tag));
 
       expect(invalidTags).toEqual(allTags);
       expect(invalidTags.length).toBe(4);
@@ -493,7 +536,7 @@ describe("Tag 功能测试", () => {
         "vundefined",
         "v2.0.0-beta.1",
       ];
-      const validTags = allTags.filter((tag) => /\d/.test(tag));
+      const validTags = allTags.filter(isValidVersionTag);
 
       expect(validTags).toEqual(["v1.0.0", "v1.1.0", "v2.0.0-beta.1"]);
       expect(validTags.length).toBe(3);
@@ -501,7 +544,7 @@ describe("Tag 功能测试", () => {
 
     it("应该处理空标签列表", () => {
       const allTags: string[] = [];
-      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+      const invalidTags = allTags.filter((tag) => !isValidVersionTag(tag));
 
       expect(invalidTags).toEqual([]);
       expect(invalidTags.length).toBe(0);
@@ -516,7 +559,7 @@ describe("Tag 功能测试", () => {
         "g1.0.0",
         "tag",
       ];
-      const invalidTags = allTags.filter((tag) => !/\d/.test(tag));
+      const invalidTags = allTags.filter((tag) => !isValidVersionTag(tag));
 
       expect(invalidTags).toEqual(["vnull", "release-", "hotfix", "tag"]);
       expect(invalidTags.length).toBe(4);

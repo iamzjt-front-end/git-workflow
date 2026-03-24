@@ -144,6 +144,7 @@ gw init
   "featureIdLabel": "Jira ID",
   "hotfixIdLabel": "Bug ID",
   "defaultTagPrefix": "v",
+  "tagLookupStrategy": "latest",
   "autoPush": true,
   "autoStage": true,
   "useEmoji": true,
@@ -186,6 +187,7 @@ gw init
 | 配置项             | 类型     | 默认值 | 说明                              |
 | ------------------ | -------- | ------ | --------------------------------- |
 | `defaultTagPrefix` | `string` | -      | 默认 tag 前缀，设置后跳过选择步骤 |
+| `tagLookupStrategy` | `"all" \| "latest"` | `"latest"` | tag 递增基准策略：`latest` 优先基于最新创建的 tag，`all` 按版本全量排序 |
 
 ### 提交配置
 

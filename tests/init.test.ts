@@ -40,6 +40,74 @@ describe("Init 模块测试", () => {
   const mockJoin = vi.mocked(join);
   const mockHomedir = vi.mocked(homedir);
 
+  async function mockBasicInitFlow(options?: {
+    scope?: "global" | "project";
+    exists?: boolean;
+    overwrite?: boolean;
+    requireId?: boolean;
+    featureRequireDescription?: boolean;
+    hotfixRequireDescription?: boolean;
+    tagLookupStrategy?: "all" | "latest";
+    autoPushChoice?: "ask" | "yes" | "no";
+    autoStage?: boolean;
+    useEmoji?: boolean;
+    enableAI?: boolean;
+    inputs?: {
+      baseBranch?: string;
+      featurePrefix?: string;
+      hotfixPrefix?: string;
+      featureIdLabel?: string;
+      hotfixIdLabel?: string;
+      defaultTagPrefix?: string;
+    };
+  }) {
+    const {
+      scope = "project",
+      exists = false,
+      overwrite,
+      requireId = false,
+      featureRequireDescription = false,
+      hotfixRequireDescription = false,
+      tagLookupStrategy = "latest",
+      autoPushChoice = "ask",
+      autoStage = true,
+      useEmoji = true,
+      enableAI = false,
+      inputs = {},
+    } = options ?? {};
+
+    mockExistsSync.mockReturnValue(exists);
+
+    const { select, input } = await import("@inquirer/prompts");
+    const selectMock = vi.mocked(select);
+    const inputMock = vi.mocked(input);
+
+    selectMock.mockResolvedValueOnce(scope);
+    if (exists) {
+      selectMock.mockResolvedValueOnce(overwrite ?? true);
+    }
+
+    selectMock
+      .mockResolvedValueOnce(requireId)
+      .mockResolvedValueOnce(featureRequireDescription)
+      .mockResolvedValueOnce(hotfixRequireDescription)
+      .mockResolvedValueOnce(tagLookupStrategy)
+      .mockResolvedValueOnce(autoPushChoice)
+      .mockResolvedValueOnce(autoStage)
+      .mockResolvedValueOnce(useEmoji)
+      .mockResolvedValueOnce(enableAI);
+
+    inputMock
+      .mockResolvedValueOnce(inputs.baseBranch ?? "")
+      .mockResolvedValueOnce(inputs.featurePrefix ?? "feature")
+      .mockResolvedValueOnce(inputs.hotfixPrefix ?? "hotfix")
+      .mockResolvedValueOnce(inputs.featureIdLabel ?? "Story ID")
+      .mockResolvedValueOnce(inputs.hotfixIdLabel ?? "Issue ID")
+      .mockResolvedValueOnce(inputs.defaultTagPrefix ?? "");
+
+    return { select: selectMock, input: inputMock };
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
@@ -53,24 +121,7 @@ describe("Init 模块测试", () => {
 
   describe("配置范围选择", () => {
     it("应该支持全局配置", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("global")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ scope: "global" });
       const { init } = await import("../src/commands/init.js");
       await init();
       expect(mockJoin).toHaveBeenCalledWith("/home/user", ".gwrc.json");
@@ -81,24 +132,7 @@ describe("Init 模块测试", () => {
     });
 
     it("应该支持项目配置", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ scope: "project" });
       const { init } = await import("../src/commands/init.js");
       await init();
       expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -110,25 +144,7 @@ describe("Init 模块测试", () => {
 
   describe("配置文件覆盖", () => {
     it("应该处理配置文件已存在的情况", async () => {
-      mockExistsSync.mockReturnValue(true);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("global")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ scope: "global", exists: true, overwrite: true });
       const { init } = await import("../src/commands/init.js");
       await init();
       expect(mockWriteFileSync).toHaveBeenCalled();
@@ -149,24 +165,16 @@ describe("Init 模块测试", () => {
 
   describe("基础配置", () => {
     it("应该正确配置分支前缀", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("develop")
-        .mockResolvedValueOnce("feat")
-        .mockResolvedValueOnce("fix")
-        .mockResolvedValueOnce("Jira ID")
-        .mockResolvedValueOnce("Bug ID")
-        .mockResolvedValueOnce("v");
+      await mockBasicInitFlow({
+        inputs: {
+          baseBranch: "develop",
+          featurePrefix: "feat",
+          hotfixPrefix: "fix",
+          featureIdLabel: "Jira ID",
+          hotfixIdLabel: "Bug ID",
+          defaultTagPrefix: "v",
+        },
+      });
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -177,27 +185,11 @@ describe("Init 模块测试", () => {
       expect(config.featureIdLabel).toBe("Jira ID");
       expect(config.hotfixIdLabel).toBe("Bug ID");
       expect(config.defaultTagPrefix).toBe("v");
+      expect(config.tagLookupStrategy).toBe("latest");
     });
 
     it("应该正确配置 ID 要求", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ requireId: true });
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -206,57 +198,33 @@ describe("Init 模块测试", () => {
     });
 
     it("应该正确配置自动推送选项", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("yes")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ autoPushChoice: "yes" });
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
       const config = JSON.parse(writtenConfig);
       expect(config.autoPush).toBe(true);
     });
+
+    it("应该支持配置 tagLookupStrategy 为 latest", async () => {
+      await mockBasicInitFlow({ tagLookupStrategy: "latest" });
+      const { init } = await import("../src/commands/init.js");
+      await init();
+      const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
+      const config = JSON.parse(writtenConfig);
+      expect(config.tagLookupStrategy).toBe("latest");
+    });
   });
 
   describe("AI 配置", () => {
     it("应该正确配置 GitHub Models", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
+      const { select, input } = await mockBasicInitFlow({ enableAI: true });
+      select
         .mockResolvedValueOnce("github")
         .mockResolvedValueOnce("zh-CN")
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("ghp_test_token");
+      input.mockResolvedValueOnce("ghp_test_token");
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -269,29 +237,13 @@ describe("Init 模块测试", () => {
     });
 
     it("应该正确配置 OpenAI", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
+      const { select, input } = await mockBasicInitFlow({ enableAI: true });
+      select
         .mockResolvedValueOnce("openai")
         .mockResolvedValueOnce("en-US")
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("sk-test-key");
+      input.mockResolvedValueOnce("sk-test-key");
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -304,28 +256,12 @@ describe("Init 模块测试", () => {
     });
 
     it("应该正确配置 Ollama", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
+      const { select } = await mockBasicInitFlow({ enableAI: true });
+      select
         .mockResolvedValueOnce("ollama")
         .mockResolvedValueOnce("zh-CN")
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -338,24 +274,7 @@ describe("Init 模块测试", () => {
     });
 
     it("应该正确配置禁用 AI", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ enableAI: false });
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -366,29 +285,13 @@ describe("Init 模块测试", () => {
 
   describe("配置验证", () => {
     it("应该验证 GitHub Token 不为空", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
+      const { select, input } = await mockBasicInitFlow({ enableAI: true });
+      select
         .mockResolvedValueOnce("github")
         .mockResolvedValueOnce("zh-CN")
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("ghp_valid_token");
+      input.mockResolvedValueOnce("ghp_valid_token");
       const { init } = await import("../src/commands/init.js");
       await init();
       const inputCalls = vi.mocked(input).mock.calls;
@@ -403,29 +306,13 @@ describe("Init 模块测试", () => {
     });
 
     it("应该验证 OpenAI API Key 不为空", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
+      const { select, input } = await mockBasicInitFlow({ enableAI: true });
+      select
         .mockResolvedValueOnce("openai")
         .mockResolvedValueOnce("en-US")
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("sk-valid-key");
+      input.mockResolvedValueOnce("sk-valid-key");
       const { init } = await import("../src/commands/init.js");
       await init();
       const inputCalls = vi.mocked(input).mock.calls;
@@ -442,24 +329,7 @@ describe("Init 模块测试", () => {
 
   describe("配置输出", () => {
     it("应该包含默认的 commit emojis", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("project")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow();
       const { init } = await import("../src/commands/init.js");
       await init();
       const writtenConfig = mockWriteFileSync.mock.calls[0][1] as string;
@@ -471,24 +341,7 @@ describe("Init 模块测试", () => {
     });
 
     it("应该显示成功消息", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("global")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ scope: "global" });
       const { init } = await import("../src/commands/init.js");
       await init();
       expect(console.log).toHaveBeenCalledWith(
@@ -497,24 +350,7 @@ describe("Init 模块测试", () => {
     });
 
     it("应该显示全局配置的提示信息", async () => {
-      mockExistsSync.mockReturnValue(false);
-      const { select, input } = await import("@inquirer/prompts");
-      vi.mocked(select)
-        .mockResolvedValueOnce("global")
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce("ask")
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      vi.mocked(input)
-        .mockResolvedValueOnce("")
-        .mockResolvedValueOnce("feature")
-        .mockResolvedValueOnce("hotfix")
-        .mockResolvedValueOnce("Story ID")
-        .mockResolvedValueOnce("Issue ID")
-        .mockResolvedValueOnce("");
+      await mockBasicInitFlow({ scope: "global" });
       const { init } = await import("../src/commands/init.js");
       await init();
       expect(console.log).toHaveBeenCalledWith(

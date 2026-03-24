@@ -35,6 +35,7 @@ describe("Config 模块测试", () => {
         hotfixIdLabel: "Issue ID",
         autoStage: true,
         useEmoji: true,
+        tagLookupStrategy: "latest",
       });
     });
   });
@@ -91,6 +92,23 @@ describe("Config 模块测试", () => {
       const config = loadConfig();
 
       expect(config.autoPush).toBe(true);
+    });
+
+    it("应该加载 tagLookupStrategy 配置", () => {
+      const mockConfig = {
+        tagLookupStrategy: "latest" as const,
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === ".gwrc.json";
+      });
+
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockConfig));
+      vi.mocked(execOutput).mockReturnValue("");
+
+      const config = loadConfig();
+
+      expect(config.tagLookupStrategy).toBe("latest");
     });
   });
 

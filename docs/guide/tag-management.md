@@ -436,6 +436,19 @@ jobs:
 
 设置后，创建标签时会跳过前缀选择步骤。
 
+### Tag 基准策略
+
+```json
+{
+  "defaultTagPrefix": "v",
+  "tagLookupStrategy": "latest"
+}
+```
+
+`tagLookupStrategy` 支持两种模式：
+- `all`：全量拉取并按版本号排序，兼容当前默认行为
+- `latest`：优先基于最新创建的 tag 递增，适合历史上出现过误打高版本 tag 的仓库；如果本地没有该前缀的 tag，会自动回退一次全量同步
+
 ### 版本格式配置
 
 ```json
