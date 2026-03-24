@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## [v0.5.3](https://github.com/iamzjt-front-end/git-workflow/compare/v0.5.2...v0.5.3) (2026-02-06)
+
+- 🔖 chore(release): 发布 v0.5.3 ([a6b327d](https://github.com/iamzjt-front-end/git-workflow/commit/a6b327d))
+- docs(review): Clarify commit range syntax and refactor parsing logic ([63a77d2](https://github.com/iamzjt-front-end/git-workflow/commit/63a77d2))
+- 📝 docs: 自动更新测试数量徽章 [skip ci] ([21e365c](https://github.com/iamzjt-front-end/git-workflow/commit/21e365c))
+- feat(review): Add commit range syntax support and improve update notifier ([93184b0](https://github.com/iamzjt-front-end/git-workflow/commit/93184b0))
+
 ## [v0.5.2](https://github.com/iamzjt-front-end/git-workflow/compare/v0.5.1...v0.5.2) (2026-02-06)
 
 - 🔖 chore(release): 发布 v0.5.2 ([d2b659c](https://github.com/iamzjt-front-end/git-workflow/commit/d2b659c))
