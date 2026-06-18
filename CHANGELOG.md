@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## [v0.6.0](https://github.com/iamzjt-front-end/git-workflow/compare/v0.5.3...v0.6.0) (2026-03-24)
+
+- 🔖 chore(release): 发布 v0.6.0 ([0cc3dbd](https://github.com/iamzjt-front-end/git-workflow/commit/0cc3dbd))
+- 📝 docs: 自动更新测试数量徽章 [skip ci] ([ba1b5b9](https://github.com/iamzjt-front-end/git-workflow/commit/ba1b5b9))
+- feat(docs): 添加 Tag 递增基准策略说明和配置选项 ([a2a39ee](https://github.com/iamzjt-front-end/git-workflow/commit/a2a39ee))
+- chore(package): 更新 Node.js 版本要求至 21.3.0 ([cb63bd9](https://github.com/iamzjt-front-end/git-workflow/commit/cb63bd9))
+
 ## [v0.5.3](https://github.com/iamzjt-front-end/git-workflow/compare/v0.5.2...v0.5.3) (2026-02-06)
 
 - 🔖 chore(release): 发布 v0.5.3 ([a6b327d](https://github.com/iamzjt-front-end/git-workflow/commit/a6b327d))
