@@ -268,7 +268,6 @@ Git Workflow 提供了优雅的命令行界面：
 | `gw ts` | 列出 tags            | `gw ts v`               |
 | `gw td` | 删除 tag             | `gw td`                 |
 | `gw tu` | 修改 tag             | `gw tu`                 |
-| `gw upt`| 更新工具             | `gw upt`                |
 
 ## 🎯 下一步
 
@@ -285,7 +284,7 @@ Git Workflow 提供了优雅的命令行界面：
 
 1. **查看帮助** - 运行 `gw --help` 或 `gw` 选择帮助选项
 2. **检查版本** - 运行 `gw --version` 确保使用最新版本
-3. **更新工具** - 运行 `gw upt` 更新到最新版本
+3. **更新工具** - 运行 `npm install -g @zjex/git-workflow@latest` 更新到最新版本
 4. **查看文档** - 浏览完整的 [命令参考](/commands/)
 5. **反馈问题** - 在 [GitHub Issues](https://github.com/iamzjt-front-end/git-workflow/issues) 提交问题
 

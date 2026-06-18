@@ -83,7 +83,6 @@ git-workflow/
 │   │   ├── stash.ts      # Stash 管理
 │   │   ├── release.ts    # 发布管理
 │   │   ├── log.ts        # 日志查看
-│   │   ├── update.ts     # 更新检查
 │   │   └── init.ts       # 初始化配置
 │   ├── ai-service.ts     # AI 服务
 │   ├── config.ts         # 配置管理

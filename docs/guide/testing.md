@@ -69,7 +69,6 @@ tests/
 ├── stash.test.ts           # Stash 管理测试
 ├── release.test.ts         # 发布管理测试
 ├── log.test.ts             # 日志查看测试
-├── update.test.ts          # 更新检查测试
 ├── config.test.ts          # 配置管理测试
 ├── utils.test.ts           # 工具函数测试
 ├── commands.test.ts        # 命令别名测试

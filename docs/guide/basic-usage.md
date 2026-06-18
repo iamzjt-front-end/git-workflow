@@ -364,21 +364,15 @@ gw init
 
 ## 🔄 工具更新
 
-### 检查和更新
+### 安装最新版本
 
 ```bash
-gw upt
+npm install -g @zjex/git-workflow@latest
 ```
 
-**更新流程：**
+**验证版本：**
 ```bash
-🔍 检查更新...
-
-🎉 发现新版本！
-0.2.24  →  0.2.25
-
-✔ 更新成功！
-请重新打开终端使用新版本
+hash -r && gw --version
 ```
 
 ## 🎯 日常开发示例
@@ -479,7 +473,6 @@ gw d
 | `gw r`  | 发布版本             | `gw r`                  |
 | `gw ts` | 列出 tags            | `gw ts v`               |
 | `gw td` | 删除 tag             | `gw td`                 |
-| `gw upt`| 更新工具             | `gw upt`                |
 
 ### 分支命名规范
 

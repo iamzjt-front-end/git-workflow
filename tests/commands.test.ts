@@ -137,17 +137,6 @@ describe("命令别名测试", () => {
     });
   });
 
-  describe("更新命令", () => {
-    it("应该支持 update 命令及其别名", () => {
-      const commands = ["update", "upt"];
-
-      commands.forEach((cmd) => {
-        const isValid = cmd === "update" || cmd === "upt";
-        expect(isValid).toBe(true);
-      });
-    });
-  });
-
   describe("清理命令", () => {
     it("应该支持 clean 命令及其别名", () => {
       const commands = ["clean", "cc"];
@@ -229,7 +218,6 @@ describe("命令别名测试", () => {
         "l",
         "ls",
         "r",
-        "upt",
         "cc",
       ];
 
@@ -275,7 +263,6 @@ describe("命令别名测试", () => {
     it("三字母别名应该是较少使用的命令", () => {
       const threeLetterAliases = {
         brd: "br:del",
-        upt: "update",
       };
 
       Object.entries(threeLetterAliases).forEach(([alias, command]) => {
@@ -347,8 +334,8 @@ describe("命令别名测试", () => {
     });
 
     it("应该有工具管理命令组", () => {
-      const toolCommands = ["init", "update", "clean"];
-      expect(toolCommands.length).toBe(3);
+      const toolCommands = ["init", "clean"];
+      expect(toolCommands.length).toBe(2);
     });
 
     it("应该有其他辅助命令组", () => {
@@ -373,11 +360,10 @@ describe("命令别名测试", () => {
         "stash",
         "release",
         "init",
-        "update",
         "clean",
       ];
 
-      expect(mainCommands.length).toBe(15);
+      expect(mainCommands.length).toBe(14);
     });
 
     it("应该有正确数量的别名", () => {
@@ -399,11 +385,10 @@ describe("命令别名测试", () => {
         "s",
         "st",
         "r",
-        "upt",
         "cc",
       ];
 
-      expect(aliases.length).toBe(19);
+      expect(aliases.length).toBe(18);
     });
   });
 });

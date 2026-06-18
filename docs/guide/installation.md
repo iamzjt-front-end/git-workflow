@@ -225,35 +225,21 @@ gw f  # 测试分支创建
 
 ## 🔄 更新
 
-### 检查更新
+### 更新到最新版本
 
-Git Workflow 会自动检查更新，也可以手动检查：
+Git Workflow 会自动检查新版本。需要更新时，直接使用包管理器安装最新版本：
 
 ```bash
-gw upt
+npm install -g @zjex/git-workflow@latest
 ```
 
-### 自动更新
-
-工具会在每次运行时检查更新（非阻塞），发现新版本时会提示。
-
-### 手动更新
-
-如果自动更新失败，可以手动更新：
+如果使用 Volta：
 
 ```bash
-# npm
-npm update -g @zjex/git-workflow
-
-# pnpm
-pnpm update -g @zjex/git-workflow
-
-# yarn
-yarn global upgrade @zjex/git-workflow
-
-# Volta
 volta install @zjex/git-workflow@latest
 ```
+
+更新后可以执行 `hash -r && gw --version` 验证版本。
 
 ## 🗑️ 卸载
 
@@ -439,7 +425,7 @@ gw init --reset
 
 ## 💡 提示
 
-- **定期更新** - 运行 `gw upt` 保持工具最新
+- **定期更新** - 运行 `npm install -g @zjex/git-workflow@latest` 保持工具最新
 - **备份配置** - 重要的配置文件建议备份
 - **团队共享** - 项目配置可以提交到版本控制
 - **问题反馈** - 遇到问题请在 [GitHub Issues](https://github.com/iamzjt-front-end/git-workflow/issues) 反馈

@@ -212,6 +212,36 @@ describe("Update Notifier 模块测试", () => {
         checkForUpdates("1.0.0", "@zjex/git-workflow", true)
       ).rejects.toThrow();
     });
+
+    it("选择更新时应该只显示更新命令，不直接安装", async () => {
+      vi.mocked(execSync).mockReturnValue("/usr/local/bin/gw" as any);
+
+      const mockCache = {
+        lastCheck: Date.now(),
+        latestVersion: "1.0.1",
+        checkedVersion: "1.0.0",
+      };
+
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockCache));
+
+      const { select } = await import("@inquirer/prompts");
+      vi.mocked(select).mockResolvedValue("update");
+
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      await checkForUpdates("1.0.0", "@zjex/git-workflow", true);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("npm install -g @zjex/git-workflow@latest"),
+      );
+      expect(execSync).not.toHaveBeenCalledWith(
+        expect.stringContaining("npm install"),
+        expect.anything(),
+      );
+
+      consoleSpy.mockRestore();
+    });
   });
 
   describe("Volta 检测", () => {
@@ -375,7 +405,7 @@ describe("Update Notifier 模块测试", () => {
       expect(marginConfig.right).toBeGreaterThanOrEqual(0);
     });
 
-    it("更新成功通知应该有底部边距", () => {
+    it("更新命令通知应该有底部边距", () => {
       const marginConfig = { top: 0, bottom: 1, left: 2, right: 2 };
 
       expect(marginConfig.top).toBe(0);

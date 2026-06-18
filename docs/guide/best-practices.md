@@ -417,7 +417,7 @@ npx husky add .husky/pre-commit "gw --check-branch-name"
 
 ### 工具更新
 
-- 定期更新到最新版本：`gw upt`
+- 定期更新到最新版本：`npm install -g @zjex/git-workflow@latest`
 - 关注新功能和改进
 - 参与社区讨论和贡献
 

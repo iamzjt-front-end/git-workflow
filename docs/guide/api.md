@@ -472,24 +472,6 @@ async function release(): Promise<void>;
 4. 创建 tag
 5. 推送到远程
 
-### update.ts - 更新检查
-
-#### 主要函数
-
-##### checkUpdate()
-
-检查是否有新版本。
-
-```typescript
-async function checkUpdate(): Promise<void>;
-```
-
-**功能：**
-
-1. 获取最新版本信息
-2. 比较当前版本
-3. 显示更新提示
-
 ## 使用示例
 
 ### 示例 1: 自定义分支创建

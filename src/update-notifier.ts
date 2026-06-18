@@ -4,7 +4,6 @@ import { homedir } from "os";
 import { join } from "path";
 import boxen from "boxen";
 import { select } from "@inquirer/prompts";
-import ora from "ora";
 import semver from "semver";
 import { colors } from "./utils.js";
 
@@ -52,12 +51,12 @@ export async function checkForUpdates(
           );
 
           if (action === "update") {
-            await performUpdate(packageName);
+            showUpdateCommand(packageName);
           } else if (action === "dismiss") {
             writeCache({ ...cache, lastDismiss: now });
           }
         } else {
-          showSimpleNotification(currentVersion, cache.latestVersion);
+          showSimpleNotification(currentVersion, cache.latestVersion, packageName);
         }
       }
     }
@@ -130,14 +129,26 @@ function isUsingVolta(): boolean {
 }
 
 /**
+ * 获取推荐更新命令
+ */
+function getUpdateCommand(packageName: string): string {
+  return isUsingVolta()
+    ? `volta install ${packageName}@latest`
+    : `npm install -g ${packageName}@latest`;
+}
+
+/**
  * 显示简单的更新通知（非交互式，不阻塞）
  */
-function showSimpleNotification(current: string, latest: string): void {
+function showSimpleNotification(
+  current: string,
+  latest: string,
+  packageName: string
+): void {
+  const updateCommand = getUpdateCommand(packageName);
   const message = `${colors.yellow("🎉 发现新版本")} ${colors.dim(
     current
-  )} → ${colors.green(latest)}    ${colors.dim("运行")} ${colors.cyan(
-    "gw update"
-  )} ${colors.dim("更新")}`;
+  )} → ${colors.green(latest)}    ${colors.dim("运行")} ${colors.cyan(updateCommand)}`;
 
   console.log(
     boxen(message, {
@@ -177,19 +188,16 @@ async function showUpdateMessage(
     })
   );
 
-  const usingVolta = isUsingVolta();
-  const updateCommand = usingVolta
-    ? `volta install ${packageName}@latest`
-    : `npm install -g ${packageName}@latest`;
+  const updateCommand = getUpdateCommand(packageName);
 
   try {
     const action = await select({
       message: "你想做什么？",
       choices: [
         {
-          name: "🚀 立即更新",
+          name: "📦 显示更新命令",
           value: "update",
-          description: `运行 ${updateCommand}`,
+          description: updateCommand,
         },
         {
           name: "⏭️  稍后更新，继续使用",
@@ -213,64 +221,33 @@ async function showUpdateMessage(
 }
 
 /**
- * 执行更新
+ * 显示手动更新命令
  */
-async function performUpdate(packageName: string): Promise<void> {
+function showUpdateCommand(packageName: string): void {
   console.log("");
 
-  const usingVolta = isUsingVolta();
-  const updateCommand = usingVolta
-    ? `volta install ${packageName}@latest`
-    : `npm install -g ${packageName}@latest`;
+  const updateCommand = getUpdateCommand(packageName);
 
-  const spinner = ora({
-    text: "正在更新...",
-    spinner: "dots",
-  }).start();
-
-  try {
-    // 根据包管理器选择更新命令
-    execSync(updateCommand, {
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-
-    spinner.succeed(colors.green("更新成功！"));
-
-    // 清理缓存文件
-    clearUpdateCache();
-
-    console.log("");
-    console.log(
-      boxen(
-        [
-          colors.green(colors.bold("✨ 更新完成！")),
-          "",
-          colors.dim("请执行以下命令验证:"),
-          colors.cyan("  hash -r && gw --version"),
-          "",
-          colors.dim("或重新打开终端"),
-        ].join("\n"),
-        {
-          padding: { top: 1, bottom: 1, left: 2, right: 2 },
-          margin: { top: 0, bottom: 1, left: 2, right: 2 },
-          borderStyle: "round",
-          borderColor: "green",
-          align: "left",
-          width: 40,
-        }
-      )
-    );
-
-    // 更新成功后退出，让用户重新运行
-    process.exit(0);
-  } catch (error) {
-    spinner.fail(colors.red("更新失败"));
-    console.log("");
-    console.log(colors.dim("  你可以手动运行以下命令更新:"));
-    console.log(colors.cyan(`  ${updateCommand}`));
-    console.log("");
-  }
+  console.log(
+    boxen(
+      [
+        colors.cyan(colors.bold("📦 手动更新命令")),
+        "",
+        colors.cyan(`  ${updateCommand}`),
+        "",
+        colors.dim("更新后可执行以下命令验证:"),
+        colors.cyan("  hash -r && gw --version"),
+      ].join("\n"),
+      {
+        padding: { top: 1, bottom: 1, left: 2, right: 2 },
+        margin: { top: 0, bottom: 1, left: 2, right: 2 },
+        borderStyle: "round",
+        borderColor: "cyan",
+        align: "left",
+        width: 48,
+      },
+    ),
+  );
 }
 
 /**

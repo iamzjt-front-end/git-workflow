@@ -27,7 +27,6 @@ import { init } from "./commands/init.js";
 import { stash } from "./commands/stash.js";
 import { commit } from "./commands/commit.js";
 import { checkForUpdates } from "./update-notifier.js";
-import { update } from "./commands/update.js";
 import { log, quickLog } from "./commands/log.js";
 import { amendDate } from "./commands/amend-date.js";
 import { amend } from "./commands/amend.js";
@@ -380,13 +379,6 @@ cli
     await checkForUpdates(version, "@zjex/git-workflow");
     checkGitRepo();
     return commit();
-  });
-
-cli
-  .command("update", "检查并更新到最新版本")
-  .alias("upt")
-  .action(async () => {
-    return update(version);
   });
 
 cli

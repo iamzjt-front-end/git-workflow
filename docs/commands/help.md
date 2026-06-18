@@ -54,7 +54,7 @@ Git Workflow v0.3.2 - 极简的 Git 工作流 CLI 工具
   gw td           删除标签
   gw tu           修改标签
   gw init         初始化配置
-  gw upt, update  更新工具
+  gw cc, clean    清理缓存
 
 全局选项:
   -h, --help      显示帮助信息
